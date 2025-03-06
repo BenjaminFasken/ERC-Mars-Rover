@@ -1,0 +1,6 @@
+train: /home/daroe/ERC-Mars-Rover/datasets/Inside/train/images
+val: /home/daroe/ERC-Mars-Rover/datasets/Inside/valid/images
+test: /home/daroe/ERC-Mars-Rover/datasets/Inside/test/images
+
+nc: 1  # Number of classes
+names: ["probe"]  # Class names

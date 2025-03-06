@@ -1,0 +1,5 @@
+Coordinate frames
+https://www.stereolabs.com/docs/positional-tracking/coordinate-frames
+
+Start ZED Node
+ros2 launch zed_wrapper zed_camera.launch.py camera_model:=zed2
