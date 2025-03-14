@@ -26,7 +26,9 @@ class ZEDImageVisualizer(Node):
         self.running = True
         
         # Load the trained YOLO model (adjust path to your trained weights)
-        self.model_path = '/home/daroe/ERC-Mars-Rover/runs/detect/train5/weights/best.pt'  # Update this!
+        #self.model_path = '/home/daroe/ERC-Mars-Rover/runs/detect/train14/weights/best.pt'  # Update this!
+        self.model_path = '/home/daroe/ERC-Mars-Rover/src/probe_detection/models/many_probes_weights.pt'  # Update this!
+
         self.model = YOLO(self.model_path)
         self.get_logger().info(f"Loaded YOLO model from {self.model_path}")
 

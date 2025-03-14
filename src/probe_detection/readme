@@ -3,3 +3,9 @@ https://www.stereolabs.com/docs/positional-tracking/coordinate-frames
 
 Start ZED Node
 ros2 launch zed_wrapper zed_camera.launch.py camera_model:=zed2
+
+See trained models using https://netron.app/
+
+
+#cpp yolo. Only for nvidia gpu
+sudo apt-get install tensorrt

@@ -12,10 +12,12 @@ import termios
 import tty
 import numpy as np
 
+path = "datasets/raw_images/MarsYard0"
+
 class ZEDImageSaver(Node):
     def __init__(self):
         super().__init__('zed_image_saver')
-        self.subscription = self.create_subscription(
+        self.subscription = self.create_subscription(  
             Image,
             '/zed/zed_node/rgb/image_rect_color',
             self.image_callback,
@@ -95,7 +97,7 @@ class ZEDImageSaver(Node):
             self.get_logger().info(f"Ensured contiguous array. Shape: {cv_image.shape}, Type: {cv_image.dtype}")
 
             # Save the full image as-is (BGRA format)
-            filename = f"raw_images/frame_{self.image_count:06d}.jpg"
+            filename = os.path.join(path, f"frame_{self.image_count:06d}.jpg")
             cv2.imwrite(filename, cv_image)
             self.get_logger().info(f"Saved {filename}")
             self.image_count += 1
