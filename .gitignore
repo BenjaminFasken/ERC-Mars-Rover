@@ -1,6 +1,6 @@
-build
-install
-log
+build/
+install/
+log/
 runs
 yolo12s.pt
 datasets/raw_images
