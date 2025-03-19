@@ -71,6 +71,9 @@ class ZEDImageVisualizer(Node):
             if cv_image.shape[2] == 4:  # Check if image has 4 channels (BGRA)
                 cv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGRA2BGR)
 
+            #Rotate image 180 degrees
+            cv_image = cv2.rotate(cv_image, cv2.ROTATE_180)
+
             # Run YOLO inference
             results = self.model.predict(
                 source=cv_image,
