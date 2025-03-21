@@ -7,3 +7,4 @@ datasets/raw_images
 src/zed-ros2-wrapper
 datasets
 raw_images
+erc-mars-rover_perception.tar

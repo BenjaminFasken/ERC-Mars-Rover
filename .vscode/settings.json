@@ -22,5 +22,6 @@
         "unordered_set": "cpp",
         "valarray": "cpp",
         "vector": "cpp"
-    }
+    },
+    "cmake.sourceDirectory": "/home/daroe/ERC-Mars-Rover/src/probe_detection"
 }
