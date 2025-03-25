@@ -1,0 +1,38 @@
+# Use the base image you created
+FROM erc-mars-rover_base:latest
+
+ARG ROS_DISTRO=humble
+ARG BASE_FOLDER=/root/orin
+ARG ROS_WORKSPACE_NAME=ERC-Mars-Rover
+
+# Set up the ERC-Mars-Rover workspace
+WORKDIR ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}
+
+# Copy the existing src/ directory from the host
+COPY src/ src/
+
+# Clone ZED wrapper into the src/ directory
+RUN git clone --recurse-submodules -b humble-v4.1.4 \
+    https://github.com/stereolabs/zed-ros2-wrapper.git \
+    src/zed-ros2-wrapper
+
+# Update and install ROS dependencies
+RUN apt-get update && \
+    rosdep update && \
+    rosdep install --from-paths src --ignore-src -r -y && \
+    rm -rf /var/lib/apt/lists/*
+
+# Source ROS and build the workspace
+RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash && \
+    colcon build --parallel-workers $(nproc) --symlink-install \
+        --event-handlers console_direct+ --base-paths src \
+        --cmake-args \
+            ' -DCMAKE_BUILD_TYPE=Release' \
+            ' -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda-12.6' \
+            ' -DCMAKE_LIBRARY_PATH=/usr/local/cuda-12.6/lib64/stubs' \
+            ' -DCMAKE_CXX_FLAGS=\"-Wl,--allow-shlib-undefined\"' \
+            ' --no-warn-unused-cli' \
+        --packages-skip probe_detection"
+
+# Set the entrypoint to source the workspace
+ENTRYPOINT ["/bin/bash", "-c", "source ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}/install/setup.bash && exec \"$@\"", "bash"]

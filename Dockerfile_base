@@ -135,38 +135,3 @@ RUN apt-get update && \
     rosdep update && \
     apt-get install -y ros-humble-zed-msgs ros-humble-nmea-msgs ros-humble-geographic-msgs ros-humble-image-transport ros-humble-cob-srvs ros-humble-diagnostic-updater ros-humble-robot-localization ros-humble-point-cloud-transport && \
     rm -rf /var/lib/apt/lists/*
-
-##### Clone current directory into the container 
-
-# Set up the ERC-Mars-Rover workspace
-WORKDIR ${BASE_FOLDER}/ERC-Mars-Rover
-
-# Copy the existing src/ directory from the host
-COPY src/ /ERC-Mars-Rover/src/
-
-# Clone ZED wrapper into the src/ directory
-RUN git clone --recurse-submodules -b humble-v4.1.4 \
-    https://github.com/stereolabs/zed-ros2-wrapper.git \
-    ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}/src/zed-ros2-wrapper
-
-RUN apt-get update && \
-rosdep update && \
-rosdep install --from-paths src --ignore-src -r -y && \
-rm -rf /var/lib/apt/lists/*
-
-
-# Source ROS and build the workspace
-RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash && \
-    colcon build --parallel-workers $(nproc) --symlink-install \
-        --event-handlers console_direct+ --base-paths src \
-        --cmake-args \
-            ' -DCMAKE_BUILD_TYPE=Release' \
-            ' -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda-12.6' \
-            ' -DCMAKE_LIBRARY_PATH=/usr/local/cuda-12.6/lib64/stubs' \
-            ' -DCMAKE_CXX_FLAGS=\"-Wl,--allow-shlib-undefined\"' \
-            ' --no-warn-unused-cli' \
-        --packages-skip probe_detection"
-        
-
-# Set the entrypoint to source the workspace
-ENTRYPOINT ["/bin/bash", "-c", "source ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}/install/setup.bash && exec \"$@\"", "bash"]

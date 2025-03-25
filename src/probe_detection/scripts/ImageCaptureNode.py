@@ -12,7 +12,8 @@ import termios
 import tty
 import numpy as np
 
-path = "datasets/raw_images/MarsYard0"
+
+path = "datasets/raw_images/Final"
 
 class ZEDImageSaver(Node):
     def __init__(self):
@@ -25,12 +26,14 @@ class ZEDImageSaver(Node):
         self.bridge = CvBridge()
         self.capturing = False
         self.image_count = 0
+        self.images_seen = 0
         self.running = True
+        self.skip_every_n_image = 3
         self.create_directories()
         self.get_logger().info("Press SPACE to start/pause image capture, ESC to exit.")
         threading.Thread(target=self.key_listener, daemon=True).start()
 
-    def create_directories(self):
+    def create_directories(self): 
         os.makedirs("raw_images", exist_ok=True)  # Single directory for all images
 
     def key_listener(self):
@@ -62,7 +65,9 @@ class ZEDImageSaver(Node):
         if not self.capturing:
             return
 
+        
         try:
+            self.images_seen += 1
             # Ensure the data field is not empty
             if not msg.data or len(msg.data) == 0:
                 self.get_logger().error("Image message data is empty!")
@@ -72,6 +77,10 @@ class ZEDImageSaver(Node):
             expected_size = msg.width * msg.height * 4  # 4 bytes per pixel for bgra8
             if len(msg.data) != expected_size:
                 self.get_logger().error(f"Data size mismatch! Expected {expected_size} bytes, got {len(msg.data)} bytes")
+                return
+
+            # Image is valid, check if 
+            if (self.images_seen % self.skip_every_n_image) != 0:
                 return
 
             # Convert ROS Image to OpenCV format
