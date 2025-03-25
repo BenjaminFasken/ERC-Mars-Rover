@@ -8,6 +8,28 @@ ARG ROS_WORKSPACE_NAME=ERC-Mars-Rover
 # Set up the ERC-Mars-Rover workspace
 WORKDIR ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}
 
+# Install build dependencies for OpenCV 4.10.0 and TensorRT
+RUN apt-get update && \
+    apt-get install -y \
+        build-essential \
+        cmake \
+        git \
+        libgtk2.0-dev \
+        pkg-config \
+        libavcodec-dev \
+        libavformat-dev \
+        libswscale-dev \
+        libtbb-dev \
+        libjpeg-dev \
+        libpng-dev \
+        libtiff-dev \
+        libdc1394-dev \
+        python3-dev \
+        python3-numpy \
+        unzip \
+        wget && \
+    rm -rf /var/lib/apt/lists/*
+
 # Copy the existing src/ directory from the host
 COPY src/ src/
 
@@ -24,15 +46,16 @@ RUN apt-get update && \
 
 # Source ROS and build the workspace
 RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash && \
-    colcon build --parallel-workers $(nproc) --symlink-install \
-        --event-handlers console_direct+ --base-paths src \
-        --cmake-args \
-            ' -DCMAKE_BUILD_TYPE=Release' \
-            ' -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda-12.6' \
-            ' -DCMAKE_LIBRARY_PATH=/usr/local/cuda-12.6/lib64/stubs' \
-            ' -DCMAKE_CXX_FLAGS=\"-Wl,--allow-shlib-undefined\"' \
-            ' --no-warn-unused-cli' \
-        --packages-skip probe_detection"
+colcon build --parallel-workers $(nproc) --symlink-install \
+    --event-handlers console_direct+ --base-paths src \
+    --cmake-args \
+        ' -DCMAKE_BUILD_TYPE=Release' \
+        ' -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda-12.6' \
+        ' -DCMAKE_LIBRARY_PATH=/usr/local/cuda-12.6/lib64/stubs:/usr/lib/aarch64-linux-gnu' \
+        ' -DCMAKE_CXX_FLAGS=\"-Wl,--allow-shlib-undefined\"' \
+        ' -DTENSORRT_INCLUDE_DIR=/usr/include/aarch64-linux-gnu' \
+        ' --no-warn-unused-cli'"
+
 
 # Set the entrypoint to source the workspace
 ENTRYPOINT ["/bin/bash", "-c", "source ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}/install/setup.bash && exec \"$@\"", "bash"]
