@@ -3,95 +3,92 @@
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image
+from interfaces.msg import ProbeSegmentation
 from cv_bridge import CvBridge, CvBridgeError
 from ultralytics import YOLO
 import cv2
-import os
-import threading
-import sys
-import termios
-import tty
 import numpy as np
 
-class ZEDImageVisualizer(Node):
+class SegmentationNode(Node):
     def __init__(self):
-        super().__init__('zed_image_visualizer')
+        super().__init__('segmentation_node')
+        
+        # Subscriber for input image
         self.subscription = self.create_subscription(
             Image,
             '/zed/zed_node/rgb/image_rect_color',
             self.image_callback,
             10)
-        self.bridge = CvBridge()
-        self.visualizing = False
-        self.running = True
         
-        # Load the trained YOLO model (adjust path to your trained weights)
-        #self.model_path = '/home/daroe/ERC-Mars-Rover/runs/detect/train14/weights/best.pt'  # Update this!
-        self.model_path = '/home/daroe/ERC-Mars-Rover/src/probe_detection/models/many_probes_weights.pt'  # Update this!
-
+        # Publisher for segmented image
+        self.image_publisher = self.create_publisher(
+            Image,
+            '/probe_detector/segmented_image',
+            10)
+        
+        # Publisher for detection data
+        self.detection_publisher = self.create_publisher(
+            ProbeSegmentation,
+            '/probe_detector/segmentations',
+            10)
+        
+        self.bridge = CvBridge()
+        
+        # Load YOLO model
+        self.model_path = '/home/daroe/ERC-Mars-Rover/src/probe_detection/models/probe_segmentation.pt'
         self.model = YOLO(self.model_path)
         self.get_logger().info(f"Loaded YOLO model from {self.model_path}")
 
-        self.get_logger().info("Press SPACE to start/pause visualization, ESC to exit.")
-        threading.Thread(target=self.key_listener, daemon=True).start()
-
-    def key_listener(self):
-        fd = sys.stdin.fileno()
-        old_settings = termios.tcgetattr(fd)
-        try:
-            tty.setraw(fd)
-            while self.running:
-                key = sys.stdin.read(1)
-                if key == ' ':  # Space key pressed
-                    self.visualizing = not self.visualizing
-                    state = "Visualizing" if self.visualizing else "Paused"
-                    self.get_logger().info(f"{state} model detections...")
-                elif key == '\x1b':  # ESC key pressed
-                    self.get_logger().info("Exiting...")
-                    self.running = False
-                    cv2.destroyAllWindows()
-                    rclpy.shutdown()
-                    sys.exit(0)
-        finally:
-            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
-
     def image_callback(self, msg):
-        if not self.visualizing:
-            return
-
         try:
             # Convert ROS Image to OpenCV format
             if msg.encoding == "bgra8":
                 cv_image = self.bridge.imgmsg_to_cv2(msg, "bgra8")
             else:
-                self.get_logger().warning(f"Unexpected encoding: {msg.encoding}, falling back to bgr8")
                 cv_image = self.bridge.imgmsg_to_cv2(msg, "bgr8")
 
-            # Convert BGRA to BGR (YOLO expects BGR or RGB, not BGRA)
-            if cv_image.shape[2] == 4:  # Check if image has 4 channels (BGRA)
+            # Convert BGRA to BGR if needed
+            if cv_image.shape[2] == 4:
                 cv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGRA2BGR)
 
-            #Rotate image 180 degrees
+            # Rotate image 180 degrees
             cv_image = cv2.rotate(cv_image, cv2.ROTATE_180)
 
             # Run YOLO inference
             results = self.model.predict(
                 source=cv_image,
-                imgsz=416,  # Match your training size
-                conf=0.25,  # Confidence threshold
-                device=0    # Use GPU
+                imgsz=416,
+                conf=0.25,
+                device=0
             )
+            
+            # Get annotated image
+            segmented_image = results[0].plot()
+            
+            # Publish segmented image
+            segmented_msg = self.bridge.cv2_to_imgmsg(segmented_image, encoding="bgr8")
+            self.image_publisher.publish(segmented_msg)
 
-            # Draw detections on the image
-            annotated_image = results[0].plot()  # Get the annotated image with boxes/labels
-
-            # Display the image with detections
-            cv2.imshow("YOLO Detections", annotated_image)
-            cv2.waitKey(1)  # Update the window (1ms delay)
-
-            # Log some info about detections
-            num_detections = len(results[0].boxes)
-            #self.get_logger().info(f"Detected {num_detections} objects in frame")
+            # Process and publish detection data
+            if results[0].boxes is not None and results[0].masks is not None:
+                for i, (box, mask) in enumerate(zip(results[0].boxes, results[0].masks)):
+                    detection_msg = ProbeSegmentation()
+                    
+                    # Detection ID and class info
+                    detection_msg.id = i
+                    detection_msg.class_name = self.model.names[int(box.cls)]
+                    detection_msg.confidence = float(box.conf)
+                    
+                    # Bounding box [x_min, y_min, x_max, y_max]
+                    detection_msg.box = [float(coord) for coord in box.xyxy[0]]
+                    
+                    # Segmentation mask
+                    mask_data = mask.data[0].cpu().numpy()  # Get mask as numpy array
+                    detection_msg.mask = mask_data.flatten().tolist()
+                    detection_msg.mask_width = mask_data.shape[1]
+                    detection_msg.mask_height = mask_data.shape[0]
+                    
+                    self.detection_publisher.publish(detection_msg)
 
         except CvBridgeError as e:
             self.get_logger().error(f"CvBridge Error: {e}")
@@ -100,7 +97,7 @@ class ZEDImageVisualizer(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    node = ZEDImageVisualizer()
+    node = SegmentationNode()
     rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()

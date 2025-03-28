@@ -25,37 +25,90 @@ set(OpenCV_DIR /usr/local/lib/cmake/opencv4)
 find_package(OpenCV 4.10.0 REQUIRED)
 message(STATUS "Using OpenCV version: ${OpenCV_VERSION}")
 
-# Find TensorRT
-find_library(TENSORRT_LIBRARY nvinfer)
-find_library(TENSORRT_PLUGIN_LIBRARY nvinfer_plugin)
+# Detect architecture
+message(STATUS "Detected processor: ${CMAKE_SYSTEM_PROCESSOR}")
 
-if(NOT TENSORRT_LIBRARY OR NOT TENSORRT_PLUGIN_LIBRARY)
-  message(FATAL_ERROR "TensorRT libraries not found. Please install TensorRT or adjust library paths.")
+# Find CUDA with architecture-specific handling
+find_package(CUDA 12.6 QUIET)
+if(CUDA_FOUND)
+  message(STATUS "CUDA found: ${CUDA_VERSION}")
+else()
+  # Fallback to manual paths based on architecture
+  if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
+    set(CUDA_INCLUDE_DIRS /usr/local/cuda-12植物/include)
+    set(CUDA_LIBRARIES /usr/local/cuda-12.6/lib64/libcudart.so)
+  else()
+    set(CUDA_INCLUDE_DIRS /usr/local/cuda-12.6/include)
+    set(CUDA_LIBRARIES /usr/local/cuda-12.6/lib/libcudart.so)
+  endif()
+  # Verify manual paths
+  if(NOT EXISTS ${CUDA_INCLUDE_DIRS}/cuda.h)
+    message(FATAL_ERROR "CUDA headers not found at ${CUDA_INCLUDE_DIRS}. Adjust CUDA_INCLUDE_DIRS.")
+  endif()
+  if(NOT EXISTS ${CUDA_LIBRARIES})
+    message(FATAL_ERROR "CUDA library not found at ${CUDA_LIBRARIES}. Adjust CUDA_LIBRARIES.")
+  endif()
 endif()
 
-# Default TensorRT include directory for ARM (adjustable via -D)
+# Find TensorRT with architecture-specific paths
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
+  # ARM (e.g., Jetson) default paths
+  set(TENSORRT_DEFAULT_INCLUDE_DIR /usr/include/aarch64-linux-gnu)
+  set(TENSORRT_DEFAULT_LIB_DIR /usr/lib/aarch64-linux-gnu)
+else()
+  # Non-ARM (e.g., x86_64) default paths
+  set(TENSORRT_DEFAULT_INCLUDE_DIR /usr/include/x86_64-linux-gnu)  # Updated
+  set(TENSORRT_DEFAULT_LIB_DIR /usr/lib/x86_64-linux-gnu)         # Updated
+endif()
+
+# Allow override via -D flag
 if(NOT TENSORRT_INCLUDE_DIR)
-  set(TENSORRT_INCLUDE_DIR /usr/include/aarch64-linux-gnu)
+  set(TENSORRT_INCLUDE_DIR ${TENSORRT_DEFAULT_INCLUDE_DIR})
+endif()
+if(NOT TENSORRT_LIB_DIR)
+  set(TENSORRT_LIB_DIR ${TENSORRT_DEFAULT_LIB_DIR})
+endif()
+
+# Find TensorRT libraries
+find_library(TENSORRT_LIBRARY nvinfer HINTS ${TENSORRT_LIB_DIR})
+find_library(TENSORRT_PLUGIN_LIBRARY nvinfer_plugin HINTS ${TENSORRT_LIB_DIR})
+
+if(NOT TENSORRT_LIBRARY OR NOT TENSORRT_PLUGIN_LIBRARY)
+  message(FATAL_ERROR "TensorRT libraries not found. Searched in ${TENSORRT_LIB_DIR}. Adjust TENSORRT_LIB_DIR.")
 endif()
 
 if(NOT EXISTS ${TENSORRT_INCLUDE_DIR}/NvInfer.h)
-  message(FATAL_ERROR "TensorRT headers not found. Please adjust TENSORRT_INCLUDE_DIR.")
+  message(FATAL_ERROR "TensorRT headers not found at ${TENSORRT_INCLUDE_DIR}. Adjust TENSORRT_INCLUDE_DIR.")
 endif()
+
+# Find TensorRT libraries
+find_library(TENSORRT_LIBRARY nvinfer HINTS ${TENSORRT_LIB_DIR})
+find_library(TENSORRT_PLUGIN_LIBRARY nvinfer_plugin HINTS ${TENSORRT_LIB_DIR})
+
+if(NOT TENSORRT_LIBRARY OR NOT TENSORRT_PLUGIN_LIBRARY)
+  message(FATAL_ERROR "TensorRT libraries not found. Searched in ${TENSORRT_LIB_DIR}. Adjust TENSORRT_LIB_DIR.")
+endif()
+
+if(NOT EXISTS ${TENSORRT_INCLUDE_DIR}/NvInfer.h)
+  message(FATAL_ERROR "TensorRT headers not found at ${TENSORRT_INCLUDE_DIR}. Adjust TENSORRT_INCLUDE_DIR.")
+endif()
+
+message(STATUS "Using TensorRT include: ${TENSORRT_INCLUDE_DIR}")
+message(STATUS "Using TensorRT libs: ${TENSORRT_LIBRARY}, ${TENSORRT_PLUGIN_LIBRARY}")
 
 # Add the probe_localizer executable
 add_executable(probe_localizer src/probe_localizer.cpp)
 ament_target_dependencies(probe_localizer rclcpp sensor_msgs cv_bridge geometry_msgs)
+target_include_directories(probe_localizer PUBLIC ${OpenCV_INCLUDE_DIRS})
 target_link_libraries(probe_localizer ${OpenCV_LIBRARIES})
 
-set(CUDA_INCLUDE_DIRS /usr/local/cuda-12.6/include)
-set(CUDA_LIBRARIES /usr/local/cuda-12.6/lib64/libcudart.so)
-
-# Add the yolo executable with TensorRT linking
+# Add the yolo executable with TensorRT and CUDA linking
 add_executable(yolo src/yolo.cpp)
 ament_target_dependencies(yolo rclcpp sensor_msgs cv_bridge geometry_msgs)
 target_include_directories(yolo PUBLIC
   ${TENSORRT_INCLUDE_DIR}
   ${CUDA_INCLUDE_DIRS}
+  ${OpenCV_INCLUDE_DIRS}
 )
 target_link_libraries(yolo
   ${TENSORRT_LIBRARY}
@@ -73,7 +126,7 @@ install(TARGETS yolo
 )
 
 # Include directories
-include_directories(include ${OpenCV_INCLUDE_DIRS})
+include_directories(include)
 
 # Install Python modules
 ament_python_install_package(${PROJECT_NAME})

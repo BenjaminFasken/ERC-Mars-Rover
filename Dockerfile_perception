@@ -30,6 +30,10 @@ RUN apt-get update && \
         wget && \
     rm -rf /var/lib/apt/lists/*
 
+
+#install ultralytics and opencv bridge
+
+
 # Copy the existing src/ directory from the host
 COPY src/ src/
 
