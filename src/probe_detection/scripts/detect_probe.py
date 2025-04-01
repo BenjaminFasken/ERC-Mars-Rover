@@ -8,6 +8,8 @@ from cv_bridge import CvBridge, CvBridgeError
 from ultralytics import YOLO
 import cv2
 import numpy as np
+import os
+from ament_index_python.packages import get_package_share_directory
 
 class SegmentationNode(Node):
     def __init__(self):
@@ -34,8 +36,22 @@ class SegmentationNode(Node):
         
         self.bridge = CvBridge()
         
+        # Get the package share directory and construct the model path
+        package_name = 'probe_detection'
+        try:
+            package_share_dir = get_package_share_directory(package_name)
+            self.model_path = os.path.join(package_share_dir, 'models', 'probe_segmentation.pt')
+        except Exception as e:
+            self.get_logger().error(f"Failed to find package share directory: {e}")
+            raise
+
+        # Verify the file exists
+        self.get_logger().info(f"Looking for model at: {self.model_path}")
+        if not os.path.exists(self.model_path):
+            self.get_logger().error(f"Model file not found at: {self.model_path}")
+            raise FileNotFoundError(f"Model file not found at: {self.model_path}")
+        
         # Load YOLO model
-        self.model_path = '/home/daroe/ERC-Mars-Rover/src/probe_detection/models/probe_segmentation.pt'
         self.model = YOLO(self.model_path)
         self.get_logger().info(f"Loaded YOLO model from {self.model_path}")
 
@@ -73,21 +89,14 @@ class SegmentationNode(Node):
             if results[0].boxes is not None and results[0].masks is not None:
                 for i, (box, mask) in enumerate(zip(results[0].boxes, results[0].masks)):
                     detection_msg = ProbeSegmentation()
-                    
-                    # Detection ID and class info
                     detection_msg.id = i
                     detection_msg.class_name = self.model.names[int(box.cls)]
                     detection_msg.confidence = float(box.conf)
-                    
-                    # Bounding box [x_min, y_min, x_max, y_max]
                     detection_msg.box = [float(coord) for coord in box.xyxy[0]]
-                    
-                    # Segmentation mask
-                    mask_data = mask.data[0].cpu().numpy()  # Get mask as numpy array
+                    mask_data = mask.data[0].cpu().numpy()
                     detection_msg.mask = mask_data.flatten().tolist()
                     detection_msg.mask_width = mask_data.shape[1]
                     detection_msg.mask_height = mask_data.shape[0]
-                    
                     self.detection_publisher.publish(detection_msg)
 
         except CvBridgeError as e:

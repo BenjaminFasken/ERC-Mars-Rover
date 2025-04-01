@@ -60,6 +60,5 @@ colcon build --parallel-workers $(nproc) --symlink-install \
         ' -DTENSORRT_INCLUDE_DIR=/usr/include/aarch64-linux-gnu' \
         ' --no-warn-unused-cli'"
 
-
 # Set the entrypoint to source the workspace
 ENTRYPOINT ["/bin/bash", "-c", "source ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}/install/setup.bash && exec \"$@\"", "bash"]

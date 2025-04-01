@@ -1,4 +1,4 @@
-# probeSegmentation.msg
+# ProbeSegmentation.msg
 uint32 id                  # Detection ID
 string class_name         # Class name of detected object
 float32 confidence        # Confidence score

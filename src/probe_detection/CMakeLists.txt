@@ -19,11 +19,12 @@ find_package(sensor_msgs REQUIRED)
 set(cv_bridge_DIR /opt/ros/humble/lib/cmake/cv_bridge)
 find_package(cv_bridge REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(interfaces REQUIRED)
 
 # Specify OpenCV 4.10.0 from /usr/local
-set(OpenCV_DIR /usr/local/lib/cmake/opencv4)
-find_package(OpenCV 4.10.0 REQUIRED)
-message(STATUS "Using OpenCV version: ${OpenCV_VERSION}")
+# set(OpenCV_DIR /usr/local/lib/cmake/opencv4)
+# find_package(OpenCV 4.10.0 REQUIRED)
+# message(STATUS "Using OpenCV version: ${OpenCV_VERSION}")
 
 # Detect architecture
 message(STATUS "Detected processor: ${CMAKE_SYSTEM_PROCESSOR}")
@@ -97,33 +98,33 @@ message(STATUS "Using TensorRT include: ${TENSORRT_INCLUDE_DIR}")
 message(STATUS "Using TensorRT libs: ${TENSORRT_LIBRARY}, ${TENSORRT_PLUGIN_LIBRARY}")
 
 # Add the probe_localizer executable
-add_executable(probe_localizer src/probe_localizer.cpp)
-ament_target_dependencies(probe_localizer rclcpp sensor_msgs cv_bridge geometry_msgs)
-target_include_directories(probe_localizer PUBLIC ${OpenCV_INCLUDE_DIRS})
-target_link_libraries(probe_localizer ${OpenCV_LIBRARIES})
+# add_executable(probe_localizer src/probe_localizer.cpp)
+# ament_target_dependencies(probe_localizer rclcpp sensor_msgs cv_bridge geometry_msgs)
+# target_include_directories(probe_localizer PUBLIC ${OpenCV_INCLUDE_DIRS})
+# target_link_libraries(probe_localizer ${OpenCV_LIBRARIES})
 
 # Add the yolo executable with TensorRT and CUDA linking
-add_executable(yolo src/yolo.cpp)
-ament_target_dependencies(yolo rclcpp sensor_msgs cv_bridge geometry_msgs)
-target_include_directories(yolo PUBLIC
-  ${TENSORRT_INCLUDE_DIR}
-  ${CUDA_INCLUDE_DIRS}
-  ${OpenCV_INCLUDE_DIRS}
-)
-target_link_libraries(yolo
-  ${TENSORRT_LIBRARY}
-  ${TENSORRT_PLUGIN_LIBRARY}
-  ${CUDA_LIBRARIES}
-  ${OpenCV_LIBRARIES}
-)
+# add_executable(yolo src/yolo.cpp)
+# ament_target_dependencies(yolo rclcpp sensor_msgs cv_bridge geometry_msgs)
+# target_include_directories(yolo PUBLIC
+#   ${TENSORRT_INCLUDE_DIR}
+#   ${CUDA_INCLUDE_DIRS}
+#   ${OpenCV_INCLUDE_DIRS}
+# )
+# target_link_libraries(yolo
+#   ${TENSORRT_LIBRARY}
+#   ${TENSORRT_PLUGIN_LIBRARY}
+#   ${CUDA_LIBRARIES}
+#   ${OpenCV_LIBRARIES}
+# )
 
 # Install the executables
-install(TARGETS probe_localizer
-  DESTINATION lib/${PROJECT_NAME}
-)
-install(TARGETS yolo
-  DESTINATION lib/${PROJECT_NAME}
-)
+# install(TARGETS probe_localizer
+#   DESTINATION lib/${PROJECT_NAME}
+# )
+# install(TARGETS yolo
+#   DESTINATION lib/${PROJECT_NAME}
+# )
 
 # Include directories
 include_directories(include)
@@ -136,6 +137,11 @@ install(PROGRAMS
   scripts/ImageCaptureNode.py
   scripts/detect_probe.py
   DESTINATION lib/${PROJECT_NAME}
+)
+
+# Install model files
+install(DIRECTORY models/
+  DESTINATION share/${PROJECT_NAME}/models
 )
 
 # Install launch files (uncomment if needed)
