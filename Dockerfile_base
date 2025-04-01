@@ -147,6 +147,12 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* && \
     apt-get clean
 
+# Install Cyclone DDS
+RUN apt-get update && apt-get install -y ros-humble-rmw-cyclonedds-cpp && rm -rf /var/lib/apt/lists/*
+
+# Set Cyclone DDS as the default middleware
+ENV RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+
 # Set up the ROS 2 environment every time a new shell starts
 RUN echo "source /opt/ros/humble/setup.bash" >> /root/.bashrc
 
