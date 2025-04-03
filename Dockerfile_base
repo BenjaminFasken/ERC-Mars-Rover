@@ -1,6 +1,5 @@
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Use the latest version of Jetpack as base image
-FROM nvcr.io/nvidia/l4t-jetpack:r36.4.0
+# Replace the base image with the new one
+FROM dustynv/l4t-pytorch:r36.4.0
 
 ARG ROS_DISTRO=humble
 ARG BASE_FOLDER=/root/orin
@@ -13,12 +12,9 @@ ARG ZED_SDK_PATCH=0
 ARG L4T_MAJOR=36
 ARG L4T_MINOR=4
 
-# Avoid prompts with apt-get
 ARG DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update && apt-get install -y cuda-toolkit-12-6 && rm -rf /var/lib/apt/lists/*
-
-# Update apt-get and install necessary packages
+# KEEP: Install additional system packages not necessarily in the base image
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     python3-pip \
@@ -33,13 +29,15 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* && \
     apt-get clean
 
-# Install pip packages
-RUN pip3 install --no-cache-dir setuptools Cython wheel numpy colcon-common-extensions
+# MODIFY: Check if setuptools, Cython, wheel, numpy, and colcon are pre-installed
+# Only install what's missing (assumes numpy might already be there)
+RUN pip3 install --no-cache-dir setuptools Cython wheel colcon-common-extensions
 
 ###################################
 ###     Install cuSPARSELt      ###
 ###################################
 
+# cuSPARSELt
 ARG cuSPARSELt_URL=https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/arm64/cuda-keyring_1.1-1_all.deb
 ARG cuSPARSELt_DEB=cuda-keyring_1.1-1_all.deb
 
@@ -49,26 +47,12 @@ RUN wget --quiet --show-progress --progress=bar:force:noscroll --no-check-certif
     apt-get update && \
     apt-get -y install libcusparselt0 libcusparselt-dev
 
-###################################
-###       Install PyTorch       ###
-###################################
-
-# Use a wheel from Nvidia instead of building from source
-# Check https://developer.download.nvidia.com/compute/redist/jp/v512/pytorch/ for more details
-ARG PYTORCH_URL=https://developer.download.nvidia.com/compute/redist/jp/v61/pytorch/torch-2.5.0a0+872d972e41.nv24.08.17622132-cp310-cp310-linux_aarch64.whl
-ARG PYTORCH_WHL=torch-2.5.0a0+872d972e41.nv24.08.17622132-cp310-cp310-linux_aarch64.whl
-
-
-
-RUN wget --quiet --show-progress --progress=bar:force:noscroll --no-check-certificate ${PYTORCH_URL} -O ${PYTORCH_WHL} && \
-    pip3 install --no-cache-dir --verbose ${PYTORCH_WHL} && \
-    rm ${PYTORCH_WHL}
 
 ###################################
 ###         Install ROS         ###
 ###################################
 
-# Update system locale
+# KEEP: ROS is not included in the base image
 RUN apt-get update && apt-get install -y locales && \
     locale-gen en_US en_US.UTF-8 && \
     update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
@@ -76,27 +60,21 @@ RUN apt-get update && apt-get install -y locales && \
 ENV LANG=en_US.UTF-8
 ENV PYTHONIOENCODING=utf-8
 
-# Set Python3 as default
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
 
-# 
 RUN apt install software-properties-common -y && \
     add-apt-repository universe
     
-# Add the ROS 2 GPG key with apt.
 RUN apt update && apt install curl -y && \
     curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
 
-# Add the repository to your sources list.
 RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" > /etc/apt/sources.list.d/ros2.list
 
 RUN apt update && apt upgrade -y && \
     apt install ros-humble-desktop -y
 
-
-# Install utils
+#Additional utilities and tools
 RUN apt-get update && apt-get install nano && apt-get install iputils-ping
-# Install tools for canbus
 RUN apt-get install busybox && apt-get install iproute2 -y
 RUN apt-get install -y --no-install-recommends zstd wget less cmake curl gnupg2 \
     build-essential python3 python3-pip python3-dev python3-setuptools libusb-1.0-0-dev -y 
@@ -105,9 +83,9 @@ RUN apt-get install libspnav-dev -y && \
     apt-get install libcwiid-dev -y
 RUN apt-get install git -y && \
     apt-get install python3-rosdep2 -y
-RUN  apt-get install kmod
+RUN apt-get install kmod
 
-# PIP packages
+# Check for pre-installed pip packages and install only what's missing
 RUN pip3 install grpcio==1.58.0
 RUN pip3 install skrl==1.3.0
 RUN pip3 install Jetson.GPIO
@@ -117,7 +95,7 @@ RUN pip3 install protobuf
 RUN pip3 install requests 
 RUN pip3 install --no-cache-dir empy==3.3.4
 
-# Install ZED SDK
+# ZED SDK installation
 RUN /bin/bash -c 'echo "# R${L4T_MAJOR} (release), REVISION: ${L4T_MINOR}" > /etc/nv_tegra_release && \
    apt-get update -y || true && \
    wget -q --no-check-certificate -O ZED_SDK_Linux_JP.run \
@@ -129,15 +107,15 @@ RUN /bin/bash -c 'echo "# R${L4T_MAJOR} (release), REVISION: ${L4T_MINOR}" > /et
 
 RUN python3 /usr/local/zed/get_python_api.py
 
-# This symbolic link is needed to use the streaming features on Jetson inside a container
 RUN ln -sf /usr/lib/aarch64-linux-gnu/tegra/libv4l2.so.0 /usr/lib/aarch64-linux-gnu/libv4l2.so
 
-# Install ROS dependencies
+# ROS dependencies
 RUN apt-get update && \
     rosdep update && \
     apt-get install -y ros-humble-zed-msgs ros-humble-nmea-msgs ros-humble-geographic-msgs ros-humble-image-transport ros-humble-cob-srvs ros-humble-diagnostic-updater ros-humble-robot-localization ros-humble-point-cloud-transport && \
     rm -rf /var/lib/apt/lists/*
 
+# TensorRT (may not be fully pre-installed)
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     libnvinfer-dev \
@@ -147,41 +125,9 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* && \
     apt-get clean
 
-# Install Cyclone DDS
+# Cyclone DDS
 RUN apt-get update && apt-get install -y ros-humble-rmw-cyclonedds-cpp && rm -rf /var/lib/apt/lists/*
-
-# Set Cyclone DDS as the default middleware
 ENV RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 
-# Set up the ROS 2 environment every time a new shell starts
+# ROS environment setup
 RUN echo "source /opt/ros/humble/setup.bash" >> /root/.bashrc
-
-# # Download and build OpenCV 4.10.0
-# RUN mkdir -p /tmp/opencv && \
-#     cd /tmp/opencv && \
-#     wget -O opencv-4.10.0.zip https://github.com/opencv/opencv/archive/refs/tags/4.10.0.zip && \
-#     wget -O opencv_contrib-4.10.0.zip https://github.com/opencv/opencv_contrib/archive/refs/tags/4.10.0.zip && \
-#     unzip opencv-4.10.0.zip && \
-#     unzip opencv_contrib-4.10.0.zip && \
-#     mkdir opencv-4.10.0/build && \
-#     cd opencv-4.10.0/build && \
-#     cmake \
-#         -D CMAKE_BUILD_TYPE=Release \
-#         -D CMAKE_INSTALL_PREFIX=/usr/local \
-#         -D OPENCV_EXTRA_MODULES_PATH=/tmp/opencv/opencv_contrib-4.10.0/modules \
-#         -D WITH_CUDA=ON \
-#         -D CUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda-12.6 \
-#         -D WITH_CUDNN=ON \
-#         -D OPENCV_DNN_CUDA=ON \
-#         -D BUILD_opencv_python3=ON \
-#         -D WITH_TBB=ON \
-#         -D WITH_V4L=ON \
-#         -D WITH_LIBV4L=ON \
-#         -D WITH_OPENGL=ON \
-#         -D BUILD_TESTS=OFF \
-#         -D BUILD_PERF_TESTS=OFF \
-#         -D BUILD_EXAMPLES=OFF .. && \
-#     make -j$(nproc) && \
-#     make install && \
-#     ldconfig && \
-#     rm -rf /tmp/opencv

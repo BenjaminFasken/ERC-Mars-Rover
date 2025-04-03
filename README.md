@@ -34,8 +34,14 @@ sudo docker run --runtime=nvidia -it     --name zed_container     --privileged  
 docker start zed_container
 docker attach zed_container
 
+docker start perception_container
+docker attach perception_container
 
 #
 sudo docker build -t erc-mars-rover_base:latest -f Dockerfile_base .
 
 docker build -t erc-mars-rover_perception:latest -f Dockerfile_perception .
+
+pip3 uninstall numpy -y
+
+cd src/probe_detection/scripts/
