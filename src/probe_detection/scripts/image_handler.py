@@ -86,6 +86,21 @@ class SegmentationNode(Node):
         except Exception as e:
             self.get_logger().error(f"Unexpected error in depth callback: {e}")
 
+    def image_handler(self):
+    # check current image pair, if valid process further, or else discard
+    # to be valid a time check must also be made
+    
+    # rotate both the image and the depth: 
+    rgb_image = cv2.rotate(rgb_image, cv2.ROTATE_180)
+    depth_image = cv2.rotate(depth_image, cv2.ROTATE_180)
+    
+    # Infer yolo on image, and find probes
+    #probes = infer_yolo()
+    
+    # Calculate probe localization
+    # if (probes):
+        # probe_locations =  self.compute_probe_location(probes, depth_image)  
+
     def handle_images(self):
         """Process RGB and depth images when both are available."""
         if self.rgb_image is None or self.depth_image is None:
@@ -100,74 +115,19 @@ class SegmentationNode(Node):
         probe_boxes, probe_masks, probe_confidences = self.infer_yolo(rgb_image)
  
         # Calculate probe localization if detections exist
-        if probe_masks:
-            probe_locations = self.compute_probe_location(probe_masks, depth_image)
-            print(probe_locations)
+        if probe_boxes:
+            self.get_logger().info("Probes detected, computing locations...")
+            # Uncomment and implement when ready
+            # probe_locations = self.compute_probe_location(probe_boxes, depth_image)
+            print("hello")  # Temporary debug output
 
-    def compute_probe_location(self, probe_masks, depth_image):
+    def compute_probe_location(self, probes, depth_image):
         """
         Compute 3D locations of probes using depth data.
-
-        Args:
-            probe_masks (List[List[float]]): List of flattened mask arrays from YOLO inference
-            depth_image (np.ndarray): Depth image aligned with the RGB image
-
-        Returns:
-            List[dict]: List of probe locations with depth information
+        Placeholder - implement as needed.
         """
-        probe_locations = []
-
-        # Ensure depth image is a NumPy array
-        if not isinstance(depth_image, np.ndarray):
-            self.get_logger().error("Depth image is not a NumPy array")
-            return probe_locations
-
-        # Process each mask
-        for mask_flat in probe_masks:
-            try:
-                # Reshape the flattened mask to match the depth image dimensions
-                # Assuming mask dimensions match depth image (e.g., 416x416 from YOLO imgsz=416)
-                mask_height, mask_width = depth_image.shape  # Use depth image shape
-                mask = np.array(mask_flat, dtype=np.float32).reshape(mask_height, mask_width)
-
-                # Ensure mask and depth image dimensions match
-                if mask.shape != depth_image.shape:
-                    self.get_logger().error(f"Mask shape {mask.shape} does not match depth image shape {depth_image.shape}")
-                    continue
-
-                # Normalize mask to binary (0 or 1) if it's not already
-                # YOLO masks are typically float32 [0, 1], so threshold at 0.5
-                binary_mask = (mask > 0.5).astype(np.uint8)
-
-                # Extract depth values where the mask is active
-                masked_depth = depth_image[binary_mask == 1]
-
-                # Compute statistics or representative depth (e.g., median)
-                if masked_depth.size > 0:
-                    median_depth = np.median(masked_depth)
-                    mean_depth = np.mean(masked_depth)
-                    # You could also find the centroid of the mask for x, y coordinates
-                    y_coords, x_coords = np.where(binary_mask == 1)
-                    centroid_x = int(np.mean(x_coords))
-                    centroid_y = int(np.mean(y_coords))
-
-                    # Store the location data
-                    probe_location = {
-                        "centroid_x": centroid_x,
-                        "centroid_y": centroid_y,
-                        "median_depth": float(median_depth),
-                        "mean_depth": float(mean_depth),
-                        "num_pixels": int(masked_depth.size)
-                    }
-                    probe_locations.append(probe_location)
-                else:
-                    self.get_logger().warn("No valid depth pixels found in mask")
-
-            except Exception as e:
-                self.get_logger().error(f"Error processing mask: {e}")
-                continue
-
-        return probe_locations
+        # Add your depth-based localization logic here
+        pass
 
     def infer_yolo(self, rgb_image: np.ndarray) -> Tuple[List[List[float]], List[List[float]], List[float]]:
         """
