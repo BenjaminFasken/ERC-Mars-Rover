@@ -3,7 +3,7 @@ from message_filters import ApproximateTimeSynchronizer, Subscriber
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image, PointCloud2
-from interfaces.msg import ProbeSegmentation  # Ensure this is your custom message
+from interfaces.msg import ProbeSegmentation, ProbeLocations 
 from cv_bridge import CvBridge, CvBridgeError
 from ultralytics import YOLO
 from typing import Tuple, List
@@ -11,7 +11,6 @@ import cv2
 import numpy as np
 import os
 from ament_index_python.packages import get_package_share_directory
-from sensor_msgs_py import point_cloud2
 import struct
 
 
@@ -36,6 +35,12 @@ class SegmentationNode(Node):
             Image,
             '/probe_detector/segmented_image',
             10)
+        
+        self.probe_publisher = self.create_publisher(
+            ProbeLocations,
+            '/probe_detector/probe_locations',
+            10
+        )
                    
         self.bridge = CvBridge()
         
@@ -71,27 +76,44 @@ class SegmentationNode(Node):
             
             # If probes are detected, process them
             if probe_masks:
-                probe_locations = self.compute_probe_location(probe_masks, point_cloud, rgb_image)
-                self.get_logger().info(f"Probe locations: {probe_locations}")
+                # Compute locations with confidences
+                probe_locations = self.compute_probe_locations(probe_masks, point_cloud, rgb_image, probe_confidences)
+
+                if probe_locations:
+                    sorted_locations = sorted(probe_locations, key=lambda x: x["confidence"], reverse=True)
+
+                    # Debugging output
+                    print(f"Probe Locations: {sorted_locations}")
+                    
+                    probe_confidences = [float(np.float32(loc["confidence"])) for loc in sorted_locations]
+                    probe_list = [float(np.float32(coord)) for loc in sorted_locations for coord in (loc["x"], loc["y"], loc["z"])]
+       
+                    # Create and publish ProbeLocations message
+                    probe_msg = ProbeLocations()
+                    probe_msg.header = rgb_msg.header
+                    probe_msg.classification_confidence = probe_confidences
+                    probe_msg.num_probes = len(sorted_locations)
+                    probe_msg.probes = probe_list
+
+                    # Publish the message (assuming a publisher exists)
+                    self.probe_publisher.publish(probe_msg)
+                    self.get_logger().info(f"Published {probe_msg.num_probes} probe locations")
+
         
         except CvBridgeError as e:
             self.get_logger().error(f"Failed to process image: {e}")
         except Exception as e:
             self.get_logger().error(f"Unexpected error in image_handler: {e}")
 
-    def compute_probe_location(self, probe_masks: List[np.ndarray], point_cloud: np.ndarray, rgb_image: np.ndarray) -> List[dict]:
+    def compute_probe_locations(self, probe_masks: List[np.ndarray], point_cloud: np.ndarray, rgb_image: np.ndarray, probe_confidences: List[float]) -> List[dict]:
         """Compute 3D locations of probes using depth data."""
-        sample_radius = 4
         probe_locations = []
-        
-        
         
         # extract depth image from point cloud
         x_image = point_cloud[:, :, 0]  # Depth channel
         y_image = point_cloud[:, :, 1]
         z_image = point_cloud[:, :, 2]
         
-           
         for i, mask in enumerate(probe_masks):
             try:
                 position = []    
@@ -110,7 +132,9 @@ class SegmentationNode(Node):
                     #Extract the centroid x,y,z coordinates from the point cloud
                     position = np.array([x_image[centroid_y, centroid_x], y_image[centroid_y, centroid_x], z_image[centroid_y, centroid_x]])
                     
-                    
+                    # Check if the position is valid (not NaN or Inf)
+                    if np.isnan(position).any() or np.isinf(position).any():
+                        continue
                 else:
                     #jump out of current forloop iteration, and continue with the next mask
                     continue  
@@ -118,6 +142,7 @@ class SegmentationNode(Node):
                 probe_location = {
                     "centroid_x": centroid_x,
                     "centroid_y": centroid_y,
+                    "confidence": probe_confidences[i],
                     "x": position[0],
                     "y": position[1],
                     "z": position[2]
@@ -125,21 +150,21 @@ class SegmentationNode(Node):
                 probe_locations.append(probe_location)
                 
                 # publish the depth values next to the probe in the rgb image
-                resized_rgb = cv2.resize(rgb_image, (x_image.shape[1], x_image.shape[0]), interpolation=cv2.INTER_LINEAR)
-                cv2.circle(resized_rgb, (centroid_x, centroid_y), 3, (0, 0, 255), -1)  # Red dot
-                cv2.putText(resized_rgb, f"({position[0]:.2f}, {position[1]:.2f}, {position[2]:.2f})", (centroid_x + 5, centroid_y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
-                try:
-                    segmented_msg = self.bridge.cv2_to_imgmsg(resized_rgb, "bgr8")
-                    self.image_publisher.publish(segmented_msg)
-                except CvBridgeError as e:
-                    self.get_logger().error(f"Failed to publish segmented image: {e}")
+                # resized_rgb = cv2.resize(rgb_image, (x_image.shape[1], x_image.shape[0]), interpolation=cv2.INTER_LINEAR)
+                # cv2.circle(resized_rgb, (centroid_x, centroid_y), 3, (0, 0, 255), -1)  # Red dot
+                # cv2.putText(resized_rgb, f"({position[0]:.2f}, {position[1]:.2f}, {position[2]:.2f})", (centroid_x + 5, centroid_y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+                # try:
+                #     segmented_msg = self.bridge.cv2_to_imgmsg(resized_rgb, "bgr8")
+                #     self.image_publisher.publish(segmented_msg)
+                # except CvBridgeError as e:
+                #     self.get_logger().error(f"Failed to publish segmented image: {e}")
             
                 
             except Exception as e:
                 self.get_logger().error(f"Error processing mask {i}: {e}")
                 continue
 
-            return probe_locations
+        return probe_locations
 
     def infer_yolo(self, rgb_image: np.ndarray) -> Tuple[np.ndarray, List[np.ndarray], np.ndarray]:
         probe_boxes = []
@@ -154,13 +179,15 @@ class SegmentationNode(Node):
                 device=0 
             )
             
-            segmented_image = results[0].plot()
+            # Publish to ros2 the segmented image
+            # annotated_image = results[0].plot()
             # try:
-            #     segmented_msg = self.bridge.cv2_to_imgmsg(segmented_image, "bgr8")
+            #     segmented_msg = self.bridge.cv2_to_imgmsg(annotated_image, "bgr8")
             #     self.image_publisher.publish(segmented_msg)
             # except CvBridgeError as e:
             #     self.get_logger().error(f"Failed to publish segmented image: {e}")
-
+            
+            
             if results[0].boxes is not None and results[0].masks is not None:
                 for i, (box, mask) in enumerate(zip(results[0].boxes, results[0].masks)):
                     try:
