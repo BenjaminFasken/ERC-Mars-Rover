@@ -18,6 +18,8 @@ class SegmentationNode(Node):
     def __init__(self):
         super().__init__('segmentation_node')
         
+        self.previous_time = 0
+        self.fps = 5
         self.confidence_threshold = 0.25
         self.rgb_image = None
         self.depth_image = None
@@ -63,6 +65,13 @@ class SegmentationNode(Node):
             # Extract timestamps for debugging
             rgb_time = rgb_msg.header.stamp.sec + rgb_msg.header.stamp.nanosec * 1e-9
             depth_time = depth_msg.header.stamp.sec + depth_msg.header.stamp.nanosec * 1e-9
+
+            # skip frames if the time difference is too small
+            if self.previous_time + (1 / self.fps) > rgb_time:
+                return
+            else:
+                self.previous_time = rgb_time
+
             self.get_logger().info(f"Synchronized RGB Time: {rgb_time}, Depth Time: {depth_time}")
 
             # Convert RGB image
