@@ -2,7 +2,7 @@
 from message_filters import ApproximateTimeSynchronizer, Subscriber
 import rclpy
 from rclpy.node import Node
-from sensor_msgs.msg import Image, PointCloud2
+from sensor_msgs.msg import Image, CompressedImage, PointCloud2
 from interfaces.msg import ProbeSegmentation, ProbeLocations 
 from cv_bridge import CvBridge, CvBridgeError
 from ultralytics import YOLO
@@ -23,7 +23,7 @@ class SegmentationNode(Node):
         self.depth_image = None
         
         # Inside SegmentationNode.__init__()
-        self.rgb_sub = Subscriber(self, Image, '/zed/zed_node/rgb/image_rect_color')    
+        self.rgb_sub = Subscriber(self, CompressedImage, '/zed/zed_node/rgb/image_rect_color/compressed')    
         self.depth_sub = Subscriber(self, PointCloud2, '/zed/zed_node/point_cloud/cloud_registered')
 
         # Approximate Time Synchronizer
@@ -66,7 +66,8 @@ class SegmentationNode(Node):
             self.get_logger().info(f"Synchronized RGB Time: {rgb_time}, Depth Time: {depth_time}")
 
             # Convert RGB image
-            rgb_image = self.bridge.imgmsg_to_cv2(rgb_msg, desired_encoding='bgr8')
+            np_arr = np.frombuffer(rgb_msg.data, np.uint8)
+            rgb_image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
 
             # Convert pointcloud2
             point_cloud = self.pointcloud2_to_array(depth_msg)
@@ -148,21 +149,29 @@ class SegmentationNode(Node):
                     "z": position[2]
                 }
                 probe_locations.append(probe_location)
-                
-                # publish the depth values next to the probe in the rgb image
-                # resized_rgb = cv2.resize(rgb_image, (x_image.shape[1], x_image.shape[0]), interpolation=cv2.INTER_LINEAR)
-                # cv2.circle(resized_rgb, (centroid_x, centroid_y), 3, (0, 0, 255), -1)  # Red dot
-                # cv2.putText(resized_rgb, f"({position[0]:.2f}, {position[1]:.2f}, {position[2]:.2f})", (centroid_x + 5, centroid_y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
-                # try:
-                #     segmented_msg = self.bridge.cv2_to_imgmsg(resized_rgb, "bgr8")
-                #     self.image_publisher.publish(segmented_msg)
-                # except CvBridgeError as e:
-                #     self.get_logger().error(f"Failed to publish segmented image: {e}")
-            
-                
+                  
             except Exception as e:
                 self.get_logger().error(f"Error processing mask {i}: {e}")
                 continue
+
+
+
+        # publish the depth values next to the probe in the rgb image
+        resized_rgb = cv2.resize(rgb_image, (x_image.shape[1], x_image.shape[0]), interpolation=cv2.INTER_LINEAR)
+        for loc in probe_locations:
+            centroid_x = loc["centroid_x"]
+            centroid_y = loc["centroid_y"]
+            position = [loc["x"], loc["y"], loc["z"]]
+            cv2.circle(resized_rgb, (centroid_x, centroid_y), 3, (0, 0, 255), -1)  # Red dot
+            cv2.putText(resized_rgb, f"({position[0]:.2f}, {position[1]:.2f}, {position[2]:.2f})", 
+                        (centroid_x + 5, centroid_y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+    
+        try:
+            segmented_msg = self.bridge.cv2_to_imgmsg(resized_rgb, "bgr8")
+            self.image_publisher.publish(segmented_msg)
+        except CvBridgeError as e:
+            self.get_logger().error(f"Failed to publish segmented image: {e}")
+
 
         return probe_locations
 

@@ -30,6 +30,8 @@ docker load -i erc-mars-rover_perception.tar
 #allow gpu::::::
 sudo docker run --runtime=nvidia -it     --name zed_container     --privileged     --network=host     -v /lib/modules/$(uname -r):/lib/modules/$(uname -r)     -v /run/nvargus:/run/nvargus     -v /tmp/argus_socket:/tmp/argus_socket     --device=/dev/video0     --entrypoint /bin/bash erc-mars-rover_perception:latest
 
+sudo docker run --runtime=nvidia -it     --name perception_container     --privileged     --network=host     -v /lib/modules/$(uname -r):/lib/modules/$(uname -r)     -v /run/nvargus:/run/nvargus     -v /tmp/argus_socket:/tmp/argus_socket     --device=/dev/video0     --entrypoint /bin/bash erc-mars-rover_perception:latest
+
 # after closed, open again via
 docker start zed_container
 docker attach zed_container
