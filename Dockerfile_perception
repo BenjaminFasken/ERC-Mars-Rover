@@ -38,6 +38,8 @@ RUN pip3 install --no-cache-dir opencv-python>=4.6.0
 
 COPY src/ src/
 
+RUN find src/ -path "*/scripts/*" -type f -exec chmod +x {} \;
+
 RUN git clone --recurse-submodules -b humble-v4.1.4 \
     https://github.com/stereolabs/zed-ros2-wrapper.git \
     src/zed-ros2-wrapper

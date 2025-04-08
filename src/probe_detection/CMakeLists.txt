@@ -21,11 +21,6 @@ find_package(cv_bridge REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(interfaces REQUIRED)
 
-# Specify OpenCV 4.10.0 from /usr/local
-# set(OpenCV_DIR /usr/local/lib/cmake/opencv4)
-# find_package(OpenCV 4.10.0 REQUIRED)
-# message(STATUS "Using OpenCV version: ${OpenCV_VERSION}")
-
 # Detect architecture
 message(STATUS "Detected processor: ${CMAKE_SYSTEM_PROCESSOR}")
 
