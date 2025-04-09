@@ -20,8 +20,9 @@ RUN git clone https://github.com/Nyanziba/AutoFrontierSearch_ros2-humble.git
 RUN git clone https://github.com/ros-navigation/navigation2.git --branch $ROS_DISTRO ./src/navigation2
 
 RUN apt-get update && \
+    apt-get install -y ros-humble-gazebo-ros && \
     rosdep update && \
-    rosdep install --from-paths src --ignore-src -r -y && \
+    rosdep install --from-paths src --ignore-src -r -y --skip-keys="gazebo_ros_pkgs" && \
     rm -rf /var/lib/apt/lists/*
 
 RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash && \
