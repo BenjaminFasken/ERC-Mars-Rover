@@ -11,22 +11,29 @@ COPY src/ src/
 
 RUN find src/ -path "*/scripts/*" -type f -exec chmod +x {} \;
 
-#rtabmap
-
-# frontier exploration
+# Frontier exploration
 RUN git clone https://github.com/Nyanziba/AutoFrontierSearch_ros2-humble.git
 
-# nav2
-RUN git clone https://github.com/ros-navigation/navigation2.git --branch $ROS_DISTRO ./src/navigation2
-
+# Nav2: 
 RUN apt-get update && \
-    apt-get install -y ros-humble-gazebo-ros && \
-    rosdep update && \
-    rosdep install --from-paths src --ignore-src -r -y --skip-keys="gazebo_ros_pkgs" && \
+    /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash && \
+    apt-get install -y \
+    ros-${ROS_DISTRO}-navigation2 \
+    ros-${ROS_DISTRO}-nav2-bringup" && \
     rm -rf /var/lib/apt/lists/*
 
+
+
+
+# Install dependencies
+RUN apt-get update && \
+    rosdep update && \
+    rosdep install --from-paths src --ignore-src -r -y && \
+    rm -rf /var/lib/apt/lists/*
+
+# Build the workspace
 RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash && \
-colcon build --parallel-workers $(nproc) --symlink-install \
+    colcon build --parallel-workers $(nproc) --symlink-install \
     --event-handlers console_direct+ --base-paths src \
     --cmake-args \
         ' -DCMAKE_BUILD_TYPE=Release' \

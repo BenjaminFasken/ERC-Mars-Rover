@@ -171,9 +171,11 @@ class SegmentationNode(Node):
             centroid_x = loc["centroid_x"]
             centroid_y = loc["centroid_y"]
             position = [loc["x"], loc["y"], loc["z"]]
+            confidence = loc["confidence"]
             cv2.circle(resized_rgb, (centroid_x, centroid_y), 3, (0, 0, 255), -1)  # Red dot
-            cv2.putText(resized_rgb, f"({position[0]:.2f}, {position[1]:.2f}, {position[2]:.2f})", 
-                        (centroid_x + 5, centroid_y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+            cv2.putText(resized_rgb, f"conf={confidence:.2f}, x={position[0]:.2f}, y={position[1]:.2f}, z={position[2]:.2f}", 
+                (centroid_x + 5, centroid_y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+    
     
         try:
             segmented_msg = self.bridge.cv2_to_imgmsg(resized_rgb, "bgr8")
