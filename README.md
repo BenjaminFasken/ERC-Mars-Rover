@@ -12,8 +12,6 @@ scp erc-mars-rover_perception2.tar leorover@192.168.0.61:/home/leorover/
 #Home: 192.168.0.61
 
 
-
-
 #Docker
 
 
