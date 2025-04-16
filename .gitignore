@@ -8,3 +8,4 @@ src/zed-ros2-wrapper
 datasets
 raw_images
 erc-mars-rover_perception.tar
+src/gcs/gcs_server/target
