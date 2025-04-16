@@ -1,1 +1,0 @@
-import{E as c,H as r,I as a,ih as i}from"./chunk-MTJQDUEX.js";var p=()=>a(e).canActivate(),e=class t{constructor(o){this.yamcsService=o}canActivate(){return this.yamcsService.clearContext(),!0}static{this.\u0275fac=function(n){return new(n||t)(r(i))}}static{this.\u0275prov=c({token:t,factory:t.\u0275fac,providedIn:"root"})}};export{p as a};
