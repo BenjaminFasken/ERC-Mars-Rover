@@ -19,6 +19,7 @@ endif()
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/ProbeSegmentation.msg"
   "msg/ProbeLocations.msg"
+  "msg/RoverTelemetry.msg"
   DEPENDENCIES builtin_interfaces geometry_msgs std_msgs sensor_msgs
 )
 
