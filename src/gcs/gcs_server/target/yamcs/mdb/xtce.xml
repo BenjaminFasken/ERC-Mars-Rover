@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SpaceSystem name="Rover"
+             xmlns="http://www.omg.org/spec/XTCE/20180204"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://www.omg.org/spec/XTCE/20180204 https://www.omg.org/spec/XTCE/20180204/SpaceSystem.xsd">
+    <TelemetryMetaData>
+        <ParameterTypeSet>
+            <BooleanParameterType name="bool_t">
+                <UnitSet />
+                <IntegerDataEncoding sizeInBits="8" />
+            </BooleanParameterType>
+            <FloatParameterType name="float_t">
+                <UnitSet />
+                <FloatDataEncoding sizeInBits="32" encoding="IEEE754_1985" />
+            </FloatParameterType>
+            <AggregateParameterType name="vec3_t">
+                <MemberList>
+                    <Member name="x" typeRef="float_t" />
+                    <Member name="y" typeRef="float_t" />
+                    <Member name="z" typeRef="float_t" />
+                </MemberList>
+            </AggregateParameterType>
+            <ArrayParameterType name="probe_array_t" arrayTypeRef="vec3_t">
+                <DimensionList>
+                    <Dimension>
+                        <StartingIndex><FixedValue>0</FixedValue></StartingIndex>
+                        <EndingIndex><FixedValue>2</FixedValue></EndingIndex>
+                    </Dimension>
+                </DimensionList>
+            </ArrayParameterType>
+            <ArrayParameterType name="confidence_array_t" arrayTypeRef="float_t">
+                <DimensionList>
+                    <Dimension>
+                        <StartingIndex><FixedValue>0</FixedValue></StartingIndex>
+                        <EndingIndex><FixedValue>2</FixedValue></EndingIndex>
+                    </Dimension>
+                </DimensionList>
+            </ArrayParameterType>
+            <EnumeratedParameterType name="Rover_Mode_Type">
+                <UnitSet />
+                <IntegerDataEncoding sizeInBits="8" />
+                <EnumerationList>
+                    <Enumeration value="0" label="Idle" />
+                    <Enumeration value="1" label="Searching" />
+                    <Enumeration value="2" label="Collecting" />
+                    <Enumeration value="3" label="Returning" />
+                </EnumerationList>
+            </EnumeratedParameterType>
+        </ParameterTypeSet>
+        <ParameterSet>
+            <Parameter name="Connection_Status" parameterTypeRef="bool_t" />
+            <Parameter name="Rover_Position" parameterTypeRef="vec3_t" />
+            <Parameter name="Euler_Rotations" parameterTypeRef="vec3_t" />
+            <Parameter name="Velocity" parameterTypeRef="vec3_t" />
+            <Parameter name="Probe_Positions" parameterTypeRef="probe_array_t" />
+            <Parameter name="Probe_Confidences" parameterTypeRef="confidence_array_t" />
+            <Parameter name="Image_Update" parameterTypeRef="bool_t" />
+            <Parameter name="Battery_Voltage" parameterTypeRef="float_t" />
+            <Parameter name="Battery_Charge" parameterTypeRef="float_t" />
+            <Parameter name="Battery_Change" parameterTypeRef="bool_t" />
+            <Parameter name="Mode" parameterTypeRef="Rover_Mode_Type" />
+        </ParameterSet>
+        <ContainerSet>
+            <SequenceContainer name="RoverTelemetry">
+                <EntryList>
+                    <ParameterRefEntry parameterRef="Connection_Status" />
+                    <ParameterRefEntry parameterRef="Rover_Position" />
+                    <ParameterRefEntry parameterRef="Euler_Rotations" />
+                    <ParameterRefEntry parameterRef="Velocity" />
+                    <ParameterRefEntry parameterRef="Probe_Positions" />
+                    <ParameterRefEntry parameterRef="Probe_Confidences" />
+                    <ParameterRefEntry parameterRef="Image_Update" />
+                    <ParameterRefEntry parameterRef="Battery_Voltage" />
+                    <ParameterRefEntry parameterRef="Battery_Charge" />
+                    <ParameterRefEntry parameterRef="Battery_Change" />
+                    <ParameterRefEntry parameterRef="Mode" />
+                </EntryList>
+            </SequenceContainer>
+        </ContainerSet>
+    </TelemetryMetaData>
+</SpaceSystem>
