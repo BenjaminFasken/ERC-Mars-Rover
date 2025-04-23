@@ -9,10 +9,63 @@
 using ProbeLocations = interfaces::msg::ProbeLocations;
 using ProbeData      = interfaces::msg::ProbeData;
 
-// (unchanged) Probe class …
+// General class to hold probe information
 class Probe
 {
-  // … your existing Probe implementation …
+public:
+  Probe(float x, float y, float z, float confidence) // initialization with coordinates and confidence
+  : x_sum_(x), y_sum_(y), z_sum_(z), confidence_sum_(confidence), count_(1) {} // count is one for the first probe
+
+  // Update the probe with new data
+  // Will be called when a new probe is detected
+  void update(float x, float y, float z, float confidence)
+  {
+    x_sum_ += x;
+    y_sum_ += y;
+    z_sum_ += z;
+    confidence_sum_ += confidence;
+    count_++;
+  }
+
+  // Calculate the distance to another point
+  // Will be used to check if the new probe is close enough to an existing one
+  float distanceTo(float x, float y, float z) const
+  {
+    auto [avg_x, avg_y, avg_z] = getAveragePosition();
+    float dx = avg_x - x;
+    float dy = avg_y - y;
+    float dz = avg_z - z;
+    return std::sqrt(dx * dx + dy * dy + dz * dz);
+  }
+
+  // Get the average position
+  // Serves as the 'actual' position of the probe
+  std::tuple<float, float, float> getAveragePosition() const
+  {
+    return {
+      x_sum_ / count_,
+      y_sum_ / count_,
+      z_sum_ / count_
+    };
+  }
+
+  // Get the average confidence
+  // This is the average confidence of the probe over all detections //! might need tweaking later
+  float getAverageConfidence() const
+  {
+    return confidence_sum_ / count_;
+  }
+
+  // Get the count of detections
+  int getCount() const { return count_; }
+
+// all variables saved in class
+private:
+  float x_sum_;
+  float y_sum_;
+  float z_sum_;
+  float confidence_sum_;
+  int count_;
 };
 
 class ProbeFilteringNode : public rclcpp::Node
@@ -29,7 +82,7 @@ public:
     // subscribe global pose
     pose_sub_ = this->create_subscription<geometry_msgs::msg::PoseWithCovarianceStamped>(
       "localization_pose", 10,
-      std::bind(&ProbeFilteringNode::poseCallback, this, std::placeholders::_1));  // :contentReference[oaicite:3]{index=3}
+      std::bind(&ProbeFilteringNode::poseCallback, this, std::placeholders::_1)); 
 
     publisher_ = this->create_publisher<ProbeData>("filtered_probes", 10);
 
@@ -64,11 +117,11 @@ private:
     // orientation quaternion from pose
     const auto &ori = latest_pose_.pose.pose.orientation;
     tf2::Quaternion q;
-    tf2::fromMsg(ori, q);                                       // convert geometry_msgs→tf2 :contentReference[oaicite:4]{index=4}
+    tf2::fromMsg(ori, q);                                       // convert geometry_msgs→tf2 
 
     // rotate local vector
     tf2::Vector3 local(lx, ly, lz);
-    tf2::Vector3 rotated = tf2::quatRotate(q, local);            // rotate via quaternion :contentReference[oaicite:5]{index=5}
+    tf2::Vector3 rotated = tf2::quatRotate(q, local);            // rotate via quaternion 
 
     // translate into global
     tf2::Vector3 global = trans + rotated;
