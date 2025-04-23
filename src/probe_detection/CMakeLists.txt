@@ -21,6 +21,11 @@ find_package(cv_bridge REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(interfaces REQUIRED)
 
+# 
+find_package(tf2 REQUIRED) 
+find_package(tf2_geometry_msgs REQUIRED) 
+find_package(tf2_ros REQUIRED) 
+
 # Detect architecture
 message(STATUS "Detected processor: ${CMAKE_SYSTEM_PROCESSOR}")
 
@@ -94,7 +99,7 @@ message(STATUS "Using TensorRT libs: ${TENSORRT_LIBRARY}, ${TENSORRT_PLUGIN_LIBR
 
 # Add the probe_filter node
 add_executable(probe_filtering_node src/probe_filtering.cpp)
-ament_target_dependencies(probe_filtering_node rclcpp interfaces)
+ament_target_dependencies(probe_filtering_node rclcpp interfaces geometry_msgs tf2_geometry_msgs tf2 tf2_ros)
 
 
 # Add the probe_localizer executable
