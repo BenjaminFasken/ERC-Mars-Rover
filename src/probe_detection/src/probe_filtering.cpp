@@ -50,13 +50,17 @@ public:
     };
   }
 
+  // Get the average confidence
+  // This is the average confidence of the probe over all detections //! might need tweaking later
   float getAverageConfidence() const
   {
     return confidence_sum_ / count_;
   }
 
+  // Get the count of detections
   int getCount() const { return count_; }
 
+// all variables saved in class
 private:
   float x_sum_;
   float y_sum_;
@@ -65,9 +69,11 @@ private:
   int count_;
 };
 
+// Node definition
 class ProbeFilteringNode : public rclcpp::Node
 {
 public:
+  // Publish and subscribtion definitions
   ProbeFilteringNode()
   : Node("probe_filtering_node")
   {
@@ -81,19 +87,20 @@ public:
   }
 
 private:
+  // Callback function for incoming probe data
   void probeCallback(const ProbeLocations::SharedPtr msg)
   {
-    bool new_probe_found = false;  
-    for (size_t i = 0; i < msg->num_probes; ++i) {
+    bool new_probe_found = false; // Flag to check if a new probe was found
+    for (size_t i = 0; i < msg->num_probes; ++i) { // Loop through all probes
       size_t base = i * 3;
       float x = msg->probes[base + 0];
       float y = msg->probes[base + 1];
       float z = msg->probes[base + 2];
       float confidence = msg->classification_confidence[i];  
-      Probe incoming_probe(x, y, z, confidence);  
+      Probe incoming_probe(x, y, z, confidence); // Create a new Probe object
       bool matched_existing = false;
 
-      for (Probe& tracked : tracked_probes_) {
+      for (Probe& tracked : tracked_probes_) {  // loop though all foudn probes and check for match
         if (tracked.distanceTo(x, y, z) < merge_threshold_) {
           tracked.update(x, y, z, confidence);  // Merge new data into tracked probe
           matched_existing = true;
@@ -101,7 +108,7 @@ private:
         }
       }  
       if (!matched_existing) {
-        tracked_probes_.push_back(incoming_probe);
+        tracked_probes_.push_back(incoming_probe); // Add new probe to tracked probes
         new_probe_found = true;
       }
     }  
@@ -110,6 +117,7 @@ private:
       // Build the ProbeData message using lists to hold all found probe information at once.
       ProbeData msg_out;
       msg_out.stamp = this->get_clock()->now();
+      msg_out.probe_count = tracked_probes_.size(); // Set the total number of detected probes
 
       // For every tracked probe, compute the average position, confidence, and detection count.
       for (const Probe& p : tracked_probes_) {
@@ -118,14 +126,14 @@ private:
         msg_out.y.push_back(avg_y);
         msg_out.z.push_back(avg_z);
         msg_out.confidence.push_back(p.getAverageConfidence());
-        msg_out.count.push_back(p.getCount());
+        msg_out.contribution.push_back(p.getCount());
       }
 
       publisher_->publish(msg_out);
     }
   }
 
-  int merge_threshold_ = 10; // Example threshold, adjust as needed
+  int merge_threshold_ = 10; // threshold for when to merge probes
   std::vector<Probe> tracked_probes_;
   rclcpp::Subscription<ProbeLocations>::SharedPtr subscription_;
   rclcpp::Publisher<ProbeData>::SharedPtr publisher_;
