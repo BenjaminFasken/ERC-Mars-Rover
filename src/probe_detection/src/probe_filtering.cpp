@@ -10,12 +10,15 @@ using std::placeholders::_1;
 using ProbeLocations = interfaces::msg::ProbeLocations;
 using ProbeData = interfaces::msg::ProbeData;  
 
+// General class to hold probe information
 class Probe
 {
 public:
-  Probe(float x, float y, float z, float confidence)
-  : x_sum_(x), y_sum_(y), z_sum_(z), confidence_sum_(confidence), count_(1) {}
+  Probe(float x, float y, float z, float confidence) // initialization with coordinates and confidence
+  : x_sum_(x), y_sum_(y), z_sum_(z), confidence_sum_(confidence), count_(1) {} // count is one for the first probe
 
+  // Update the probe with new data
+  // Will be called when a new probe is detected
   void update(float x, float y, float z, float confidence)
   {
     x_sum_ += x;
@@ -25,6 +28,8 @@ public:
     count_++;
   }
 
+  // Calculate the distance to another point
+  // Will be used to check if the new probe is close enough to an existing one
   float distanceTo(float x, float y, float z) const
   {
     auto [avg_x, avg_y, avg_z] = getAveragePosition();
@@ -34,6 +39,8 @@ public:
     return std::sqrt(dx * dx + dy * dy + dz * dz);
   }
 
+  // Get the average position
+  // Serves as the 'actual' position of the probe
   std::tuple<float, float, float> getAveragePosition() const
   {
     return {
