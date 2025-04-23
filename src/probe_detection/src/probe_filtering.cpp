@@ -1,10 +1,10 @@
 #include "rclcpp/rclcpp.hpp"
 #include "interfaces/msg/probe_locations.hpp"
 #include "interfaces/msg/probe_data.hpp"
-#include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>    // for PoseWithCovarianceStamped :contentReference[oaicite:0]{index=0}
-#include <tf2/LinearMath/Quaternion.h>                          // for tf2::Quaternion :contentReference[oaicite:1]{index=1}
+#include <geometry_msgs/msg/pose_stamped.hpp>                   // for stamped pose messages
+#include <tf2/LinearMath/Quaternion.h>                          // for tf2::Quaternion 
 #include <tf2/LinearMath/Vector3.h>                             // for tf2::Vector3
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>                // for conversions between geometry_msgs and tf2 types :contentReference[oaicite:2]{index=2}
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>                // for conversions between geometry_msgs and tf2 types 
 
 using ProbeLocations = interfaces::msg::ProbeLocations;
 using ProbeData      = interfaces::msg::ProbeData;
@@ -80,7 +80,7 @@ public:
       std::bind(&ProbeFilteringNode::probeCallback, this, std::placeholders::_1));
 
     // subscribe global pose
-    pose_sub_ = this->create_subscription<geometry_msgs::msg::PoseWithCovarianceStamped>(
+    pose_sub_ = this->create_subscription<geometry_msgs::msg::PoseStamped>(
       "localization_pose", 10,
       std::bind(&ProbeFilteringNode::poseCallback, this, std::placeholders::_1)); 
 
@@ -90,12 +90,9 @@ public:
   }
 
 private:
-  // --- pose subscription & cache ---
-  rclcpp::Subscription<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr pose_sub_;
-  geometry_msgs::msg::PoseWithCovarianceStamped latest_pose_;
   bool pose_received_ = false;
 
-  void poseCallback(const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg)
+  void poseCallback(const geometry_msgs::msg::PoseStamped::SharedPtr msg)
   {
     latest_pose_ = *msg;
     pose_received_ = true;
@@ -182,6 +179,10 @@ private:
   std::vector<Probe> tracked_probes_;
   rclcpp::Subscription<ProbeLocations>::SharedPtr subscription_;
   rclcpp::Publisher<ProbeData>::SharedPtr publisher_;
+  
+  // pose subscription
+  rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr pose_sub_;
+  geometry_msgs::msg::PoseStamped latest_pose_;
 };
 
 int main(int argc, char * argv[])
