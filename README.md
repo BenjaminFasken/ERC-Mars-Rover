@@ -1,62 +1,211 @@
-# MARS
-Mars Rover
+# MARS - Leorover ROS2 Workspace
 
-ros2 launch zed_wrapper zed_camera.launch.py camera_model:=zed2
+Welcome to the MARS (Mobile Autonomous Rover System) ROS2 workspace, designed for the Leorover system. This repository contains a complete system comprising three core components:
 
-#Leorover
-docker run -it --entrypoint /bin/bash erc-mars-rover:latest
+- **Vision System**: Handles camera input using a ZED camera.
+- **Navigation System**: Manages autonomous navigation.
+- **Mapping System**: Performs SLAM (Simultaneous Localization and Mapping).
 
-scp erc-mars-rover_perception2.tar leorover@192.168.0.61:/home/leorover/
+These components are containerized into three Docker images:
 
+- **Camera Container**: Interfaces with the ZED camera.
+- **Perception Container**: Runs YOLO for object detection.
+- **Navigation & SLAM Container**: Handles navigation and mapping.
 
-#Home: 192.168.0.61
+This README guides you through setting up, building, and running the system on a compatible device.
 
+## Software prerequisites
 
-#Docker
+To run the MARS system, ensure your setup meets the following requirements:
 
+- **Device**: NVIDIA Jetpack 6.2 compatible device with CUDA developer tools installed.
+- **Storage**: At least 50 GB of free disk space for Docker images.
+- **Software**:
+  - Docker
+  - Docker Compose
+  - Git
 
-sudo docker buildx build --platform linux/arm64 -t erc-mars-rover_base:latest -f Dockerfile-base --load .
+### Step 1: Install Docker
 
+1. Install Docker using the convenience script:
 
-sudo docker buildx build --platform linux/arm64 -t erc-mars-rover_perception:latest -f Dockerfile-perception --load --no-cache=false .
+   ```bash
+   curl -fsSL https://get.docker.com -o get-docker.sh
+   sudo sh get-docker.sh
+   ```
 
+2. **Post-Installation**:
+   To run Docker without `sudo`, add your user to the `docker` group and configure permissions:
+
+   ```bash
+   sudo groupadd docker
+   sudo usermod -aG docker $USER
+   newgrp docker
+   ```
+### Step 2: Install Docker Compose
+
+Install Docker Compose to manage multi-container setups:
+
+```bash
+sudo apt-get update
+sudo apt-get install -y docker-compose-plugin
+```
+
+## Cloning the Repository
+
+Clone the repository to your home directory:
+
+```bash
+cd ~
+git clone git@github.com:BenjaminFasken/ERC-Mars-Rover.git
+```
+
+## Building Docker Images
+
+The system uses three Docker images built from a base image. You can either build the images yourself or load pre-built images from a USB or another system.
+
+### Option 1: Build the Images
+
+Navigate to the repository directory:
+
+```bash
+cd ~/ERC-Mars-Rover
+```
+
+Build the images in the following order:
+
+1. **Base Image**:
+
+   ```bash
+   docker build -t erc-mars-rover_base:latest -f Dockerfile_base .
+   ```
+
+2. **Perception Image**:
+
+   ```bash
+   docker build -t erc-mars-rover_perception:latest -f Dockerfile_perception .
+   ```
+
+3. **Navigation Image**:
+
+   ```bash
+   docker build -t erc-mars-rover_nav:latest -f Dockerfile_nav .
+   ```
+
+> **Note**: Building the images requires significant disk space and time. Ensure at least 50 GB is available.
+
+### Option 2: Transfer Pre-Built Images (Optional)
+
+If you have pre-built images, you can transfer and load them instead of building from scratch.
+
+#### Save Images (On the Source System)
+
+Save the images to files:
+
+```bash
 docker save -o erc-mars-rover_perception.tar erc-mars-rover_perception:latest
+docker save -o erc-mars-rover_nav.tar erc-mars-rover_nav:latest
+```
 
-docker save -o /mnt/ssd/erc-mars-rover_perception.tar erc-mars-rover_perception:latest
+#### Transfer Images
 
+Transfer the files to the target system using SCP (over a local network) or a USB drive. Example using SCP:
 
+```bash
+scp erc-mars-rover_perception.tar leorover@192.168.0.61:/home/leorover/
+```
+
+#### Load Images
+
+On the target system, load the images:
+
+```bash
 docker load -i erc-mars-rover_perception.tar
+docker load -i erc-mars-rover_nav.tar
+```
 
-#allow gpu::::::
-sudo docker run --runtime=nvidia -it     --name zed_container     --privileged     --network=host     -v /lib/modules/$(uname -r):/lib/modules/$(uname -r)     -v /run/nvargus:/run/nvargus     -v /tmp/argus_socket:/tmp/argus_socket     --device=/dev/video0     --entrypoint /bin/bash erc-mars-rover_perception:latest
+## Running the System
 
-sudo docker run --runtime=nvidia -it     --name perception_container     --privileged     --network=host     -v /lib/modules/$(uname -r):/lib/modules/$(uname -r)     -v /run/nvargus:/run/nvargus     -v /tmp/argus_socket:/tmp/argus_socket     --device=/dev/video0     --entrypoint /bin/bash erc-mars-rover_perception:latest
+### Using Docker Compose
 
-sudo docker run --runtime=nvidia -it     --name nav_container     --privileged     --network=host     -v /lib/modules/$(uname -r):/lib/modules/$(uname -r)     -v /run/nvargus:/run/nvargus     -v /tmp/argus_socket:/tmp/argus_socket     --device=/dev/video0     --entrypoint /bin/bash erc-mars-rover_nav:latest
+To start all containers simultaneously, navigate to the repository directory and run:
 
-# after closed, open again via
-docker start zed_container
-docker attach zed_container
+```bash
+cd ~/ERC-Mars-Rover
+docker compose up
+```
 
-docker start perception_container
-docker attach perception_container
+This launches the entire system with all components.
 
-#
-sudo docker build -t erc-mars-rover_base:latest -f Dockerfile_base .
+### Running Individual Containers (Optional)
 
-docker build -t erc-mars-rover_perception:latest -f Dockerfile_perception .
+To test individual containers, use the following commands. These require privileged access and GPU support:
 
-pip3 uninstall numpy -y
+1. **ZED Camera Container**:
 
-cd src/probe_detection/scripts/
+   ```bash
+   sudo docker run --runtime=nvidia -it --name zed_container --privileged --network=host \
+   -v /lib/modules/$(uname -r):/lib/modules/$(uname -r) \
+   -v /run/nvargus:/run/nvargus \
+   -v /tmp/argus_socket:/tmp/argus_socket \
+   --device=/dev/video0 \
+   --entrypoint /bin/bash erc-mars-rover_perception:latest
+   ```
 
+2. **Perception Container**:
 
+   ```bash
+   sudo docker run --runtime=nvidia -it --name perception_container --privileged --network=host \
+   -v /lib/modules/$(uname -r):/lib/modules/$(uname -r) \
+   -v /run/nvargus:/run/nvargus \
+   -v /tmp/argus_socket:/tmp/argus_socket \
+   --device=/dev/video0 \
+   --entrypoint /bin/bash erc-mars-rover_perception:latest
+   ```
 
-scp -r datasets/raw_images/OnRover daroe@192.168.0.10:~/ERC-Mars-Rover/
+3. **Navigation Container**:
 
-nmap -sP 192.168.0.1/23
+   ```bash
+   sudo docker run --runtime=nvidia -it --name nav_container --privileged --network=host \
+   -v /lib/modules/$(uname -r):/lib/modules/$(uname -r) \
+   -v /run/nvargus:/run/nvargus \
+   -v /tmp/argus_socket:/tmp/argus_socket \
+   --device=/dev/video0 \
+   --entrypoint /bin/bash erc-mars-rover_nav:latest
+   ```
 
-scp -r /mnt/ssd/erc-mars-rover_perception.tar robotlab@192.168.0.5:~/ERC-Mars-Rover/
+#### Managing Individual Containers
 
+- **Stop a Container**: From inside the container, type `exit`, or from outside:
 
-docker load -i erc-mars-rover_perception.tar
+  ```bash
+  docker stop <container_name>
+  ```
+
+- **Restart a Container**:
+
+  ```bash
+  docker start <container_name>
+  docker attach <container_name>
+  ```
+
+  Example:
+
+  ```bash
+  docker start perception_container
+  docker attach perception_container
+  ```
+
+## Useful Commands
+
+- **Check Connected Devices on the Network**:
+
+  ```bash
+  nmap -sP 192.168.0.1/23
+  ```
+
+- **Launch ZED Wrapper Manually** (inside a container):
+
+  ```bash
+  ros2 launch zed_wrapper zed_camera.launch.py camera_model:=zed2i
+  ```
