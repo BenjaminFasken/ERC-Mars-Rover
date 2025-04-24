@@ -205,4 +205,5 @@ colcon build --parallel-workers $(nproc) --symlink-install \
         ' -DCMAKE_PREFIX_PATH=/usr/local/zed;/opt/ros/humble' \
         ' --no-warn-unused-cli'"
 
-# ENTRYPOINT ["/bin/bash", "-c", "source ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}/install/setup.bash && exec \"$@\"", "bash"]
+ENTRYPOINT ["/bin/bash", "-c", "cd /root/isaac_sim && exec \"$@\"", "bash"]
+

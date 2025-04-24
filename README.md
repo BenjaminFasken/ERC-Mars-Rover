@@ -92,6 +92,11 @@ Build the images in the following order:
    docker build -t erc-mars-rover_nav:latest -f Dockerfile_nav .
    ```
 
+4. **Simulation Image (Optional)** 
+  ```bash
+   docker build -t erc-mars-rover_sim:latest -f Dockerfile_sim .
+  ```
+
 > **Note**: Building the images requires significant disk space and time. Ensure at least 50 GB is available.
 
 ### Option 2: Transfer Pre-Built Images (Optional)
@@ -136,6 +141,15 @@ docker compose up
 ```
 
 This launches the entire system with all components.
+
+
+#### Simulation (Optional)
+If you wish to start the simulated system use this command: 
+
+```bash
+cd ~/ERC-Mars-Rover
+docker-compose -f docker-compose_sim.yml up
+```
 
 ### Running Individual Containers (Optional)
 
