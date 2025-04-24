@@ -20,7 +20,7 @@ class SegmentationNode(Node):
         
         self.previous_time = 0
         self.fps = 5
-        self.confidence_threshold = 0.25
+        self.confidence_threshold = 0.75
         self.rgb_image = None
         self.depth_image = None
         
@@ -50,7 +50,7 @@ class SegmentationNode(Node):
         package_name = 'probe_detection'
         try:
             package_share_dir = get_package_share_directory(package_name)
-            self.model_path = os.path.join(package_share_dir, 'models', 'probe_segmentation.pt')
+            self.model_path = os.path.join(package_share_dir, 'models', 'probe_segmentation_v2.pt')
             if not os.path.exists(self.model_path):
                 raise FileNotFoundError(f"Model file not found at: {self.model_path}")
             self.model = YOLO(self.model_path)
