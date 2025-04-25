@@ -61,7 +61,7 @@ def objective(trial):
     # Train model using YOLO
     model = YOLO('yolo12n.pt')
     results = model.train(
-        data='/home/ucloud/ucloud_training/marsYardData/rocky_mars.v8-big-ahh-dataset-v2.yolov12/data.yaml',
+        data='/home/ucloud/Training/marsYardData/rocky_mars.v8-big-ahh-dataset-v2.yolov12/data.yaml',
         cache=True,
         device=0,
         project=f"runs/trial_{trial.number}",
