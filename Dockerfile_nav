@@ -25,8 +25,8 @@ RUN apt-get update && \
 
 COPY src/ src/
 
-RUN cp ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}/src/slam/config/nav2_params.yaml /opt/ros/humble/share/nav2_bringup/params/nav2_params.yaml
-
+RUN cp ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}/src/slam/config/nav2_params.yaml /opt/ros/humble/share/nav2_bringup/params/nav2_params.yaml && \
+    cp ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}/src/slam/config/navigation_launch.py /opt/ros/humble/share/nav2_bringup/launch/navigation_launch.py
 RUN find src/ -path "*/scripts/*" -type f -exec chmod +x {} \;
 
 # Install build tools and dependencies for Livox
