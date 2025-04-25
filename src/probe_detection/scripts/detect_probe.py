@@ -119,6 +119,10 @@ class SegmentationNode(Node):
         """Compute 3D locations of probes using depth data."""
         probe_locations = []
         
+        # print rgb image size and depth image size
+        self.get_logger().info(f"RGB Image Size: {rgb_image.shape}")
+        self.get_logger().info(f"Depth Image Size: {point_cloud.shape}")
+        
         # extract depth image from point cloud
         x_image = point_cloud[:, :, 0]  # Depth channel
         y_image = point_cloud[:, :, 1]

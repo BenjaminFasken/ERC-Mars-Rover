@@ -92,15 +92,15 @@ Build the images in the following order:
    docker build -t erc-mars-rover_nav:latest -f docker/Dockerfile_nav .
    ```
 
-4. **Isaac Simulation Image (Optional)**
+4. **Isaac Simulation Images (Optional)**
 
-   a. **Navigation and Mapping Simulation Image**:
+   a. **Isaac & Perception Simulation Image**:
 
    ```bash
    docker build -t erc-mars-rover_sim_isaac:latest -f docker/Dockerfile_sim_isaac .
    ```
 
-   b. ** Simulation Image**:
+   b. **Navigation & Mapping Image**:
 
    ```bash
    docker build -t erc-mars-rover_sim_nav:latest -f docker/Dockerfile_sim_nav .
