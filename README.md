@@ -77,24 +77,24 @@ Build the images in the following order:
 1. **Base Image**:
 
    ```bash
-   docker build -t erc-mars-rover_base:latest -f Dockerfile_base .
+   docker build -t erc-mars-rover_base:latest -f docker/Dockerfile_base .
    ```
 
 2. **Perception Image**:
 
    ```bash
-   docker build -t erc-mars-rover_perception:latest -f Dockerfile_perception .
+   docker build -t erc-mars-rover_perception:latest -f docker/Dockerfile_perception .
    ```
 
 3. **Navigation Image**:
 
    ```bash
-   docker build -t erc-mars-rover_nav:latest -f Dockerfile_nav .
+   docker build -t erc-mars-rover_nav:latest -f docker/Dockerfile_nav .
    ```
 
 4. **Simulation Image (Optional)** 
   ```bash
-   docker build -t erc-mars-rover_sim:latest -f Dockerfile_sim .
+   docker build -t erc-mars-rover_sim:latest -f docker/Dockerfile_sim .
   ```
 
 > **Note**: Building the images requires significant disk space and time. Ensure at least 50 GB is available.

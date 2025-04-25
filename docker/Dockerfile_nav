@@ -22,8 +22,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # - - - - Instal Workspace specific packages - - - -
-
-COPY src/ src/
+COPY ../src/ src/
 
 RUN cp ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}/src/slam/config/nav2_params.yaml /opt/ros/humble/share/nav2_bringup/params/nav2_params.yaml && \
     cp ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}/src/slam/config/navigation_launch.py /opt/ros/humble/share/nav2_bringup/launch/navigation_launch.py
