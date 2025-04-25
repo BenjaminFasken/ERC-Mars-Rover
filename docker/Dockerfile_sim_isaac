@@ -190,7 +190,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Copy isaac sim assest into its own workspace
-RUN cd /root/isaac-sim && \
+RUN cd ../isaac-sim && \
     mkdir -p assets && \
     cp -r ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}/src/simulation/usd/. assets/ && \
     cp -r ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}/src/simulation/scripts/. assets/
@@ -207,5 +207,5 @@ colcon build --parallel-workers $(nproc) --symlink-install \
         ' -DCMAKE_PREFIX_PATH=/usr/local/zed;/opt/ros/humble' \
         ' --no-warn-unused-cli'"
 
-ENTRYPOINT ["/bin/bash", "-c", "cd /root/isaac-sim && exec \"$@\"", "bash"]
+ENTRYPOINT ["/bin/bash", "-c", "cd ../isaac-sim && exec \"$@\"", "bash"]
 
