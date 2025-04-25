@@ -1,4 +1,4 @@
-# interfaces/msg/ProbeData.msg
+# ProbeData.msg
 
 # List of averaged x, y, z positions for each probe
 float32[] x
@@ -9,7 +9,10 @@ float32[] z
 float32[] confidence
 
 # Number of detections that contributed to each probe
-int32[] count
+int32[] contribution
+
+# amount of probes
+int32 probe_count
 
 # Timestamp of the message
 builtin_interfaces/Time stamp
