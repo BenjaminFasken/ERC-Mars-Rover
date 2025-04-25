@@ -5,6 +5,7 @@
 #include <tf2/LinearMath/Quaternion.h>                          // for tf2::Quaternion 
 #include <tf2/LinearMath/Vector3.h>                             // for tf2::Vector3
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>                // for conversions between geometry_msgs and tf2 types 
+#include <cmath>                                               // for std::sqrt
 
 using ProbeLocations = interfaces::msg::ProbeLocations;
 using ProbeData      = interfaces::msg::ProbeData;
@@ -100,35 +101,35 @@ private:
   }
 
   // --- transform helper ---
-  std::tuple<float, float, float> transformToGlobal(float lx, float ly, float lz)
-  {
-    if (!pose_received_) {
-      RCLCPP_WARN(get_logger(), "No global pose yet; returning local coords unchanged");
-      return {lx, ly, lz};
-    }
+  // std::tuple<float, float, float> transformToGlobal(float lx, float ly, float lz)
+  // {
+  //   if (!pose_received_) {
+  //     RCLCPP_WARN(get_logger(), "No global pose yet; returning local coords unchanged");
+  //     return {lx, ly, lz};
+  //   }
 
-    // translation from pose
-    const auto &pos = latest_pose_.pose.pose.position;
-    tf2::Vector3 trans(pos.x, pos.y, pos.z);
+  //   // translation from pose
+  //   const auto &pos = latest_pose_.pose.pose.position;
+  //   tf2::Vector3 trans(pos.x, pos.y, pos.z);
 
-    // orientation quaternion from pose
-    const auto &ori = latest_pose_.pose.pose.orientation;
-    tf2::Quaternion q;
-    tf2::fromMsg(ori, q);                                       // convert geometry_msgs→tf2 
+  //   // orientation quaternion from pose
+  //   const auto &ori = latest_pose_.pose.pose.orientation;
+  //   tf2::Quaternion q;
+  //   tf2::fromMsg(ori, q);                                       // convert geometry_msgs→tf2 
 
-    // rotate local vector
-    tf2::Vector3 local(lx, ly, lz);
-    tf2::Vector3 rotated = tf2::quatRotate(q, local);            // rotate via quaternion 
+  //   // rotate local vector
+  //   tf2::Vector3 local(lx, ly, lz);
+  //   tf2::Vector3 rotated = tf2::quatRotate(q, local);            // rotate via quaternion 
 
-    // translate into global
-    tf2::Vector3 global = trans + rotated;
+  //   // translate into global
+  //   tf2::Vector3 global = trans + rotated;
 
-    return {
-      static_cast<float>(global.x()),
-      static_cast<float>(global.y()),
-      static_cast<float>(global.z())
-    };
-  }
+  //   return {
+  //     static_cast<float>(global.x()),
+  //     static_cast<float>(global.y()),
+  //     static_cast<float>(global.z())
+  //   };
+  // }
 
   // --- vision callback, now using global coords ---
   void probeCallback(const ProbeLocations::SharedPtr msg)
@@ -142,7 +143,11 @@ private:
       float confidence = msg->classification_confidence[i];
 
       // convert to global frame before merging
-      auto [gx, gy, gz] = transformToGlobal(lx, ly, lz);
+      // auto [gx, gy, gz] = transformToGlobal(lx, ly, lz);
+
+      auto gx = lx; // for now, no transformation
+      auto gy = ly; // for now, no transformation
+      auto gz = lz; // for now, no transformation
 
       Probe incoming_probe(gx, gy, gz, confidence);
       bool matched_existing = false;
