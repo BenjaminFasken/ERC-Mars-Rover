@@ -2,7 +2,7 @@
 FROM nvcr.io/nvidia/isaac-sim:4.5.0
 
 ARG ROS_DISTRO=humble
-ARG BASE_FOLDER=/root/orin
+ARG BASE_FOLDER=/root
 ARG ROS_WORKSPACE_NAME=ERC-Mars-Rover
 ARG ZED_WORKSPACE_NAME=ros2_zed_ws
 
