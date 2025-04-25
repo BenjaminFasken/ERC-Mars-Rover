@@ -196,7 +196,7 @@ RUN apt-get update && \
 RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash && \
 colcon build --parallel-workers $(nproc) --symlink-install \
     --event-handlers console_direct+ --base-paths src \
-    --packages-skip livox_ros_driver2 probe_detection \
+    --packages-skip livox_ros_driver2 \
     --cmake-args \
         ' -DCMAKE_BUILD_TYPE=Release' \
         ' -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda-12.1' \
