@@ -92,10 +92,19 @@ Build the images in the following order:
    docker build -t erc-mars-rover_nav:latest -f docker/Dockerfile_nav .
    ```
 
-4. **Simulation Image (Optional)** 
-  ```bash
-   docker build -t erc-mars-rover_sim:latest -f docker/Dockerfile_sim .
-  ```
+4. **Isaac Simulation Image (Optional)**
+
+   a. **Navigation and Mapping Simulation Image**:
+
+   ```bash
+   docker build -t erc-mars-rover_sim_isaac:latest -f docker/Dockerfile_sim_isaac .
+   ```
+
+   b. ** Simulation Image**:
+
+   ```bash
+   docker build -t erc-mars-rover_sim_nav:latest -f docker/Dockerfile_sim_nav .
+   ```
 
 > **Note**: Building the images requires significant disk space and time. Ensure at least 50 GB is available.
 
