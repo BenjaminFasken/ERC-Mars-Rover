@@ -112,7 +112,7 @@ RUN ln -sf /usr/lib/aarch64-linux-gnu/tegra/libv4l2.so.0 /usr/lib/aarch64-linux-
 # ROS dependencies
 RUN apt-get update && \
     rosdep update && \
-    apt-get install -y ros-humble-zed-msgs ros-humble-nmea-msgs ros-humble-geographic-msgs ros-humble-image-transport ros-humble-cob-srvs ros-humble-diagnostic-updater ros-humble-robot-localization ros-humble-point-cloud-transport && \
+    apt-get install -y ros-humble-zed-msgs ros-humble-nmea-msgs ros-humble-geographic-msgs ros-humble-image-transport ros-humble-cob-srvs ros-humble-diagnostic-updater ros-humble-robot-localization ros-humble-point-cloud-transport ros-humble-xacro && \
     rm -rf /var/lib/apt/lists/*
 
 # TensorRT (may not be fully pre-installed)
