@@ -137,6 +137,7 @@ ament_python_install_package(${PROJECT_NAME})
 install(PROGRAMS
   scripts/ImageCaptureNode.py
   scripts/detect_probe.py
+  scripts/Capture_test_set.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
