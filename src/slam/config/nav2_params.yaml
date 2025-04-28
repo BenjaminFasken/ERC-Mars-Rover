@@ -7,7 +7,7 @@ bt_navigator:
     bt_loop_duration: 50               #How long the BT executor will sleep between tick cycles in (ms).
     default_server_timeout: 20         #How long the BT navigator will wait (s) for any action server (e.g. planner, controller) to become available at startup.
     wait_for_service_timeout: 1000     #When the BT tree invokes a ROS service (e.g. “clear costmap” service), this is how long it will block waiting for that service to appear.
-    plugin_lib_names:                  #List of plugin libraries to load. If we want to change the behavior of the BT navigator, we can add or remove plugin libraries here.
+    plugin_lib_names:
       - nav2_compute_path_to_pose_action_bt_node
       - nav2_compute_path_through_poses_action_bt_node
       - nav2_smooth_path_action_bt_node
@@ -119,14 +119,14 @@ controller_server:
       
       #Critics: By tuning each critic’s weight, you shape your robot’s “personality” #THINK - adjust the weights to get the desired behavior
       critics: ["RotateToGoal", "Oscillation", "BaseObstacle", "GoalAlign", "PathAlign", "PathDist", "GoalDist"]
-      BaseObstacle.scale:       0.05
-      PathAlign.scale:          16.0
+      BaseObstacle.scale: 0.05
+      PathAlign.scale: 16.0
       PathAlign.forward_point_distance: 0.1
-      GoalAlign.scale:          20.0
+      GoalAlign.scale: 20.0
       GoalAlign.forward_point_distance: 0.1
-      PathDist.scale:           16.0
-      GoalDist.scale:           20.0
-      RotateToGoal.scale:       32.0
+      PathDist.scale: 16.0
+      GoalDist.scale: 20.0
+      RotateToGoal.scale: 32.0
       RotateToGoal.slowing_factor: 5.0
       RotateToGoal.lookahead_time: -1.0
 
@@ -147,7 +147,7 @@ local_costmap:
       resolution: 0.025               # grid cell size (m) — matches your global 0.025  
 
       # — Footprint for inflation & clearing —
-      footprint: [[-0.2125, -0.224], [0.2125, -0.224], [0.2125, 0.224], [-0.2125, 0.224]] # The footprint of the robot in meters
+      footprint: "[[-0.2125, -0.224], [0.2125, -0.224], [0.2125, 0.224], [-0.2125, 0.224]]" # The footprint of the robot in meters
 
       plugins: ["static_layer", "voxel_layer", "inflation_layer"]
       # 1) Inflation Layer
@@ -196,7 +196,7 @@ global_costmap:
       global_frame: map
       robot_base_frame: base_link
       use_sim_time: False                             #Set to true if you are using a simulation
-      footprint: [[-0.2125, -0.224], [0.2125, -0.224], [0.2125, 0.224], [-0.2125, 0.224]] # The footprint of the robot in meters
+      footprint: "[[-0.2125, -0.224], [0.2125, -0.224], [0.2125, 0.224], [-0.2125, 0.224]]" # The footprint of the robot in meters
       resolution: 0.025
       track_unknown_space: true                       #Treats unexplored areas (value -1) as unknown. Seen in Rviz. #THINK
       plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
@@ -237,7 +237,7 @@ map_saver:
     save_map_timeout: 5.0                            #Timeout while waiting for map data
     free_thresh_default: 0.25                        #Pixel value below this → free space
     occupied_thresh_default: 0.65                    #Pixel value above this → occupied space
-    map_subscribe_transient_local: True              
+    map_subscribe_transient_local: True   
 
 planner_server:
   ros__parameters:
@@ -245,7 +245,7 @@ planner_server:
     use_sim_time: False       # match your real‐robot global_costmap
 
     SmacHybrid:
-      plugin: "nav2_smac_planner::SmacPlannerHybrid"
+      plugin: "nav2_smac_planner/SmacPlannerHybrid"
 
       # — Map downsampling —
       downsample_costmap: false     # keep full resolution for accuracy
@@ -261,7 +261,7 @@ planner_server:
       max_planning_time: 2.0        # seconds budget per global plan
 
       # — Motion model & discretization —
-      motion_model_for_search: "REEDSSHEEP"   # allows forward & reverse arcs (better for diff-drive)
+      motion_model_for_search: "REEDS_SHEPP"   # allows forward & reverse arcs (better for diff-drive)
       minimum_turning_radius: 0.165           # half your 0.33 m wheel base (m)
       angle_quantization_bins: 36             # 10° bins → faster, coarse heading search
 
@@ -276,7 +276,7 @@ planner_server:
       change_penalty:       1.0    # mild penalty for switching forward⇄reverse
       non_straight_penalty: 1.0    # slight penalty for any curvature vs. straight
       cost_penalty:         2.0    # steer away from high-cost (narrow) regions
-      retrospective_penalty:0.02   # small bias to reuse previous paths
+      retrospective_penalty: 0.02   # small bias to reuse previous paths
 
       # — Heuristic caching & performance —
       lookup_table_size:          20.0   # meters of Dubin/Reeds-Shepp distance you cache
@@ -335,29 +335,28 @@ robot_state_publisher:
   ros__parameters:
     use_sim_time: False
 
-#START HERFRA I MORGEN -husk fix urdf i launch fil, kig på hvad grok sagde 
 waypoint_follower:
   ros__parameters:
-    use_sim_time: True
-    loop_rate: 20
-    stop_on_failure: false
+    use_sim_time: False           # ← real robot (matches the rest of your stack)
+    loop_rate: 10                 # Hz at which it checks “have we reached the current waypoint?”
+    stop_on_failure: false        # if true, abort the entire waypoint list when one fails
     waypoint_task_executor_plugin: "wait_at_waypoint"
     wait_at_waypoint:
       plugin: "nav2_waypoint_follower::WaitAtWaypoint"
       enabled: True
-      waypoint_pause_duration: 200
+      waypoint_pause_duration: 2.0  # seconds to pause at each waypoint
 
 velocity_smoother:
   ros__parameters:
-    use_sim_time: True
-    smoothing_frequency: 20.0
-    scale_velocities: False
+    use_sim_time: False
+    smoothing_frequency: 15.0
+    scale_velocities: False                 #if "False", the smoother will not scale the velocities.
     feedback: "OPEN_LOOP"
-    max_velocity: [0.26, 0.0, 1.0]
-    min_velocity: [-0.26, 0.0, -1.0]
+    max_velocity: [0.50, 0.0, 1.20]
+    min_velocity: [-0.50, 0.0, -1.20]
     max_accel: [2.5, 0.0, 3.2]
     max_decel: [-2.5, 0.0, -3.2]
-    odom_topic: "odom"
-    odom_duration: 0.1
+    odom_topic: "odom"                       #Not used because feedback is set to OPEN_LOOP
+    odom_duration: 0.1                       #Not used because feedback is set to OPEN_LOOP
     deadband_velocity: [0.0, 0.0, 0.0]
-    velocity_timeout: 1.0
+    velocity_timeout: 1.0                    #If no new velocity command is received for this amount of time, the smoother will send 0 commands to the robot.
