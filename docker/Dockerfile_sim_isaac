@@ -189,6 +189,10 @@ RUN git clone --recurse-submodules -b humble-v4.1.4 \
     https://github.com/stereolabs/zed-ros2-wrapper.git \
     src/zed-ros2-wrapper
 
+# Copy config files into the workspace
+RUN cd src/zed-ros2-wrapper && \
+    cp -r ${BASE_FOLDER}/src/simulation/config/common.yaml zed_wrapper/config/common.yaml
+
 RUN apt-get update && \
     rosdep update && \
     rosdep install --from-paths src --ignore-src -r -y && \
