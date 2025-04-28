@@ -88,6 +88,8 @@ def generate_launch_description():
             parameters=[{
                 'frame_id': 'base_link',
                 'odom_frame_id': 'odom',
+                'publish_tf': True,            # publishes odom → base_link
+                'publish_tf_map_to_odom': True,# publishes map → odom
                 'subscribe_scan_cloud': True,  # Enable LiDAR
                 'subscribe_rgbd': True,
                 'approx_sync': True,
