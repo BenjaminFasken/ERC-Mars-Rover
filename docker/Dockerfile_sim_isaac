@@ -64,7 +64,6 @@ RUN apt-get update && \
 
 # Set LD_LIBRARY_PATH to prioritize system and ROS 2 paths
 ENV LD_LIBRARY_PATH=/lib/x86_64-linux-gnu:/opt/ros/humble/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/root/install/zed_components/lib:/root/install/zed_interfaces/lib:/root/install/interfaces/lib:/isaac-sim/exts/isaacsim.ros2.bridge/humble/lib
-RUN /bin/bash -c "echo $LD_LIBRARY_PATH"
 
 # Install additional utilities and tools
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -218,6 +217,10 @@ colcon build --parallel-workers $(nproc) --symlink-install \
         ' -DCMAKE_PREFIX_PATH=/usr/local/zed;/opt/ros/humble' \
         ' -DCUDA_VERSION=${CUDA_VERSION}' \
         ' --no-warn-unused-cli'"
+
+
+RUN echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> /root/.bashrc
+
 
 # Source the workspace setup file
 RUN echo "source /root/install/setup.bash" >> /root/.bashrc
