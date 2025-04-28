@@ -5,6 +5,7 @@ ARG ROS_DISTRO=humble
 ARG BASE_FOLDER=/root
 ARG ROS_WORKSPACE_NAME=ERC-Mars-Rover
 ARG ZED_WORKSPACE_NAME=ros2_zed_ws
+ARG CUDA_VERSION=12.1
 
 ARG ZED_SDK_MAJOR=5
 ARG ZED_SDK_MINOR=0
@@ -195,16 +196,21 @@ RUN cd ../isaac-sim && \
     cp -r ${BASE_FOLDER}/src/simulation/usd/. assets/ && \
     cp -r ${BASE_FOLDER}/src/simulation/scripts/. assets/
 
+
+# Build ROS workspace with dynamic CUDA version
 RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash && \
 colcon build --parallel-workers $(nproc) --symlink-install \
     --event-handlers console_direct+ --base-paths src \
     --packages-skip livox_ros_driver2 probe_detection \
     --cmake-args \
         ' -DCMAKE_BUILD_TYPE=Release' \
-        ' -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda-12.1' \
-        ' -DCMAKE_LIBRARY_PATH=/usr/local/cuda-12.1/lib64/stubs:/usr/lib/x86_64-linux-gnu' \
+        ' -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda-${CUDA_VERSION}' \
+        ' -DCMAKE_LIBRARY_PATH=/usr/local/cuda-${CUDA_VERSION}/lib64/stubs:/usr/lib/x86_64-linux-gnu' \
         ' -DCMAKE_CXX_FLAGS=\"-Wl,--allow-shlib-undefined\"' \
         ' -DCMAKE_PREFIX_PATH=/usr/local/zed;/opt/ros/humble' \
+        ' -DCUDA_VERSION=${CUDA_VERSION}' \
         ' --no-warn-unused-cli'"
 
-ENTRYPOINT ["/bin/bash", "-c", "cd ../isaac-sim && exec \"$@\"", "bash"]
+WORKDIR /isaac-sim
+
+ENTRYPOINT ["/bin/bash"]
