@@ -177,35 +177,35 @@ ENV LD_LIBRARY_PATH=$CUDA_HOME/lib64:$LD_LIBRARY_PATH
 # Create workspace for ROS 2
 COPY src/ src/
 
-RUN find src/ -path "*/scripts/*" -type f -exec chmod +x {} \;
+# RUN find src/ -path "*/scripts/*" -type f -exec chmod +x {} \;
 
-# Install zed-ros2 wrapper
-RUN git clone --recurse-submodules -b humble-v4.1.4 \
-    https://github.com/stereolabs/zed-ros2-wrapper.git \
-    src/zed-ros2-wrapper
+# # Install zed-ros2 wrapper
+# RUN git clone --recurse-submodules -b humble-v4.1.4 \
+#     https://github.com/stereolabs/zed-ros2-wrapper.git \
+#     src/zed-ros2-wrapper
 
-RUN apt-get update && \
-    rosdep update && \
-    rosdep install --from-paths src --ignore-src -r -y && \
-    rm -rf /var/lib/apt/lists/*
+# RUN apt-get update && \
+#     rosdep update && \
+#     rosdep install --from-paths src --ignore-src -r -y && \
+#     rm -rf /var/lib/apt/lists/*
 
-# Copy isaac sim assest into its own workspace
-RUN cd ../isaac-sim && \
-    mkdir -p assets && \
-    cp -r ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}/src/simulation/usd/. assets/ && \
-    cp -r ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}/src/simulation/scripts/. assets/
+# # Copy isaac sim assest into its own workspace
+# RUN cd ../isaac-sim && \
+#     mkdir -p assets && \
+#     cp -r ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}/src/simulation/usd/. assets/ && \
+#     cp -r ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}/src/simulation/scripts/. assets/
 
-RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash && \
-colcon build --parallel-workers $(nproc) --symlink-install \
-    --event-handlers console_direct+ --base-paths src \
-    --packages-skip livox_ros_driver2 \
-    --cmake-args \
-        ' -DCMAKE_BUILD_TYPE=Release' \
-        ' -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda-12.1' \
-        ' -DCMAKE_LIBRARY_PATH=/usr/local/cuda-12.1/lib64/stubs:/usr/lib/x86_64-linux-gnu' \
-        ' -DCMAKE_CXX_FLAGS=\"-Wl,--allow-shlib-undefined\"' \
-        ' -DCMAKE_PREFIX_PATH=/usr/local/zed;/opt/ros/humble' \
-        ' --no-warn-unused-cli'"
+# RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash && \
+# colcon build --parallel-workers $(nproc) --symlink-install \
+#     --event-handlers console_direct+ --base-paths src \
+#     --packages-skip livox_ros_driver2 \
+#     --cmake-args \
+#         ' -DCMAKE_BUILD_TYPE=Release' \
+#         ' -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda-12.1' \
+#         ' -DCMAKE_LIBRARY_PATH=/usr/local/cuda-12.1/lib64/stubs:/usr/lib/x86_64-linux-gnu' \
+#         ' -DCMAKE_CXX_FLAGS=\"-Wl,--allow-shlib-undefined\"' \
+#         ' -DCMAKE_PREFIX_PATH=/usr/local/zed;/opt/ros/humble' \
+#         ' --no-warn-unused-cli'"
 
 ENTRYPOINT ["/bin/bash", "-c", "cd ../isaac-sim && exec \"$@\"", "bash"]
 
