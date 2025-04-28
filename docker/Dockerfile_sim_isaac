@@ -215,6 +215,9 @@ colcon build --parallel-workers $(nproc) --symlink-install \
         ' -DCUDA_VERSION=${CUDA_VERSION}' \
         ' --no-warn-unused-cli'"
 
+# Source the workspace setup file
+RUN echo "source /root/install/setup.bash" >> /root/.bashrc
+
 WORKDIR /isaac-sim
 
 ENTRYPOINT ["/bin/bash"]
