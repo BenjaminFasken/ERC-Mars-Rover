@@ -2,9 +2,11 @@
 FROM ubuntu:jammy
 
 ARG ROS_DISTRO=humble
-ARG BASE_FOLDER=/root/orin
+ARG BASE_FOLDER=/root
 ARG ROS_WORKSPACE_NAME=ERC-Mars-Rover
 ARG DEBIAN_FRONTEND=noninteractive
+
+WORKDIR ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}
 
 # Install additional system packages not necessarily in the base image
 RUN apt-get update && \
@@ -128,7 +130,7 @@ RUN git clone https://github.com/Nyanziba/AutoFrontierSearch_ros2-humble.git src
 RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash && \
     colcon build --parallel-workers $(nproc) --symlink-install \
         --event-handlers console_direct+ --base-paths src \
-        --packages-skip livox_ros_driver2 \
+        --packages-skip livox_ros_driver2 probe_detection \
         --cmake-args \
             ' -DCMAKE_BUILD_TYPE=Release' \
             ' -DCMAKE_CXX_FLAGS=\"-Wl,--allow-shlib-undefined\"' \
