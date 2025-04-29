@@ -4,6 +4,8 @@ bt_navigator:
     global_frame: map
     robot_base_frame: base_link
     odom_topic: /odom
+    default_nav_to_pose_bt_xml: /opt/ros/humble/share/nav2_bt_navigator/behavior_trees/navigate_to_pose_w_replanning_and_recovery.xml # or $(find-pkg-share my_package)/behavior_tree/my_nav_to_pose_bt.xml
+    default_nav_through_poses_bt_xml: /opt/ros/humble/share/nav2_bt_navigator/behavior_trees/navigate_through_poses_w_replanning_and_recovery.xml # or $(find-pkg-share my_package)/behavior_tree/my_nav_through_poses_bt.xml
     bt_loop_duration: 50               #How long the BT executor will sleep between tick cycles in (ms).
     default_server_timeout: 20         #How long the BT navigator will wait (s) for any action server (e.g. planner, controller) to become available at startup.
     wait_for_service_timeout: 1000     #When the BT tree invokes a ROS service (e.g. “clear costmap” service), this is how long it will block waiting for that service to appear.
@@ -154,7 +156,7 @@ local_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0      # how steeply costs decay from obstacles
-        inflation_radius: 0.55        # how far (m) to inflate around each obstacle
+        inflation_radius: 0.40        # how far (m) to inflate around each obstacle
 
       # 2) Voxel Layer (3D → 2D projection for LiDAR/pointcloud)
       voxel_layer:
@@ -225,7 +227,7 @@ global_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         enabled: True                # Turns the Inflation Layer on or off. When false, Nav2 will not apply any inflation gradient around obstacles at all—only the raw obstacle footprint will be used.
-        inflation_radius: 0.55       # how far (meters) to “inflate” around each obstacle
+        inflation_radius: 0.00       # how far (meters) to “inflate” around each obstacle
         cost_scaling_factor: 3.0     # larger → costs drop off more sharply with distance
         inflate_unknown: False                   #If true, any unknown cells (i.e. neither marked free nor occupied in the costmap) are treated as lethal obstacles and then inflated like normal obstacles.
         inflate_around_unknown: False            #If true, even when inflate_unknown is false, Nav2 will still apply the inflation gradient around unknown cells—so you get a “soft buffer” at the boundary of unmapped areas.
@@ -253,12 +255,12 @@ planner_server:
 
       # — Goal tolerance & unknown space —
       tolerance: 0.30               # 0.30 m: allow “good enough” near-goal in rocky terrain
-      allow_unknown: false          # avoid driving into unmapped areas
+      allow_unknown: true          # avoid driving into unmapped areas #THINK - was false earlier (if unknown space is allowed)
 
       # — Search limits —
-      max_iterations: 500_000       # cap total expansions to bail out if unreachable
+      max_iterations: 500000       # cap total expansions to bail out if unreachable
       max_on_approach_iterations: 500  # once within tolerance, try a bit more for exact path
-      max_planning_time: 2.0        # seconds budget per global plan
+      max_planning_time: 5.0        # seconds budget per global plan
 
       # — Motion model & discretization —
       motion_model_for_search: "REEDS_SHEPP"   # allows forward & reverse arcs (better for diff-drive)
@@ -276,7 +278,7 @@ planner_server:
       change_penalty:       1.0    # mild penalty for switching forward⇄reverse
       non_straight_penalty: 1.0    # slight penalty for any curvature vs. straight
       cost_penalty:         2.0    # steer away from high-cost (narrow) regions
-      retrospective_penalty: 0.02   # small bias to reuse previous paths
+      retrospective_penalty: 0.00   # small bias to reuse previous paths
 
       # — Heuristic caching & performance —
       lookup_table_size:          20.0   # meters of Dubin/Reeds-Shepp distance you cache
@@ -284,7 +286,7 @@ planner_server:
       downsample_obstacle_heuristic: true
       use_quadratic_cost_penalty: false
       allow_primitive_interpolation: false
-      debug_visualizations: true         # off for normal runs  #THINK - set to false when not testing
+      debug_visualizations: true         # off for normal runs  #THINK - set to false when not testing, as it is very computationally expensive
 
       # — Post‐planning smoothing —
       smooth_path: true

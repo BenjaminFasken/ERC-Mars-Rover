@@ -144,24 +144,24 @@ def generate_launch_description():
             ],
             arguments=['-d']
         ),
-        # Node(
-        #     package='rtabmap_viz',
-        #     executable='rtabmap_viz',
-        #     output='screen',
-        #     parameters=[{
-        #         'frame_id': 'base_link',
-        #         'odom_frame_id': 'odom',
-        #         'subscribe_rgbd': True,
-        #         'subscribe_odom_info': True,
-        #         'subscribe_scan_cloud': True,  # Optional: Enable for visualization
-        #         'approx_sync': False
-        #     }],
-        #     remappings=[
-        #         ('rgbd_image', '/rgbd_image'),
-        #         ('odom', '/odom'),
-        #         ('scan_cloud', '/livox/lidar'),
-        #     ]
-        # ),
+        Node(
+            package='rtabmap_viz',
+            executable='rtabmap_viz',
+            output='screen',
+            parameters=[{
+                'frame_id': 'base_link',
+                'odom_frame_id': 'odom',
+                'subscribe_rgbd': True,
+                'subscribe_odom_info': True,
+                'subscribe_scan_cloud': True,  # Optional: Enable for visualization
+                'approx_sync': False
+            }],
+            remappings=[
+                ('rgbd_image', '/rgbd_image'),
+                ('odom', '/odom'),
+                ('scan_cloud', '/livox/lidar'),
+            ]
+        ),
     ]
 )
     

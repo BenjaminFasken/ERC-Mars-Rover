@@ -15,13 +15,13 @@ services:
     command: -c "source install/setup.bash && \
       ros2 launch zed_wrapper zed_camera.launch.py \
       camera_model:=zed2i \
-      general.resolution:=3 \
-      general.fps:=5 \
+      general.resolution:=2 \
+      general.fps:=30 \
       depth.depth_mode:=0 \
-      depth.min_depth:=0.45 \
-      depth.max_depth:=2.5 \
-      depth.confidence:=90 \
-      depth.texture_confidence:=90 \
+      depth.min_depth:=0.30 \
+      depth.max_depth:=4.0 \
+      depth.confidence:=70 \
+      depth.texture_confidence:=70 \
       pos_tracking.imu_fusion:=true"
 
   perception_container:

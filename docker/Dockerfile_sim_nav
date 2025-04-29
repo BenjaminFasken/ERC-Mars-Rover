@@ -119,7 +119,9 @@ rm -rf /var/lib/apt/lists/*
 COPY ../src/ src/
 
 RUN cp ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}/src/slam/config/nav2_params.yaml /opt/ros/humble/share/nav2_bringup/params/nav2_params.yaml && \
-    cp ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}/src/slam/config/navigation_launch.py /opt/ros/humble/share/nav2_bringup/launch/navigation_launch.py
+    cp ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}/src/slam/config/navigation_launch.py /opt/ros/humble/share/nav2_bringup/launch/navigation_launch.py && \
+    cp ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}/src/slam/config/navigate_to_pose_w_replanning_and_recovery.xml /opt/ros/humble/share/nav2_bt_navigator/behavior_trees/navigate_to_pose_w_replanning_and_recovery.xml && \
+    cp ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}/src/slam/config/navigate_through_poses_w_replanning_and_recovery.xml /opt/ros/humble/share/nav2_bt_navigator/behavior_trees/navigate_through_poses_w_replanning_and_recovery.xml
 RUN find src/ -path "*/scripts/*" -type f -exec chmod +x {} \;
 
 # Clone Frontier exploration
