@@ -7,9 +7,9 @@ ARG ROS_WORKSPACE_NAME=ERC-Mars-Rover
 ARG ZED_WORKSPACE_NAME=ros2_zed_ws
 ARG CUDA_VERSION=12.1
 
-ARG ZED_SDK_MAJOR=5
-ARG ZED_SDK_MINOR=0
-ARG ZED_SDK_PATCH=0
+ARG ZED_SDK_MAJOR=4
+ARG ZED_SDK_MINOR=2
+ARG ZED_SDK_PATCH=5
 ARG DEBIAN_FRONTEND=noninteractive
 
 # Install additional system packages not necessarily in the base image
@@ -135,12 +135,12 @@ RUN useradd -m -s /bin/bash zeduser && \
 USER root
 WORKDIR /root
 
-RUN wget -q --no-check-certificate -O ZED_SDK_Ubuntu22.run \
-    https://download.stereolabs.com/zedsdk/5.0/cu12/ubuntu22 && \
+RUN /bin/bash -c 'wget -q --no-check-certificate -O ZED_SDK_Ubuntu22.run \
+    https://download.stereolabs.com/zedsdk/${ZED_SDK_MAJOR}.${ZED_SDK_MINOR}/cu12/ubuntu22 && \
     chmod +x ZED_SDK_Ubuntu22.run && \
     ./ZED_SDK_Ubuntu22.run silent skip_cuda skip_tools skip_samples -- accept || { echo "ZED SDK installation failed"; exit 1; } && \
     rm ZED_SDK_Ubuntu22.run && \
-    rm -rf /usr/local/zed/resources/*
+    rm -rf /usr/local/zed/resources/*'
 
 # Install ZED Python API
 RUN SCRIPT_PATH=$(find /usr/local/zed -name get_python_api.py -print -quit) && \
