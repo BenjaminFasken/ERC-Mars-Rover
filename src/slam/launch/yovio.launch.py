@@ -28,12 +28,14 @@ def generate_launch_description():
     )
     static_transform_publisher_1 = Node(
         package='tf2_ros',
+        name='camera_to_base_link_transform',
         executable='static_transform_publisher',
         arguments=['-0.1646940', '-0.0598990', '-0.2339370', '0', '-0.7854', '0', 'zed_camera_link', 'base_link']
     )
     
     static_transform_publisher_2 = Node(
         package='tf2_ros',
+        name='base_link_to_livox_transform',
         executable='static_transform_publisher',
         arguments=['0.082332', '0.000101', '0.160771', '0', '-0.17453', '-3.1416', 'base_link', 'livox_frame']
     )

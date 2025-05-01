@@ -75,6 +75,7 @@ controller_server:
     failure_tolerance: 0.3
     progress_checker_plugin: "progress_checker"
     goal_checker_plugins: ["general_goal_checker"] # "precise_goal_checker"
+    current_goal_checker: "general_goal_checker"
     controller_plugins: ["FollowPath"]
     progress_checker:                                            #Monitors whether the robot is actually making progress along its path.
       plugin: "nav2_controller::SimpleProgressChecker"
@@ -156,7 +157,7 @@ local_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0      # how steeply costs decay from obstacles
-        inflation_radius: 0.40        # how far (m) to inflate around each obstacle
+        inflation_radius: 0.00       # how far (m) to inflate around each obstacle
 
       # 2) Voxel Layer (3D → 2D projection for LiDAR/pointcloud)
       voxel_layer:
@@ -286,7 +287,7 @@ planner_server:
       downsample_obstacle_heuristic: true
       use_quadratic_cost_penalty: false
       allow_primitive_interpolation: false
-      debug_visualizations: true         # off for normal runs  #THINK - set to false when not testing, as it is very computationally expensive
+      debug_visualizations: false         # off for normal runs  #THINK - set to false when not testing, as it is very computationally expensive
 
       # — Post‐planning smoothing —
       smooth_path: true

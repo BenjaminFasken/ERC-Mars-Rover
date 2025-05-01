@@ -15,6 +15,7 @@
 import os
 
 from ament_index_python.packages import get_package_share_directory
+from xacro import process_file
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, GroupAction, SetEnvironmentVariable
@@ -81,7 +82,7 @@ def generate_launch_description():
     declare_use_sim_time_cmd = DeclareLaunchArgument(
         'use_sim_time',
         default_value='false',
-        description='Use simulation (Gazebo) clock if true')
+        description='Use simulation clock if true')
 
     declare_params_file_cmd = DeclareLaunchArgument(
         'params_file',
@@ -107,6 +108,33 @@ def generate_launch_description():
     declare_log_level_cmd = DeclareLaunchArgument(
         'log_level', default_value='info',
         description='log level')
+
+    # whether to launch robot_state_publisher
+    use_robot_state_pub = LaunchConfiguration('use_robot_state_pub')
+
+    declare_use_robot_state_pub_cmd = DeclareLaunchArgument(
+        'use_robot_state_pub',
+        default_value='True',
+        description='Whether to start the robot state publisher')
+
+    # Locate the URDF file #### SIMON FIX DET HER ######
+    urdf_path = os.path.join(get_package_share_directory('slam'), 'urdf', 'leo.urdf.xacro')
+    robot_description = process_file(urdf_path).toxml()
+
+    start_robot_state_publisher_cmd = Node(
+        condition=IfCondition(use_robot_state_pub),
+        package='robot_state_publisher',
+        executable='robot_state_publisher',
+        name='robot_state_publisher',
+        namespace=namespace,
+        output='screen',
+        parameters=[
+          {'use_sim_time': use_sim_time},
+          {'robot_description': robot_description}
+        ],
+        remappings=remappings)
+
+
 
     load_nodes = GroupAction(
         condition=IfCondition(PythonExpression(['not ', use_composition])),
@@ -266,6 +294,8 @@ def generate_launch_description():
     ld.add_action(declare_use_respawn_cmd)
     ld.add_action(declare_log_level_cmd)
     # Add the actions to launch all of the navigation nodes
+    ld.add_action(declare_use_robot_state_pub_cmd)        #Added this to launch robot_state_publisher
+    ld.add_action(start_robot_state_publisher_cmd)
     ld.add_action(load_nodes)
     ld.add_action(load_composable_nodes)
 
