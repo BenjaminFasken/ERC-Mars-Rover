@@ -4,7 +4,7 @@
 
   <xacro:arg name="mecanum_wheels" default="false"/>
   
-  <xacro:include filename="$(find slam)/urdf/macros.xacro"/>
+  <xacro:include filename="$(find navigation)/urdf/macros.xacro"/>
 
   <xacro:leo mecanum_wheels="$(arg mecanum_wheels)"/>
 

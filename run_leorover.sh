@@ -72,7 +72,7 @@ ros2 run navigation cmd_repeater.py > /dev/null 2>&1 &
 ROS_PID=$!
 
 # Navigate to the docker directory and start docker compose in the foreground
-cd /docker
+cd docker
 docker compose up
 
 # Store the exit status of docker compose
