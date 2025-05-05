@@ -21,19 +21,21 @@ def generate_launch_description():
     
 
     return LaunchDescription([
-        # Launch frontier_exploration explorer
-        ExecuteProcess(
-            cmd=['ros2', 'run', 'frontier_exploration', 'explorer'],
-            output='screen'
-        ),
-
-        # Include nav2_bringup navigation_launch.py
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(nav2_bringup_path)
-        ),
-
         # Include yovio.launch.py
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(yovio_launch_path)
+        ),
+
+        # Launch frontier_exploration explorer after yovio is fully up
+        ExecuteProcess(
+            cmd=['ros2', 'run', 'frontier_exploration', 'explorer'],
+            output='screen',
+            additional_env={'WAIT_FOR_YOVIO': 'true'}
+        ),
+
+        # Include nav2_bringup navigation_launch.py after yovio is fully up
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(nav2_bringup_path),
+            launch_arguments={'wait_for_yovio': 'true'}.items()
         ),
     ])

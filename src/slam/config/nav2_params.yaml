@@ -74,64 +74,106 @@ controller_server:
     min_theta_velocity_threshold: 0.01              #Below this threshold, theta-axis velocity commands are clamped to zero
     failure_tolerance: 0.3
     progress_checker_plugin: "progress_checker"
-    goal_checker_plugins: ["general_goal_checker"] # "precise_goal_checker"
-    current_goal_checker: "general_goal_checker"
+    goal_checker_plugins: ["goal_checker"]          # "precise_goal_checker"
     controller_plugins: ["FollowPath"]
     progress_checker:                                            #Monitors whether the robot is actually making progress along its path.
       plugin: "nav2_controller::SimpleProgressChecker"
-      required_movement_radius: 0.5                              #Required movement radius (m), the distance the robot must move
-      movement_time_allowance: 10.0                              #Time allowance (s) for the robot to move the required distance
+      required_movement_radius: 0.1                              #Required movement radius (m), the distance the robot must move
+      movement_time_allowance: 30.0                              #Time allowance (s) for the robot to move the required distance
     general_goal_checker:
       stateful: True
       plugin: "nav2_controller::SimpleGoalChecker"
       xy_goal_tolerance: 0.25                                    #Distance tolerance (m) to the goal position
-      yaw_goal_tolerance: 0.25                                   #Angle tolerance (rad) to the goal orientation
+      yaw_goal_tolerance: 0.25                                  #Angle tolerance (rad) to the goal orientation
     # DWB parameters
     FollowPath:
       plugin: "dwb_core::DWBLocalPlanner"
       debug_trajectory_details: True
-      # ————— Speed limits —————
-      # Linear (m/s)
-      min_vel_x:        0.0            # don’t drive backwards
-      max_vel_x:        0.50           # your max_linear_speed
-      min_vel_y:        0.0            # non-holonomic
-      max_vel_y:        0.0
-      # Angular (rad/s)
-      min_vel_theta:    0.0
-      max_vel_theta:    1.20           # your max_angular_speed
-
-      # ————— Acceleration limits —————
-      # We allow you to accelerate to top speed in ~0.5 s
-      acc_lim_x:        1.0            # m/s² (0 → 0.5 m/s in 0.5 s)
-      decel_lim_x:     -1.0            # braking
-      acc_lim_theta:    2.4            # rad/s² (0 → 1.2 rad/s in 0.5 s)
-      decel_lim_theta: -2.4            # angular brake
-
-      #The number of discrete velocity values DWB will sample in the forward (x), lateral (y), and rotational (θ) dimensions when generating candidate trajectories.
-      vx_samples: 8
-      vy_samples: 1
-      vtheta_samples: 8
-      sim_time: 1.2                                     #How many seconds into the future each sampled trajectory is forward-simulated.
-      linear_granularity: 0.05                          #Step size (m) between collision checks along each simulated trajectory.
-      angular_granularity: 0.05                         #Step size (rad) between orientation checks.
-      transform_tolerance: 0.2                          #How long (s) DWB will wait for the required TF (odom→base_link) when simulating.
-      xy_goal_tolerance: 0.25                           #How close you must get laterally/longitudinally to the goal before DWB considers you “at” it.
-      trans_stopped_velocity: 0.05                      #Velocity below which you count as “stopped.”
-      short_circuit_trajectory_evaluation: True         #As soon as a trajectory’s cost exceeds your “lethal” threshold, stop evaluating its remaining critics. "True" speeds up pruning of clearly bad paths in cluttered scenes
-      stateful: True                                    #Once you enter goal tolerance, keep the “goal reached” state even if you drift out slightly.
-      
-      #Critics: By tuning each critic’s weight, you shape your robot’s “personality” #THINK - adjust the weights to get the desired behavior
+      min_vel_x: -0.5
+      min_vel_y: 0.0
+      max_vel_x: 0.5
+      max_vel_y: 0.0
+      max_vel_theta: 1.2
+      min_speed_xy: 0.0
+      max_speed_xy: 0.5
+      min_speed_theta: -1.2
+      acc_lim_x: 1.0
+      acc_lim_y: 0.0
+      acc_lim_theta: 2.4
+      decel_lim_x: -1.0
+      decel_lim_y: 0.0
+      decel_lim_theta: -2.4
+      vx_samples: 20
+      vy_samples: 5
+      vtheta_samples: 20
+      sim_time: 1.7
+      linear_granularity: 0.05
+      angular_granularity: 0.025
+      transform_tolerance: 0.2
+      xy_goal_tolerance: 0.25
+      trans_stopped_velocity: 0.25
+      short_circuit_trajectory_evaluation: True
+      limit_vel_cmd_in_traj: False
+      stateful: True
       critics: ["RotateToGoal", "Oscillation", "BaseObstacle", "GoalAlign", "PathAlign", "PathDist", "GoalDist"]
-      BaseObstacle.scale: 0.05
-      PathAlign.scale: 16.0
+      BaseObstacle.scale: 0.02
+      PathAlign.scale: 32.0
+      GoalAlign.scale: 24.0
       PathAlign.forward_point_distance: 0.1
-      GoalAlign.scale: 20.0
       GoalAlign.forward_point_distance: 0.1
-      PathDist.scale: 16.0
-      GoalDist.scale: 20.0
+      PathDist.scale: 32.0
+      GoalDist.scale: 24.0
       RotateToGoal.scale: 32.0
       RotateToGoal.slowing_factor: 5.0
       RotateToGoal.lookahead_time: -1.0
+    # FollowPath:
+    #   plugin: "dwb_core::DWBLocalPlanner"
+    #   debug_trajectory_details: True
+    #   # ————— Speed limits —————
+    #   # Linear (m/s)
+    #   min_vel_x:        -0.5            # don’t drive backwards
+    #   max_vel_x:        0.5           # your max_linear_speed
+    #   min_vel_y:        0.0            # non-holonomic
+    #   max_vel_y:        0.0
+    #   # Angular (rad/s)
+    #   min_vel_theta:    0.0
+    #   max_vel_theta:    1.20           # your max_angular_speed
+
+    #   # ————— Acceleration limits —————
+    #   # We allow you to accelerate to top speed in ~0.5 s
+    #   acc_lim_x:        1.0            # m/s² (0 → 0.5 m/s in 0.5 s)
+    #   decel_lim_x:     -1.0            # braking
+    #   acc_lim_theta:    2.4            # rad/s² (0 → 1.2 rad/s in 0.5 s)
+    #   decel_lim_theta: -2.4            # angular brake
+
+    #   #The number of discrete velocity values DWB will sample in the forward (x), lateral (y), and rotational (θ) dimensions when generating candidate trajectories.
+    #   vx_samples: 8
+    #   vy_samples: 1
+    #   vtheta_samples: 8
+    #   sim_time: 3.0                                    #How many seconds into the future each sampled trajectory is forward-simulated.
+    #   linear_granularity: 0.05                          #Step size (m) between collision checks along each simulated trajectory.
+    #   angular_granularity: 0.05                         #Step size (rad) between orientation checks.
+    #   transform_tolerance: 0.2                          #How long (s) DWB will wait for the required TF (odom→base_link) when simulating.
+    #   xy_goal_tolerance: 0.25                           #How close you must get laterally/longitudinally to the goal before DWB considers you “at” it.
+    #   yaw_goal_tolerance: 0.25                          #How close you must get to the goal orientation before DWB considers you “at” it.
+    #   trans_stopped_velocity: 0.05                      #Velocity below which you count as “stopped.”
+    #   short_circuit_trajectory_evaluation: True         #As soon as a trajectory’s cost exceeds your “lethal” threshold, stop evaluating its remaining critics. "True" speeds up pruning of clearly bad paths in cluttered scenes
+    #   stateful: True                                    #Once you enter goal tolerance, keep the “goal reached” state even if you drift out slightly.
+      
+    #   #Critics: By tuning each critic’s weight, you shape your robot’s “personality” #THINK - adjust the weights to get the desired behavior
+    #   critics: ["RotateToGoal", "Oscillation", "BaseObstacle", "GoalAlign", "PathAlign", "PathDist", "GoalDist"]
+    #   BaseObstacle.scale: 0.05
+    #   PathAlign.scale: 1.0
+    #   PathAlign.forward_point_distance: 0.1
+    #   GoalAlign.scale: 1.0
+    #   GoalAlign.forward_point_distance: 0.1
+    #   PathDist.scale: 25.0
+    #   GoalDist.scale: 20.0
+    #   RotateToGoal.scale: 0.0
+    #   RotateToGoal.slowing_factor: 5.0
+    #   RotateToGoal.lookahead_time: 0.3
+    #   Oscillation.reset_distance: 0.1   # after you’ve moved 10 cm, reset the “I’m stuck oscillating” check
+
 
 local_costmap:
   local_costmap:
@@ -150,9 +192,9 @@ local_costmap:
       resolution: 0.025               # grid cell size (m) — matches your global 0.025  
 
       # — Footprint for inflation & clearing —
-      footprint: "[[-0.2125, -0.224], [0.2125, -0.224], [0.2125, 0.224], [-0.2125, 0.224]]" # The footprint of the robot in meters
-
-      plugins: ["static_layer", "voxel_layer", "inflation_layer"]
+      #footprint: "[[-0.2125, -0.224], [0.2125, -0.224], [0.2125, 0.224], [-0.2125, 0.224]]" # The footprint of the robot in meters
+      robot_radius: 0.01
+      plugins: ["static_layer", "inflation_layer"] #"voxel_layer",
       # 1) Inflation Layer
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
@@ -160,27 +202,28 @@ local_costmap:
         inflation_radius: 0.00       # how far (m) to inflate around each obstacle
 
       # 2) Voxel Layer (3D → 2D projection for LiDAR/pointcloud)
-      voxel_layer:
-        plugin: "nav2_costmap_2d::VoxelLayer"
-        enabled: True
-        publish_voxel_map: True       # makes the 3D voxel markers show in RViz  
-        origin_z: 0.0                 # ground plane origin for your voxels
-        z_resolution: 0.05            # height resolution per voxel cell
-        z_voxels: 16                  # how many vertical voxels (≈0.8 m tall stack)
-        max_obstacle_height: 3.0      # ignore anything taller
-        mark_threshold: 0             # number of “hits” before marking a cell occupied  
+      # voxel_layer:
+      #   plugin: "nav2_costmap_2d::VoxelLayer"
+      #   footprint_clearing_enabled: true       
+      #   enabled: True
+      #   publish_voxel_map: True       # makes the 3D voxel markers show in RViz  
+      #   origin_z: 0.0                 # ground plane origin for your voxels
+      #   z_resolution: 0.05            # height resolution per voxel cell
+      #   z_voxels: 16                  # how many vertical voxels (≈0.8 m tall stack)
+      #   max_obstacle_height: 3.0      # ignore anything taller
+      #   mark_threshold: 0             # number of “hits” before marking a cell occupied  
 
-        # Use your LiDAR scan as the observation source
-        observation_sources: scan
-        scan:
-          topic: /scan
-          data_type: "LaserScan"
-          marking: True               # mark occupied cells where beams hit
-          clearing: True              # clear free cells along the beam path
-          raytrace_min_range: 0.0
-          raytrace_max_range: 3.0
-          obstacle_min_range: 0.0
-          obstacle_max_range: 2.5
+      #   # Use your LiDAR scan as the observation source
+      #   observation_sources: scan
+      #   scan:
+      #     topic: /scan
+      #     data_type: "LaserScan"
+      #     marking: True               # mark occupied cells where beams hit
+      #     clearing: True              # clear free cells along the beam path
+      #     raytrace_min_range: 0.0
+      #     raytrace_max_range: 3.0
+      #     obstacle_min_range: 0.0
+      #     obstacle_max_range: 2.5
 
       # 3) Static Layer (bring in the map geometry around you)
       static_layer:

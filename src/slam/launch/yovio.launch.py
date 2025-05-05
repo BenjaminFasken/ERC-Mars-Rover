@@ -30,7 +30,7 @@ def generate_launch_description():
         package='tf2_ros',
         name='camera_to_base_link_transform',
         executable='static_transform_publisher',
-        arguments=['-0.1646940', '-0.0598990', '-0.2339370', '0', '-0.7854', '0', 'zed_camera_link', 'base_link']
+        arguments=['-0.146422', '-0.0598990', '-0.238857', '0', '-0.34906585', '0', 'zed_camera_link', 'base_link']
     )
     
     static_transform_publisher_2 = Node(
@@ -77,7 +77,7 @@ def generate_launch_description():
             ('rgbd_image', '/rgbd_image')
         ]
     )
-    
+
     delayed_actions = TimerAction(
     period=25.0,
     actions=[
@@ -95,54 +95,43 @@ def generate_launch_description():
                 'subscribe_scan_cloud': True,  # Enable LiDAR
                 'subscribe_rgbd': True,
                 'approx_sync': True,
-                'sync_queue_size': 20,
-                'topic_queue_size': 20,
-                'wait_for_transform': 0.5,
-                'Grid/FootprintLength': '0.45',  
-                'Grid/FootprintWidth': '0.45',   
-                'Grid/FootprintHeight': '0.40', 
+                'sync_queue_size': 10, # Reduced from 20
+                'topic_queue_size': 10, # Reduced from 20
+                'wait_for_transform': 0.2, # Reduced from 0.5
+                'Grid/FootprintLength': '0.5',
+                'Grid/FootprintWidth': '0.5',
+                'Grid/FootprintHeight': '0.45',
+                'Grid/RangeMin': '0.35',
                 'RGBD/ProximityMaxGraphDepth': '0',
                 'RGBD/ProximityPathMaxNeighbors': '1',
                 'RGBD/AngularUpdate': '0.05',
                 'RGBD/LinearUpdate': '0.05',
                 'RGBD/CreateOccupancyGrid': 'True',
-                'Grid/Sensor': '0',
+                'Grid/Sensor': '2',
                 'Mem/NotLinkedNodesKept': 'false',
-                'Mem/STMSize': '30',
+                'Mem/STMSize': '15', # Reduced from 30
                 'Mem/LaserScanNormalK': '20',
-                'Reg/Strategy': '1',
-                'Icp/VoxelSize': '0.025',
-                'Icp/RangeMin': '0.35',
-                'Icp/RangeMax': '12',
-                'Grid/RangeMax': '12',
-                'Icp/PointToPlaneK': '20',
-                'Icp/PointToPlaneRadius': '0',
-                'Icp/PointToPlane': 'true',
-                'Icp/Iterations': '10',
-                'Icp/Epsilon': '0.001',
-                'Icp/MaxTranslation': '2',
-                'Icp/MaxCorrespondenceDistance': '1',
-                'Icp/Strategy': '0',
-                'Icp/OutlierRatio': '0.7',
-                'Icp/CorrespondenceRatio': '0.1',
+                'Reg/Strategy': '2',
+                'Grid/RangeMax': '40',
                 'Grid/PreVoxelFiltering': 'true',
                 'Grid/FlatObstacleDetected': 'false',
-                'Grid/NormalK': '20',
-                'Grid/MaxObstacleHeight': '0.5',
-                'Grid/MinGroundHeight': '0',
+                'Grid/NormalK': '10',
+                # 'Grid/MaxObstacleHeight': '0.5',
+                # 'Grid/MinGroundHeight': '0',
                 'Grid/MaxGroundAngle': '25.0',
                 'Grid/NormalSegments': 'true',
                 'Grid/ClusterRadius': '0.1',
                 'Grid/MinClusterSize': '10',
-                'Grid/CellSize': '0.025',
-                'Grid/NoiseFilteringRadius': '0.1',
-                'Grid/NoiseFilteringMinNeighbors': '10',
-                'Grid/RayTracing': 'true',
+                'Grid/CellSize': '0.04', # Increased from 0.037
+                'Grid/NoiseFilteringRadius': '0.15',
+                'Grid/NoiseFilteringMinNeighbors': '30',
+                'Grid/RayTracing': 'false', # Disabled from true
             }],
             remappings=[
                 ('rgbd_image', '/rgbd_image'),
-                ('odom', '/odom'),
                 ('scan_cloud', '/livox/lidar'),  # LiDAR integration
+                # ('map', 'map2'),
+                # ('/map', '/map2')
             ],
             arguments=['-d']
         ),
@@ -160,7 +149,6 @@ def generate_launch_description():
             }],
             remappings=[
                 ('rgbd_image', '/rgbd_image'),
-                ('odom', '/odom'),
                 ('scan_cloud', '/livox/lidar'),
             ]
         ),

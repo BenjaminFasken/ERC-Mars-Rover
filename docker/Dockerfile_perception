@@ -48,6 +48,8 @@ RUN git clone --recurse-submodules -b humble-v4.1.4 \
 RUN cd src/zed-ros2-wrapper && \
     cp -r ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}/src/slam/config/common.yaml zed_wrapper/config/common.yaml
 
+# Copy neural_depth_3.6.model into the ZED SDK resources directory
+RUN cp ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}/src/slam/config/neural_depth_3.6.model /usr/local/zed/resources/
 
 RUN apt-get update && \
     rosdep update && \
