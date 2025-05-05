@@ -11,8 +11,7 @@
 
 #2: Kopier uCloud mappe ind i /home/ucloud
 	- Åben lokal terminal og skriv følgende
-	scp -r ~/home/emil/Documents/GitHub/ERC-Mars-Rover/src/probe_detection/Training
- ucloud@[IP-adresse]:/home/ucloud
+	scp -r /home/emil/Documents/GitHub/ERC-Mars-Rover/src/probe_detection/Training ucloud@[IP-adresse]:/home/ucloud
 	- vent venligst
 	- gå tilbage til ssh terminal
 	cd Training

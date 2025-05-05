@@ -7,8 +7,8 @@ import os
 
 # Initialize ClearML
 task = Task.init(
-    project_name="YOLOv12n hyperparameter1",
-    task_name="hyptest2",
+    project_name="YOLOv12n modeltrain",
+    task_name="hyperparameter_tuning",
     output_uri=True
 )
 
