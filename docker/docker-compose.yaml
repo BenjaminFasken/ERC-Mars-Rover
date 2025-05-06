@@ -23,14 +23,13 @@ services:
       depth.max_depth:=4.0 \
       depth.confidence:=70 \
       depth.texture_confidence:=70 \
-      pos_tracking.imu_fusion:=true && \
-      touch /tmp/zed_initialized"  # Create a marker file when done
+      pos_tracking.imu_fusion:=true 2>&1 | tee /tmp/zed_log.txt"  # Use tee
     healthcheck:
-      test: ["CMD-SHELL", "test -f /tmp/zed_initialized"]  # Check for marker file
+      test: ["CMD-SHELL", "grep 'Q: \\[0,0,0,1\\]' /tmp/zed_log.txt"]  # Updated escaping
       interval: 30s
       timeout: 10s
-      retries: 40  # Allow ~20 minutes (30s * 40 = 1200s)
-      start_period: 60s  # Give initial time for setup
+      retries: 40
+      start_period: 60s
 
   Nav2_And_RTAB_container:
     image: erc-mars-rover_nav:latest
@@ -45,7 +44,7 @@ services:
     command: -c "source install/setup.bash && ros2 launch navigation nav2.launch.py"
     depends_on:
       zed_container:
-        condition: service_healthy  # Wait for zed_container to be healthy
+        condition: service_healthy
 
 volumes:
   zed_models:
