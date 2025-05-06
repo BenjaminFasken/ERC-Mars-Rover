@@ -142,6 +142,7 @@ private:
       float lz = msg->probes[base + 2];
       float confidence = msg->classification_confidence[i];
 
+      //! change back once the global pose is actually being broadcasted ----------------------------------------------------
       // convert to global frame before merging
       // auto [gx, gy, gz] = transformToGlobal(lx, ly, lz);
 
