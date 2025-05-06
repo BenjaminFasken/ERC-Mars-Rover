@@ -23,12 +23,12 @@ services:
       depth.max_depth:=4.0 \
       depth.confidence:=70 \
       depth.texture_confidence:=70 \
-      pos_tracking.imu_fusion:=true 2>&1 | tee /tmp/zed_log.txt"  # Use tee
+      pos_tracking.imu_fusion:=true 2>&1 | tee /tmp/zed_log.txt"  # We use tee to log output, and condition on the log file
     healthcheck:
-      test: ["CMD-SHELL", "grep 'Q: \\[0,0,0,1\\]' /tmp/zed_log.txt"]  # Updated escaping
+      test: ["CMD-SHELL", "grep 'Q: \\[0,0,0,1\\]' /tmp/zed_log.txt"]  # The ZED camera is ready when it reaches the quaternion output. Might be better to check for a specific line in the log file.
       interval: 30s
       timeout: 10s
-      retries: 40
+      retries: 60 # Wait for 30 minutes for the camera to be ready (Should be less than 30 minutes)
       start_period: 60s
 
   Nav2_And_RTAB_container:
