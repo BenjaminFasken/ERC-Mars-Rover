@@ -45,9 +45,11 @@ def generate_launch_description():
     # 3. Launch static transform publishers
     static_transform_publisher_1 = Node(
         package='tf2_ros',
+        namespace='tf2',
         name='camera_to_base_link_transform',
         executable='static_transform_publisher',
-        arguments=['-0.146422', '-0.0598990', '-0.238857', '0', '-0.34906585', '0', 'zed_camera_link', 'base_link']
+        arguments=['-0.146422', '-0.0598990', '-0.238857', '0', '-0.34906585', '0', 'zed_camera_link', 'base_link'],
+        output='screen'  # Ensure logs are visible
     )
     
     static_transform_publisher_2 = Node(
@@ -77,7 +79,7 @@ def generate_launch_description():
                 'approx_sync': True,
                 'sync_queue_size': 10, # Reduced from 20
                 'topic_queue_size': 10, # Reduced from 20
-                'wait_for_transform': 0.2, # Reduced from 0.5
+                'wait_for_transform': 2.0,
                 'Grid/FootprintLength': '0.5',
                 'Grid/FootprintWidth': '0.5',
                 'Grid/FootprintHeight': '0.45',

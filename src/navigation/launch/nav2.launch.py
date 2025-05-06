@@ -31,7 +31,7 @@ def generate_launch_description():
             output='screen'
         ),
 
-        # Include nav2_bringup navigation_launch.py 
+        #Include nav2_bringup navigation_launch.py 
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(nav2_bringup_path)
         ),

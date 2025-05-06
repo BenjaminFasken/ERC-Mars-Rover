@@ -4,7 +4,7 @@
 if [ ! -d "install/navigation" ]; then
     echo "Navigation package not found. Building the workspace..."
     # Navigate to the workspace root and build the navigation package
-    colcon build --packages-select navigation
+    colcon build --packages-select interfaces navigation
     if [ $? -ne 0 ]; then
         echo "Failed to build the navigation package. Exiting."
         exit 1

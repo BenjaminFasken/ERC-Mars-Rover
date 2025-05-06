@@ -4,7 +4,6 @@
   <xacro:macro name="leo" 
                params="default_antenna:=true
                        rockers_fixed:=true
-                       footprint_link:=true
                        link_prefix:=''
                        joint_prefix:=''
                        imu_translation:='0.0628 -0.0314 -0.0393'
@@ -98,10 +97,6 @@
     </xacro:macro>
 
     <!-- LINKS -->
-    <xacro:if value="${footprint_link}">
-      <link name="${link_prefix}base_footprint"/>
-    </xacro:if>
-
     <link name="${link_prefix}base_link">
       <inertial>
         <mass value="1.584994"/>
@@ -167,15 +162,6 @@
     <link name="${link_prefix}imu_frame"/>
 
     <!-- JOINTS -->
-
-    <xacro:if value="${footprint_link}">
-      <joint name="${joint_prefix}base_joint" type="fixed">
-        <origin xyz="0 0 0.19783" rpy="0 0 0"/>
-        <parent link="${link_prefix}base_footprint"/>
-        <child link="${link_prefix}base_link"/>
-      </joint>
-    </xacro:if>
-
     <xacro:if value="${rockers_fixed}">
       <xacro:property name="rockers_joint_type" value="fixed"/>
     </xacro:if>
@@ -286,8 +272,7 @@
 
   </xacro:macro>
 
-    <!-- Leo_sim -->
-
+  <!-- Leo_sim -->
   <xacro:macro name="leo_sim" 
                params="default_antenna:=true 
                        robot_ns:=''
