@@ -67,9 +67,8 @@ def objective(trial):
 
     return mask_mAP95
 
-# 9) Run Optuna study with pruning
-pruner = optuna.pruners.MedianPruner(n_warmup_steps=5)      # early-stop unpromising trials  
-study  = optuna.create_study(direction="maximize", pruner=pruner)
+# 9) Run Optuna study without pruning
+study = optuna.create_study(direction="maximize")  # Removed pruner parameter
 study.optimize(objective, n_trials=40, gc_after_trial=True)
 
 # 10) Summary artifact
