@@ -48,9 +48,6 @@ RUN git clone --recurse-submodules -b humble-v4.1.4 \
 RUN cd src/zed-ros2-wrapper && \
     cp -r ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}/src/slam/config/common.yaml zed_wrapper/config/common.yaml
 
-# Copy neural_depth_3.6.model into the ZED SDK resources directory
-RUN cp ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}/src/slam/config/neural_depth_3.6.model /usr/local/zed/resources/
-
 RUN apt-get update && \
     rosdep update && \
     rosdep install --from-paths src --ignore-src -r -y && \
@@ -59,7 +56,7 @@ RUN apt-get update && \
 RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash && \
 colcon build --parallel-workers $(nproc) --symlink-install \
     --event-handlers console_direct+ --base-paths src \
-    --packages-select interfaces probe_detection zed_wrapper \
+    --packages-select interfaces probe_detection zed_interfaces zed_components zed_wrapper \
     --cmake-args \
         ' -DCMAKE_BUILD_TYPE=Release' \
         ' -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda-12.6' \
