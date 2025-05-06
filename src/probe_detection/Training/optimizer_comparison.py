@@ -13,23 +13,21 @@ task = Task.init(
 torch.cuda.empty_cache()
 
 # Settings
-DATA_PATH = '/home/ucloud/Training/marsYardData/rocky_mars.v8-big-ahh-dataset-v2.yolov12/data.yaml'
+DATA_PATH  = '/home/ucloud/Training/marsYardData/rocky_mars.v8-big-ahh-dataset-v2.yolov12/data.yaml'
 MODEL_PATH = 'yolo11s-seg.pt'
-EPOCHS = 100
-BATCH = 160
-IMG_SIZE = 640
+EPOCHS     = 200
+BATCH      = 160
+IMG_SIZE   = 640
 
-# Best learning rates from your earlier search
+# Best learning rates
 optimizers = {
-    "SGD": 0.0011647178866041779,    # Your best SGD LR
-    "AdamW": 0.0024445076752811906   # Your best AdamW LR
+    "SGD":   0.0055,
+    "AdamW": 0.0024445076752811906
 }
 
-# Loop through both optimizers
 results_dict = {}
 for opt_name, lr in optimizers.items():
     print(f"\n⚡ Training with {opt_name} (lr={lr}) for {EPOCHS} epochs")
-
     torch.cuda.empty_cache()
 
     model = YOLO(MODEL_PATH)
@@ -46,21 +44,18 @@ for opt_name, lr in optimizers.items():
         name="train"
     )
 
-    #Get final mAP50
-    final_map50 = getattr(results.box, 'map50', None)
-    if final_map50 is None:
-        final_map50 = getattr(results.metrics.box, 'map50', 0.0)
+    final_map50_95 = getattr(results.seg, 'map50_95', 0.0)
 
-    # Log to ClearML
+    # log to ClearML
     task.get_logger().report_scalar(
-        title="showdown_final_mAP50",
+        title="showdown_final_mAP50-95",
         series=opt_name,
         iteration=1,
-        value=final_map50
+        value=final_map50_95
     )
 
-    print(f"{opt_name} final mAP50 after {EPOCHS} epochs: {final_map50}")
-    results_dict[opt_name] = final_map50
+    print(f"{opt_name} final mAP50-95 after {EPOCHS} epochs: {final_map50_95:.4f}")
+    results_dict[opt_name] = final_map50_95
 
     # Upload best weights
     weights_path = os.path.join(results.save_dir, "weights", "best.pt")
@@ -68,11 +63,14 @@ for opt_name, lr in optimizers.items():
         task.upload_artifact(
             name=f"best_weights_{opt_name}",
             artifact_object=weights_path,
-            metadata={"final_map50": final_map50, "optimizer": opt_name, "lr": lr}
+            metadata={
+                "final_map50_95": final_map50_95,
+                "optimizer": opt_name,
+                "lr": lr
+            }
         )
 
 print("\nShowdown complete!")
 print("Results:")
 for opt, score in results_dict.items():
-    print(f"- {opt}: {score}")
-
+    print(f"- {opt}: {score:.4f}")
