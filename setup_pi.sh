@@ -61,7 +61,7 @@ Wants=network-online.target
 Type=simple
 User=leorover
 WorkingDirectory=$WORKSPACE_DIR
-ExecStart=/bin/bash -c "source $WORKSPACE_DIR/install/setup.bash && ros2 launch navigation startup_nodes.launch.py"
+ExecStart=/bin/bash -c "source $WORKSPACE_DIR/install/setup.bash && ros2 launch navigation pi.launch.py"
 Restart=always
 RestartSec=10
 
