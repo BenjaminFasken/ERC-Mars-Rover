@@ -7,7 +7,7 @@ set -e
 WORKSPACE_DIR="$HOME/ERC-Mars-Rover"
 SERVICE_NAME="mars-rover-nodes.service"
 SERVICE_FILE="/etc/systemd/system/$SERVICE_NAME"
-LAUNCH_FILE="$WORKSPACE_DIR/src/navigation/launch/startup_nodes.launch.py"
+LAUNCH_FILE="$WORKSPACE_DIR/src/navigation/launch/pi.launch.py"
 
 # Check if workspace directory exists
 if [ ! -d "$WORKSPACE_DIR" ]; then
