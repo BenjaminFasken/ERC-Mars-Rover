@@ -99,7 +99,7 @@ Type=simple
 User=$USER
 Environment="HOME=/home/$USER"
 WorkingDirectory=$WORKSPACE_DIR
-ExecStart=/bin/bash -c "source /opt/ros/humble/setup.bash && source /home/$USER/ERC-Mars-Rover/install/setup.bash && ros2 launch navigation pi.launch.py"
+ExecStart=/bin/bash -c "source /opt/ros/humble/setup.bash && export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp && source /home/$USER/ERC-Mars-Rover/install/setup.bash && ros2 launch navigation pi.launch.py"
 Restart=always
 RestartSec=10
 
