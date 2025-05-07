@@ -1,6 +1,0 @@
-# Request
-string mode  # "manual", "autonomous", or "off"
----
-# Response
-bool success   # True if the mode was set successfully
-string message # Optional feedback message

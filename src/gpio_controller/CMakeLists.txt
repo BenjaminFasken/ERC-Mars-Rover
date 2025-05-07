@@ -10,12 +10,8 @@ find_package(ament_cmake REQUIRED)
 find_package(rclpy REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 find_package(rosidl_default_runtime REQUIRED)
+find_package(interfaces REQUIRED)
 
-# Add the service definition
-rosidl_generate_interfaces(${PROJECT_NAME}
-  "srv/SetLedPattern.srv"
-  TARGET_NAME ${PROJECT_NAME}_interfaces # Keep target name
-)
 
 # Make the python installation depend on the interface generation
 ament_python_install_package(
