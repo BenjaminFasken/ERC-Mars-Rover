@@ -192,38 +192,40 @@ local_costmap:
       resolution: 0.025               # grid cell size (m) — matches your global 0.025  
 
       # — Footprint for inflation & clearing —
-      #footprint: "[[-0.2125, -0.224], [0.2125, -0.224], [0.2125, 0.224], [-0.2125, 0.224]]" # The footprint of the robot in meters
-      robot_radius: 0.01
-      plugins: ["static_layer", "inflation_layer"] #"voxel_layer",
+      footprint: "[[-0.2125, -0.224], [0.2125, -0.224], [0.2125, 0.224], [-0.2125, 0.224]]" # The footprint of the robot in meters
+      plugins: ["static_layer", "inflation_layer", "voxel_layer"]
       # 1) Inflation Layer
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
+        enabled: True 
         cost_scaling_factor: 3.0      # how steeply costs decay from obstacles
-        inflation_radius: 0.00       # how far (m) to inflate around each obstacle
+        inflation_radius: 0.15       # how far (m) to inflate around each obstacle
+        inflate_unknown: False                   #If true, any unknown cells (i.e. neither marked free nor occupied in the costmap) are treated as lethal obstacles and then inflated like normal obstacles.
+        inflate_around_unknown: False            #If true, even when inflate_unknown is false, Nav2 will still apply the inflation gradient around unknown cells—so you get a “soft buffer” at the boundary of unmapped areas.
 
       # 2) Voxel Layer (3D → 2D projection for LiDAR/pointcloud)
-      # voxel_layer:
-      #   plugin: "nav2_costmap_2d::VoxelLayer"
-      #   footprint_clearing_enabled: true       
-      #   enabled: True
-      #   publish_voxel_map: True       # makes the 3D voxel markers show in RViz  
-      #   origin_z: 0.0                 # ground plane origin for your voxels
-      #   z_resolution: 0.05            # height resolution per voxel cell
-      #   z_voxels: 16                  # how many vertical voxels (≈0.8 m tall stack)
-      #   max_obstacle_height: 3.0      # ignore anything taller
-      #   mark_threshold: 0             # number of “hits” before marking a cell occupied  
+      voxel_layer:
+        plugin: "nav2_costmap_2d::VoxelLayer"
+        footprint_clearing_enabled: true       
+        enabled: True
+        publish_voxel_map: True       # makes the 3D voxel markers show in RViz  
+        origin_z: 0.0                 # ground plane origin for your voxels
+        z_resolution: 0.05            # height resolution per voxel cell
+        z_voxels: 16                  # how many vertical voxels (≈0.8 m tall stack)
+        max_obstacle_height: 3.0      # ignore anything taller
+        mark_threshold: 0             # number of “hits” before marking a cell occupied  
 
-      #   # Use your LiDAR scan as the observation source
-      #   observation_sources: scan
-      #   scan:
-      #     topic: /scan
-      #     data_type: "LaserScan"
-      #     marking: True               # mark occupied cells where beams hit
-      #     clearing: True              # clear free cells along the beam path
-      #     raytrace_min_range: 0.0
-      #     raytrace_max_range: 3.0
-      #     obstacle_min_range: 0.0
-      #     obstacle_max_range: 2.5
+        # Use your LiDAR scan as the observation source
+        observation_sources: scan
+        scan:
+          topic: /scan
+          data_type: "LaserScan"
+          marking: True               # mark occupied cells where beams hit
+          clearing: True              # clear free cells along the beam path
+          raytrace_min_range: 0.0
+          raytrace_max_range: 3.0
+          obstacle_min_range: 0.0
+          obstacle_max_range: 2.5
 
       # 3) Static Layer (bring in the map geometry around you)
       static_layer:
@@ -245,24 +247,29 @@ global_costmap:
       footprint: "[[-0.2125, -0.224], [0.2125, -0.224], [0.2125, 0.224], [-0.2125, 0.224]]" # The footprint of the robot in meters
       resolution: 0.025
       track_unknown_space: true                       #Treats unexplored areas (value -1) as unknown. Seen in Rviz. #THINK
-      plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
-      obstacle_layer:                 
-        plugin: "nav2_costmap_2d::ObstacleLayer"
-        enabled: True                                 #Set to false if you want a static map
-        footprint_clearing_enabled: True              #Clears any cells under the robot’s footprint on every update (so you don’t “trap” yourself against a wall).
+      plugins: ["static_layer", "voxel_layer", "inflation_layer"]
+      voxel_layer:
+        plugin: "nav2_costmap_2d::VoxelLayer"
+        footprint_clearing_enabled: true       
+        enabled: True
+        publish_voxel_map: True       # makes the 3D voxel markers show in RViz  
+        origin_z: 0.0                 # ground plane origin for your voxels
+        z_resolution: 0.05            # height resolution per voxel cell
+        z_voxels: 16                  # how many vertical voxels (≈0.8 m tall stack)
+        max_obstacle_height: 3.0      # ignore anything taller
+        mark_threshold: 0             # number of “hits” before marking a cell occupied  
+
+        # Use your LiDAR scan as the observation source
         observation_sources: scan
         scan:
           topic: /scan
-          max_obstacle_height: 2.0
-          clearing: True                              #Whether to raytrace back from sensor origin to clear out free space behind obstacles (e.g. through laser fan).
-          marking: True                               #Whether detected points become occupied cells in the costmap.
           data_type: "LaserScan"
-          min_obstacle_height: 0.0                    #Don’t add returns below this height (m).
-          max_obstacle_height: 2.0                    #Don’t add returns above this height (m).
-          raytrace_max_range: 3.5                     #Don’t clear cells beyond this range (m).
-          raytrace_min_range: 0.5                     #Don’t clear cells closer than this range (m).
-          obstacle_max_range: 3.0                     #Don’t mark obstacles beyond this range (m).
-          obstacle_min_range: 0.5                     #Don’t mark obstacles closer than this range (m).
+          marking: True               # mark occupied cells where beams hit
+          clearing: True              # clear free cells along the beam path
+          raytrace_min_range: 0.0
+          raytrace_max_range: 3.0
+          obstacle_min_range: 0.0
+          obstacle_max_range: 2.5
       static_layer:
         plugin: "nav2_costmap_2d::StaticLayer"
         map_topic: /map
@@ -271,7 +278,7 @@ global_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         enabled: True                # Turns the Inflation Layer on or off. When false, Nav2 will not apply any inflation gradient around obstacles at all—only the raw obstacle footprint will be used.
-        inflation_radius: 0.00       # how far (meters) to “inflate” around each obstacle
+        inflation_radius: 0.15       # how far (meters) to “inflate” around each obstacle
         cost_scaling_factor: 3.0     # larger → costs drop off more sharply with distance
         inflate_unknown: False                   #If true, any unknown cells (i.e. neither marked free nor occupied in the costmap) are treated as lethal obstacles and then inflated like normal obstacles.
         inflate_around_unknown: False            #If true, even when inflate_unknown is false, Nav2 will still apply the inflation gradient around unknown cells—so you get a “soft buffer” at the boundary of unmapped areas.
@@ -309,19 +316,19 @@ planner_server:
       # — Motion model & discretization —
       motion_model_for_search: "REEDS_SHEPP"   # allows forward & reverse arcs (better for diff-drive)
       minimum_turning_radius: 0.165           # half your 0.33 m wheel base (m)
-      angle_quantization_bins: 36             # 10° bins → faster, coarse heading search
+      angle_quantization_bins: 64             # 5° bins → faster, coarse heading search
 
       # — Analytic expansions (fast shortcuts) —
       analytic_expansion_ratio: 3.0           # how often to try a quick straight‐line solve
-      analytic_expansion_max_length: 3.0      # max 2 m shortcut (don’t cut across huge gaps)
-      analytic_expansion_max_cost: 150.0      # forbid shortcuts through very high cost cells
+      analytic_expansion_max_length: 0.8      # max 2 m shortcut (don’t cut across huge gaps)
+      analytic_expansion_max_cost: 130.0      # forbid shortcuts through very high cost cells
       analytic_expansion_max_cost_override: false
 
       # — Cost penalties (shape your path) —
-      reverse_penalty:      2.0    # discourage backing up
+      reverse_penalty:      40.0    # discourage backing up
       change_penalty:       1.0    # mild penalty for switching forward⇄reverse
-      non_straight_penalty: 1.0    # slight penalty for any curvature vs. straight
-      cost_penalty:         2.0    # steer away from high-cost (narrow) regions
+      non_straight_penalty: 5.0    # slight penalty for any curvature vs. straight
+      cost_penalty:         10.0    # steer away from high-cost (narrow) regions
       retrospective_penalty: 0.00   # small bias to reuse previous paths
 
       # — Heuristic caching & performance —
@@ -332,6 +339,7 @@ planner_server:
       allow_primitive_interpolation: false
       debug_visualizations: false         # off for normal runs  #THINK - set to false when not testing, as it is very computationally expensive
 
+      goal_heading_mode: "ALL_DIRECTION"
       # — Post‐planning smoothing —
       smooth_path: true
       smoother:

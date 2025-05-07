@@ -177,8 +177,7 @@ def generate_launch_description():
                 respawn_delay=2.0,
                 parameters=[configured_params],
                 arguments=['--ros-args', '--log-level', log_level],
-                remappings= + 
-                [('cmd_vel_smoothed', 'cmd_vel_cyclone')]),
+                remappings= remappings + [('cmd_vel_smoothed', 'cmd_vel_cyclone')]),
             Node(
                 package='nav2_bt_navigator',
                 executable='bt_navigator',

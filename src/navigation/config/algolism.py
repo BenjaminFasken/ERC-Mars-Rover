@@ -34,7 +34,7 @@ class FrontierExplorationNode(Node):
         self.map_data = None
         self.map_array = None
         self.map_metadata = None
-        self.goal_reached = True  # Initialize to True to allow first goal
+        self.goal_reached = False  # Initialize to True to allow first goal
         self.robot_x = 0.0
         self.robot_y = 0.0
         self.map_info = None
