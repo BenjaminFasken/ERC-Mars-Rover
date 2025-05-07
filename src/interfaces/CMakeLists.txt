@@ -8,8 +8,6 @@ find_package(builtin_interfaces REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
-find_package(interfaces REQUIRED)
-
 
 # Optional check for builtin_interfaces
 if(NOT builtin_interfaces_FOUND)
