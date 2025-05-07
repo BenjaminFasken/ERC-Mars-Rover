@@ -1,0 +1,51 @@
+[
+  {
+    "epochs": 5,
+    "time_sec": 141.93746733665466,
+    "error": null
+  },
+  {
+    "epochs": 10,
+    "time_sec": 211.44530844688416,
+    "error": null
+  },
+  {
+    "epochs": 15,
+    "time_sec": 296.25329065322876,
+    "error": null
+  },
+  {
+    "epochs": 20,
+    "time_sec": 373.37049627304077,
+    "error": null
+  },
+  {
+    "epochs": 25,
+    "time_sec": 459.73208355903625,
+    "error": null
+  },
+  {
+    "epochs": 30,
+    "time_sec": 548.5403716564178,
+    "error": null
+  },
+  {
+    "epochs": 40,
+    "time_sec": 715.8969829082489,
+    "error": null
+  },
+  {
+    "epochs": 50,
+    "time_sec": 893.5086286067963,
+    "error": null
+  },
+  {
+    "epochs": 60,
+    "time_sec": 1075.5116610527039,
+    "error": null
+  },
+  {
+    "epochs": 70,
+    "time_sec": 1241.4984295368195,
+    "error": null
+  }
