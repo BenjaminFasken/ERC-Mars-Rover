@@ -28,14 +28,6 @@ source /opt/ros/humble/setup.bash || {
     exit 1
 }
 
-# Install dependencies
-echo "Installing dependencies..."
-cd "$WORKSPACE_DIR"
-rosdep install --from-paths src --ignore-src -r -y || {
-    echo "Error: Failed to install dependencies."
-    exit 1
-}
-
 # Build specific packages
 echo "Building interfaces, gpio_controller, and navigation packages..."
 colcon build --packages-select interfaces gpio_controller navigation || {
