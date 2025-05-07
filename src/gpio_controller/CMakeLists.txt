@@ -5,20 +5,16 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-# find dependencies
+# Dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclpy REQUIRED)
-find_package(rosidl_default_generators REQUIRED)
-find_package(rosidl_default_runtime REQUIRED)
 find_package(interfaces REQUIRED)
 
-
-# Make the python installation depend on the interface generation
-ament_python_install_package(
-    DEPENDENCIES ${PROJECT_NAME}_interfaces
+# Install Python scripts as executables
+install(
+  PROGRAMS
+    scripts/gpio_node.py
+  DESTINATION lib/${PROJECT_NAME}
 )
 
-# Also add dependency to ament_package
-ament_package(
-    DEPENDENCIES ${PROJECT_NAME}_interfaces # Add this line
-)
+ament_package()
