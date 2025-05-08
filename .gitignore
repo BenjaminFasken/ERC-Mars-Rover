@@ -9,3 +9,9 @@ datasets
 raw_images
 erc-mars-rover_perception.tar
 src/gcs/gcs_server/target
+src/probe_detection/Training/ucloud_training/setup_clearml.sh
+src/probe_detection/Training/ucloud_training/marsYardData/*
+src/simulation/usd/mars_yard
+src/simulation/usd/Mars_Yard.usd
+src/slam/config/MID360_config.json
+

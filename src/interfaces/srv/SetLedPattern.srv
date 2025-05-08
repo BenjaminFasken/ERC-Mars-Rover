@@ -1,0 +1,6 @@
+# Request
+string mode  # "mode1", "mode2", or "off"
+---
+# Response
+bool success   # True if the mode was set successfully
+string message # Optional feedback message

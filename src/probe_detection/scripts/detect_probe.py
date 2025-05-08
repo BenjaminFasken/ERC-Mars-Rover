@@ -20,7 +20,7 @@ class SegmentationNode(Node):
         
         self.previous_time = 0
         self.fps = 5
-        self.confidence_threshold = 0.25
+        self.confidence_threshold = 0.75
         self.rgb_image = None
         self.depth_image = None
         
@@ -50,7 +50,7 @@ class SegmentationNode(Node):
         package_name = 'probe_detection'
         try:
             package_share_dir = get_package_share_directory(package_name)
-            self.model_path = os.path.join(package_share_dir, 'models', 'probe_segmentation.pt')
+            self.model_path = os.path.join(package_share_dir, 'models', 'probe_segmentation_v2.pt')
             if not os.path.exists(self.model_path):
                 raise FileNotFoundError(f"Model file not found at: {self.model_path}")
             self.model = YOLO(self.model_path)
@@ -119,6 +119,10 @@ class SegmentationNode(Node):
         """Compute 3D locations of probes using depth data."""
         probe_locations = []
         
+        # print rgb image size and depth image size
+        self.get_logger().info(f"RGB Image Size: {rgb_image.shape}")
+        self.get_logger().info(f"Depth Image Size: {point_cloud.shape}")
+        
         # extract depth image from point cloud
         x_image = point_cloud[:, :, 0]  # Depth channel
         y_image = point_cloud[:, :, 1]
@@ -139,9 +143,34 @@ class SegmentationNode(Node):
                     centroid_x = int(np.mean(x))
                     centroid_y = int(np.mean(y))
                     
-                    #Extract the centroid x,y,z coordinates from the point cloud
-                    position = np.array([x_image[centroid_y, centroid_x], y_image[centroid_y, centroid_x], z_image[centroid_y, centroid_x]])
+                    # Extract a 3x3 kernel around the centroid
+                    kernel_size = 3
+                    half_kernel = kernel_size // 2
+                    x_min = max(centroid_x - half_kernel, 0)
+                    x_max = min(centroid_x + half_kernel + 1, x_image.shape[1])
+                    y_min = max(centroid_y - half_kernel, 0)
+                    y_max = min(centroid_y + half_kernel + 1, x_image.shape[0])
+                    kernel = binary_mask[y_min:y_max, x_min:x_max]
+                    kernel = kernel.astype(np.uint8)
                     
+                    position_kernel = np.array([x_image[y_min:y_max, x_min:x_max], y_image[y_min:y_max, x_min:x_max], z_image[y_min:y_max, x_min:x_max]])
+                    
+                    #calculate the meadian of the kernel, excluding NaN and Inf values
+                    valid_x = position_kernel[0][kernel == 1]
+                    valid_y = position_kernel[1][kernel == 1]
+                    valid_z = position_kernel[2][kernel == 1]
+                
+                    valid_x = valid_x[np.isfinite(valid_x)]
+                    valid_y = valid_y[np.isfinite(valid_y)]
+                    valid_z = valid_z[np.isfinite(valid_z)]
+
+                    median_x = np.nanmedian(valid_x)
+                    median_y = np.nanmedian(valid_y)
+                    median_z = np.nanmedian(valid_z)
+                    
+                    #Position is the median of the kernel
+                    position = np.array([median_x, median_y, median_z])
+
                     # Check if the position is valid (not NaN or Inf)
                     if np.isnan(position).any() or np.isinf(position).any():
                         continue
