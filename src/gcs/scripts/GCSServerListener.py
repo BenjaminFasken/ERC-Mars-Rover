@@ -1,16 +1,19 @@
 #!/usr/bin/env python3
 import rclpy
 from rclpy.node import Node
+from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 import socket
 import struct
 import binascii
 from std_msgs.msg import Bool, Float32, UInt8
-from geometry_msgs.msg import Vector3
+from geometry_msgs.msg import Vector3, PoseWithCovarianceStamped, Twist
 from sensor_msgs.msg import Image
 from interfaces.msg import ProbeLocations
 import os
 from cv_bridge import CvBridge
 import cv2
+import math
+import numpy as np
 
 # Determine the base directory of the project (ERC-Mars-Rover root)
 workspace_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../..'))
@@ -20,6 +23,27 @@ os.makedirs(pictures_dir, exist_ok=True)
 
 max_voltage = 21.0
 min_voltage = 15.0
+
+def quaternion_to_euler(x, y, z, w):
+    """Convert quaternion to Euler angles (roll, pitch, yaw) in radians."""
+    # Roll (x-axis rotation)
+    sinr_cosp = 2.0 * (w * x + y * z)
+    cosr_cosp = 1.0 - 2.0 * (x * x + y * y)
+    roll = math.atan2(sinr_cosp, cosr_cosp)
+
+    # Pitch (y-axis rotation)
+    sinp = 2.0 * (w * y - z * x)
+    if abs(sinp) >= 1:
+        pitch = math.copysign(math.pi / 2, sinp)  # Use 90 degrees if out of range
+    else:
+        pitch = math.asin(sinp)
+
+    # Yaw (z-axis rotation)
+    siny_cosp = 2.0 * (w * z + x * y)
+    cosy_cosp = 1.0 - 2.0 * (y * y + z * z)
+    yaw = math.atan2(siny_cosp, cosy_cosp)
+
+    return roll, pitch, yaw
 
 class RoverTelemetryNode(Node):
     def __init__(self):
@@ -43,34 +67,65 @@ class RoverTelemetryNode(Node):
             'Battery_change': False,
             'mode': 0
         }
-        self.sub_status = self.create_subscription(Bool, '/rover/status', self.status_callback, 10)
-        self.sub_position = self.create_subscription(Vector3, '/rover/position', self.position_callback, 10)
-        self.sub_attitude = self.create_subscription(Vector3, '/rover/attitude', self.attitude_callback, 10)
-        self.sub_velocity = self.create_subscription(Vector3, '/rover/velocity', self.velocity_callback, 10)
-        self.sub_probes = self.create_subscription(ProbeLocations, '/rover/probes', self.probes_callback, 10)
-        #self.sub_image = self.create_subscription(Image, '/rover/image', self.image_callback, 10)
-        self.sub_battery = self.create_subscription(Float32, '/rover/battery', self.battery_callback, 10)
-        self.sub_mode = self.create_subscription(UInt8, '/rover/mode', self.mode_callback, 10)
+
+        # Define QoS profiles
+        reliable_qos = QoSProfile(
+            reliability=ReliabilityPolicy.RELIABLE,
+            history=HistoryPolicy.KEEP_LAST,
+            depth=10
+        )
+        battery_qos = QoSProfile(
+            reliability=ReliabilityPolicy.BEST_EFFORT,
+            history=HistoryPolicy.KEEP_LAST,
+            depth=10
+        )
+
+        # Subscriptions
+        self.sub_status = self.create_subscription(Bool, '/rover/status', self.status_callback, reliable_qos)
+        self.sub_pose = self.create_subscription(PoseWithCovarianceStamped, '/localization_pose', self.pose_callback, reliable_qos)
+        self.sub_velocity = self.create_subscription(Twist, '/cmd_vel_cyclone', self.velocity_callback, reliable_qos)
+        self.sub_probes = self.create_subscription(ProbeLocations, '/rover/probes', self.probes_callback, reliable_qos)
+        # self.sub_image = self.create_subscription(Image, '/rover/image', self.image_callback, reliable_qos)
+        self.sub_battery = self.create_subscription(Float32, '/firmware/battery_averaged', self.battery_callback, battery_qos)
+        self.sub_mode = self.create_subscription(UInt8, '/rover/mode', self.mode_callback, reliable_qos)
+
+        # Log subscription creation
+        self.get_logger().info("Created subscription to /firmware/battery_averaged with BEST_EFFORT QoS")
+        self.get_logger().info("RoverTelemetryNode initialized")
+
         self.create_timer(0.5, self.print_status)
         self.get_logger().info(f"Started RoverTelemetry: TM host={self.tm_host}, TM port={self.tm_port}")
 
     def status_callback(self, msg):
+        self.get_logger().info(f"Received status: {msg.data}")
         self.state['connection_status'] = msg.data
         self.send_telemetry()
 
-    def position_callback(self, msg):
-        self.state['rover_position'] = msg
-        self.send_telemetry()
+    def pose_callback(self, msg):
+        self.get_logger().info(f"Received pose: position=({msg.pose.pose.position.x}, {msg.pose.pose.position.y}, {msg.pose.pose.position.z})")
+        # Extract position
+        self.state['rover_position'].x = msg.pose.pose.position.x
+        self.state['rover_position'].y = msg.pose.pose.position.y
+        self.state['rover_position'].z = msg.pose.pose.position.z
 
-    def attitude_callback(self, msg):
-        self.state['euler_rotations'] = msg
+        # Extract orientation and convert quaternion to Euler angles
+        q = msg.pose.pose.orientation
+        roll, pitch, yaw = quaternion_to_euler(q.x, q.y, q.z, q.w)
+        self.state['euler_rotations'].x = roll
+        self.state['euler_rotations'].y = pitch
+        self.state['euler_rotations'].z = yaw
+
         self.send_telemetry()
 
     def velocity_callback(self, msg):
-        self.state['velocity'] = msg
+        self.get_logger().info(f"Received velocity: linear=({msg.linear.x}, {msg.linear.y}, {msg.linear.z})")
+        self.state['velocity'].x = msg.linear.x
+        self.state['velocity'].y = msg.linear.y
+        self.state['velocity'].z = msg.linear.z
         self.send_telemetry()
 
     def probes_callback(self, msg):
+        self.get_logger().info(f"Received probes: num_probes={msg.num_probes}")
         probes = []
         confidences = msg.classification_confidence[:3]
         for i in range(0, min(msg.num_probes * 3, len(msg.probes), 9), 3):
@@ -102,16 +157,18 @@ class RoverTelemetryNode(Node):
         # Send telemetry after processing the image
         self.send_telemetry()
         
-        # Reset the image update flag, such that i does not get sent in the next telemetry packet unless a new image is received
+        # Reset the image update flag
         self.state['image_update'] = False
 
     def battery_callback(self, msg):
+        self.get_logger().info(f"Received battery voltage: {msg.data}")
         self.state['battery_voltage'] = msg.data
         self.state['Battery_Charge'] = (msg.data - min_voltage) / (max_voltage - min_voltage) * 100
         self.state['Battery_change'] = self.state['Battery_Charge'] > 15
         self.send_telemetry()
 
     def mode_callback(self, msg):
+        self.get_logger().info(f"Received mode: {msg.data}")
         self.state['mode'] = msg.data
         self.send_telemetry()
 
@@ -120,6 +177,8 @@ class RoverTelemetryNode(Node):
             self.get_logger().info(
                 f"Sending: status={self.state['connection_status']}, "
                 f"pos=({self.state['rover_position'].x:.2f}, {self.state['rover_position'].y:.2f}, {self.state['rover_position'].z:.2f}), "
+                f"euler=({self.state['euler_rotations'].x:.2f}, {self.state['euler_rotations'].y:.2f}, {self.state['euler_rotations'].z:.2f}), "
+                f"vel=({self.state['velocity'].x:.2f}, {self.state['velocity'].y:.2f}, {self.state['velocity'].z:.2f}), "
                 f"probes={[f'({p[0]:.2f}, {p[1]:.2f}, {p[2]:.2f})' for p in self.state['probe_positions']]}, "
                 f"confidences={[f'{c:.2f}' for c in self.state['probe_confidences']]}, "
                 f"image_update={self.state['image_update']}, "
@@ -172,6 +231,7 @@ def main(args=None):
     rclpy.init(args=args)
     try:
         node = RoverTelemetryNode()
+        node.get_logger().info("Node initialized, starting spin")
         rclpy.spin(node)
     except Exception as e:
         print(f"Error: {str(e)}")

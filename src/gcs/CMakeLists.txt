@@ -25,9 +25,11 @@ ament_python_install_package(${PROJECT_NAME})
 # Install Python executables
 install(PROGRAMS
   scripts/TelemetryPublisher.py
-  scripts/RoverTelemetry.py
+  scripts/GCSServerListener.py
   DESTINATION lib/${PROJECT_NAME}
 )
+
+install(DIRECTORY launch DESTINATION share/${PROJECT_NAME}/)
 
 # Mark the package as complete
 ament_package()

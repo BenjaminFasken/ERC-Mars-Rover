@@ -45,6 +45,7 @@ class CaptureNode(Node):
         )
         
         self.get_logger().info("Node started. Publish to /capture_trigger to capture a frame.")
+        self.get_logger().info("To take a picture, run: ros2 topic pub --once /capture_trigger std_msgs/msg/Empty '{}'")
 
     def on_trigger(self, msg):
         """Callback for capture trigger."""
@@ -141,6 +142,8 @@ def main(args=None):
     try:
         node = CaptureNode()
         rclpy.spin(node)
+
+        
     except Exception as e:
         print(f"Error in main: {e}")
     finally:
