@@ -116,7 +116,7 @@ controller_server:
       limit_vel_cmd_in_traj: False
       stateful: True
       critics: ["RotateToGoal", "Oscillation", "BaseObstacle", "GoalAlign", "PathAlign", "PathDist", "GoalDist"]
-      BaseObstacle.scale: 0.02
+      BaseObstacle.scale: 2.0
       PathAlign.scale: 32.0
       GoalAlign.scale: 24.0
       PathAlign.forward_point_distance: 0.1
@@ -193,14 +193,15 @@ local_costmap:
 
       # — Footprint for inflation & clearing —
       footprint: "[[-0.2125, -0.224], [0.2125, -0.224], [0.2125, 0.224], [-0.2125, 0.224]]" # The footprint of the robot in meters
+      #footprint: "[[-0.25, -0.26], [0.25, -0.26], [0.25, 0.26], [-0.25, 0.26]]" #Footprint with small buffer zone
       plugins: ["static_layer", "inflation_layer", "voxel_layer"]
       # 1) Inflation Layer
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         enabled: True 
         cost_scaling_factor: 3.0      # how steeply costs decay from obstacles
-        inflation_radius: 0.15       # how far (m) to inflate around each obstacle
-        inflate_unknown: False                   #If true, any unknown cells (i.e. neither marked free nor occupied in the costmap) are treated as lethal obstacles and then inflated like normal obstacles.
+        inflation_radius: 0.55       # how far (m) to inflate around each obstacle
+        inflate_unknown: True                   #If true, any unknown cells (i.e. neither marked free nor occupied in the costmap) are treated as lethal obstacles and then inflated like normal obstacles.
         inflate_around_unknown: False            #If true, even when inflate_unknown is false, Nav2 will still apply the inflation gradient around unknown cells—so you get a “soft buffer” at the boundary of unmapped areas.
 
       # 2) Voxel Layer (3D → 2D projection for LiDAR/pointcloud)
@@ -245,6 +246,7 @@ global_costmap:
       robot_base_frame: base_link
       use_sim_time: False                             #Set to true if you are using a simulation
       footprint: "[[-0.2125, -0.224], [0.2125, -0.224], [0.2125, 0.224], [-0.2125, 0.224]]" # The footprint of the robot in meters
+      #footprint: "[[-0.25, -0.26], [0.25, -0.26], [0.25, 0.26], [-0.25, 0.26]]" #Footprint with small buffer zone
       resolution: 0.025
       track_unknown_space: true                       #Treats unexplored areas (value -1) as unknown. Seen in Rviz. #THINK
       plugins: ["static_layer", "voxel_layer", "inflation_layer"]
@@ -278,9 +280,9 @@ global_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         enabled: True                # Turns the Inflation Layer on or off. When false, Nav2 will not apply any inflation gradient around obstacles at all—only the raw obstacle footprint will be used.
-        inflation_radius: 0.15       # how far (meters) to “inflate” around each obstacle
+        inflation_radius: 0.45       # how far (meters) to “inflate” around each obstacle
         cost_scaling_factor: 3.0     # larger → costs drop off more sharply with distance
-        inflate_unknown: False                   #If true, any unknown cells (i.e. neither marked free nor occupied in the costmap) are treated as lethal obstacles and then inflated like normal obstacles.
+        inflate_unknown: True                   #If true, any unknown cells (i.e. neither marked free nor occupied in the costmap) are treated as lethal obstacles and then inflated like normal obstacles.
         inflate_around_unknown: False            #If true, even when inflate_unknown is false, Nav2 will still apply the inflation gradient around unknown cells—so you get a “soft buffer” at the boundary of unmapped areas.
       always_send_full_costmap: True
 
@@ -339,7 +341,7 @@ planner_server:
       allow_primitive_interpolation: false
       debug_visualizations: false         # off for normal runs  #THINK - set to false when not testing, as it is very computationally expensive
 
-      goal_heading_mode: "ALL_DIRECTION"
+      goal_heading_mode: "BIDIRECTIONAL"  #"ALL_DIRECTION"
       # — Post‐planning smoothing —
       smooth_path: true
       smoother:
@@ -405,8 +407,10 @@ velocity_smoother:
     smoothing_frequency: 15.0
     scale_velocities: False                 #if "False", the smoother will not scale the velocities.
     feedback: "OPEN_LOOP"
-    max_velocity: [0.50, 0.0, 1.20]
-    min_velocity: [-0.50, 0.0, -1.20]
+    #max_velocity: [0.50, 0.0, 1.20]
+    #min_velocity: [-0.50, 0.0, -1.20]
+    max_velocity: [0.35, 0.0, 0.90]
+    min_velocity: [-0.35, 0.0, -0.90]
     max_accel: [2.5, 0.0, 3.2]
     max_decel: [-2.5, 0.0, -3.2]
     odom_topic: "odom"                       #Not used because feedback is set to OPEN_LOOP
