@@ -36,6 +36,9 @@ def generate_launch_description():
             cmd=['ros2', 'run', 'slam', 'map_filter_node'],
             output='screen'
         ),
+        
+        ExecuteProcess(
+            cmd=['ros2', 'run', 'slam', 'path_node']),
 
         #Include nav2_bringup navigation_launch.py 
         IncludeLaunchDescription(
