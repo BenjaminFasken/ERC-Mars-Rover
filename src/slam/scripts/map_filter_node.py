@@ -18,9 +18,11 @@ class MapFilterNode(Node):
         super().__init__('map_filter_node')
         # Subscribers
         self.map_sub = self.create_subscription(
-            OccupancyGrid, '/map', self.map_callback, 10)
+            # OccupancyGrid, '/map', self.map_callback, 10)
+            OccupancyGrid, '/global_costmap/costmap', self.map_callback, 10)
         self.path_sub = self.create_subscription(
-            Path, '/zed/zed_node/path_map', self.path_callback, 10)
+            Path, '/my_path', self.path_callback, 10)
+            # Path, '/zed/zed_node/path_map', self.path_callback, 10)
         # Publisher
         self.map_pub = self.create_publisher(
             OccupancyGrid, '/filtered_map', 10)
@@ -56,8 +58,10 @@ class MapFilterNode(Node):
         # Convert path poses to map coordinates
         points = []
         for pose_stamped in path_msg.poses: # Renamed variable for clarity
-            x = pose_stamped.pose.position.x + 2.032197628484078 # TODO: Remove hardcoded offset?
-            y = pose_stamped.pose.position.y + 0.5129117160870764 # TODO: Remove hardcoded offset?
+            # x = pose_stamped.pose.position.x + 2.032197628484078 # TODO: Remove hardcoded offset?
+            # y = pose_stamped.pose.position.y + 0.5129117160870764 # TODO: Remove hardcoded offset?
+            x = pose_stamped.pose.position.x # TODO: Remove hardcoded offset?
+            y = pose_stamped.pose.position.y  # TODO: Remove hardcoded offset?
             col = int((x - origin_x) / resolution)
             row = int((y - origin_y) / resolution)
             # Ensure points are within map bounds
