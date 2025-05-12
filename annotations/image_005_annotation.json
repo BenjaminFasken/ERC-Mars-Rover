@@ -1,0 +1,125 @@
+{
+    "image_id": "image_005",
+    "probes": [
+        {
+            "identifier": "probe_1",
+            "bounding_box": [
+                0.314734375,
+                0.5218333333333334,
+                0.05357812500000003,
+                0.04894444444444446
+            ],
+            "ground_truth_coordinates_ground_plane": {
+                "x": 104.5,
+                "y": 49,
+                "z": 5.5
+            },
+            "estimated_coordinates_camera": {
+                "x": null,
+                "y": null,
+                "z": null
+            },
+            "transformed_coordinates_ground_plane": {
+                "x": null,
+                "y": null,
+                "z": null
+            }
+        },
+        {
+            "identifier": "probe_2",
+            "bounding_box": [
+                0.559890625,
+                0.5912777777777778,
+                0.05878125000000001,
+                0.08730555555555558
+            ],
+            "ground_truth_coordinates_ground_plane": {
+                "x": 79.5,
+                "y": -16,
+                "z": 5.5
+            },
+            "estimated_coordinates_camera": {
+                "x": null,
+                "y": null,
+                "z": null
+            },
+            "transformed_coordinates_ground_plane": {
+                "x": null,
+                "y": null,
+                "z": null
+            }
+        },
+        {
+            "identifier": "probe_3",
+            "bounding_box": [
+                0.697546875,
+                0.6891666666666667,
+                0.08407812500000009,
+                0.10052777777777777
+            ],
+            "ground_truth_coordinates_ground_plane": {
+                "x": 52.5,
+                "y": -36,
+                "z": 5.5
+            },
+            "estimated_coordinates_camera": {
+                "x": null,
+                "y": null,
+                "z": null
+            },
+            "transformed_coordinates_ground_plane": {
+                "x": null,
+                "y": null,
+                "z": null
+            }
+        },
+        {
+            "identifier": "probe_4",
+            "bounding_box": [
+                0.18378125,
+                0.7017222222222222,
+                0.10267187499999997,
+                0.06480555555555559
+            ],
+            "ground_truth_coordinates_ground_plane": {
+                "x": 59,
+                "y": 60,
+                "z": 5.5
+            },
+            "estimated_coordinates_camera": {
+                "x": null,
+                "y": null,
+                "z": null
+            },
+            "transformed_coordinates_ground_plane": {
+                "x": null,
+                "y": null,
+                "z": null
+            }
+        },
+        {
+            "identifier": "probe_5",
+            "bounding_box": [
+                0.62165625,
+                0.9054166666666666,
+                0.1540156249999999,
+                0.18916666666666673
+            ],
+            "ground_truth_coordinates_ground_plane": {
+                "x": 33.5,
+                "y": -16,
+                "z": 5.5
+            },
+            "estimated_coordinates_camera": {
+                "x": null,
+                "y": null,
+                "z": null
+            },
+            "transformed_coordinates_ground_plane": {
+                "x": null,
+                "y": null,
+                "z": null
+            }
+        }
+    ]
+}

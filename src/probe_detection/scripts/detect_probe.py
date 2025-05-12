@@ -19,7 +19,7 @@ class SegmentationNode(Node):
         super().__init__('segmentation_node')
         
         self.previous_time = 0
-        self.fps = 5
+        self.fps = 30
         self.confidence_threshold = 0.75
         self.rgb_image = None
         self.depth_image = None
@@ -97,6 +97,8 @@ class SegmentationNode(Node):
                     
                     probe_confidences = [float(np.float32(loc["confidence"])) for loc in sorted_locations]
                     probe_list = [float(np.float32(coord)) for loc in sorted_locations for coord in (loc["x"], loc["y"], loc["z"])]
+                    probe_centroid_x = [float(np.float32(loc["centroid_x"])) for loc in sorted_locations]
+                    probe_centroid_y = [float(np.float32(loc["centroid_y"])) for loc in sorted_locations]
        
                     # Create and publish ProbeLocations message
                     probe_msg = ProbeLocations()
@@ -104,6 +106,8 @@ class SegmentationNode(Node):
                     probe_msg.classification_confidence = probe_confidences
                     probe_msg.num_probes = len(sorted_locations)
                     probe_msg.probes = probe_list
+                    probe_msg.centroid_x = probe_centroid_x
+                    probe_msg.centroid_y = probe_centroid_y
 
                     # Publish the message (assuming a publisher exists)
                     self.probe_publisher.publish(probe_msg)
