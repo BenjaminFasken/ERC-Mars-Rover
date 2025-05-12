@@ -89,7 +89,7 @@ def generate_launch_description():
                 'RGBD/AngularUpdate': '0.05',
                 'RGBD/LinearUpdate': '0.05',
                 'RGBD/CreateOccupancyGrid': 'True',
-                'Grid/Sensor': '2',
+                'Grid/Sensor': '2',   # 0: LiDAR, 1: RGBD, 2: Stereo
                 'Mem/NotLinkedNodesKept': 'false',
                 'Mem/STMSize': '15', # Reduced from 30
                 'Mem/LaserScanNormalK': '20',

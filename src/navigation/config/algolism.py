@@ -13,7 +13,7 @@ class FrontierExplorationNode(Node):
         super().__init__('frontier_exploration_node')
         # Subscriptions
         self.map_subscriber = self.create_subscription(
-            OccupancyGrid, 'map', self.map_callback, 10)
+            OccupancyGrid, 'filtered_map', self.map_callback, 10)
         self.goal_status_subscriber = self.create_subscription(
             GoalStatusArray,
             '/navigate_to_pose/_action/status',  # Correct topic for NavigateToPose

@@ -1,3 +1,12 @@
+# lifecycle_manager:
+#   ros__parameters:
+#     autostart: true
+#     node_names: ['controller_server','smoother_server','planner_server','behavior_server','bt_navigator','waypoint_follower','velocity_smoother']
+#     bond_timeout: 4.0
+#     attempt_respawn_reconnection: true
+#     bond_respawn_max_duration: 10.0
+#     service_introspection_mode: "disabled"
+
 bt_navigator:
   ros__parameters:
     use_sim_time: False
@@ -126,53 +135,6 @@ controller_server:
       RotateToGoal.scale: 32.0
       RotateToGoal.slowing_factor: 5.0
       RotateToGoal.lookahead_time: -1.0
-    # FollowPath:
-    #   plugin: "dwb_core::DWBLocalPlanner"
-    #   debug_trajectory_details: True
-    #   # ————— Speed limits —————
-    #   # Linear (m/s)
-    #   min_vel_x:        -0.5            # don’t drive backwards
-    #   max_vel_x:        0.5           # your max_linear_speed
-    #   min_vel_y:        0.0            # non-holonomic
-    #   max_vel_y:        0.0
-    #   # Angular (rad/s)
-    #   min_vel_theta:    0.0
-    #   max_vel_theta:    1.20           # your max_angular_speed
-
-    #   # ————— Acceleration limits —————
-    #   # We allow you to accelerate to top speed in ~0.5 s
-    #   acc_lim_x:        1.0            # m/s² (0 → 0.5 m/s in 0.5 s)
-    #   decel_lim_x:     -1.0            # braking
-    #   acc_lim_theta:    2.4            # rad/s² (0 → 1.2 rad/s in 0.5 s)
-    #   decel_lim_theta: -2.4            # angular brake
-
-    #   #The number of discrete velocity values DWB will sample in the forward (x), lateral (y), and rotational (θ) dimensions when generating candidate trajectories.
-    #   vx_samples: 8
-    #   vy_samples: 1
-    #   vtheta_samples: 8
-    #   sim_time: 3.0                                    #How many seconds into the future each sampled trajectory is forward-simulated.
-    #   linear_granularity: 0.05                          #Step size (m) between collision checks along each simulated trajectory.
-    #   angular_granularity: 0.05                         #Step size (rad) between orientation checks.
-    #   transform_tolerance: 0.2                          #How long (s) DWB will wait for the required TF (odom→base_link) when simulating.
-    #   xy_goal_tolerance: 0.25                           #How close you must get laterally/longitudinally to the goal before DWB considers you “at” it.
-    #   yaw_goal_tolerance: 0.25                          #How close you must get to the goal orientation before DWB considers you “at” it.
-    #   trans_stopped_velocity: 0.05                      #Velocity below which you count as “stopped.”
-    #   short_circuit_trajectory_evaluation: True         #As soon as a trajectory’s cost exceeds your “lethal” threshold, stop evaluating its remaining critics. "True" speeds up pruning of clearly bad paths in cluttered scenes
-    #   stateful: True                                    #Once you enter goal tolerance, keep the “goal reached” state even if you drift out slightly.
-      
-    #   #Critics: By tuning each critic’s weight, you shape your robot’s “personality” #THINK - adjust the weights to get the desired behavior
-    #   critics: ["RotateToGoal", "Oscillation", "BaseObstacle", "GoalAlign", "PathAlign", "PathDist", "GoalDist"]
-    #   BaseObstacle.scale: 0.05
-    #   PathAlign.scale: 1.0
-    #   PathAlign.forward_point_distance: 0.1
-    #   GoalAlign.scale: 1.0
-    #   GoalAlign.forward_point_distance: 0.1
-    #   PathDist.scale: 25.0
-    #   GoalDist.scale: 20.0
-    #   RotateToGoal.scale: 0.0
-    #   RotateToGoal.slowing_factor: 5.0
-    #   RotateToGoal.lookahead_time: 0.3
-    #   Oscillation.reset_distance: 0.1   # after you’ve moved 10 cm, reset the “I’m stuck oscillating” check
 
 
 local_costmap:
@@ -248,7 +210,7 @@ global_costmap:
       footprint: "[[-0.2125, -0.224], [0.2125, -0.224], [0.2125, 0.224], [-0.2125, 0.224]]" # The footprint of the robot in meters
       #footprint: "[[-0.25, -0.26], [0.25, -0.26], [0.25, 0.26], [-0.25, 0.26]]" #Footprint with small buffer zone
       resolution: 0.025
-      track_unknown_space: true                       #Treats unexplored areas (value -1) as unknown. Seen in Rviz. #THINK
+      track_unknown_space: true                       #Treats unexplored areas (value -1) as unknown. Seen in Rviz. #TODO
       plugins: ["static_layer", "voxel_layer", "inflation_layer"]
       voxel_layer:
         plugin: "nav2_costmap_2d::VoxelLayer"
@@ -308,7 +270,7 @@ planner_server:
 
       # — Goal tolerance & unknown space —
       tolerance: 0.30               # 0.30 m: allow “good enough” near-goal in rocky terrain
-      allow_unknown: true          # avoid driving into unmapped areas #THINK - was false earlier (if unknown space is allowed)
+      allow_unknown: true          # avoid driving into unmapped areas 
 
       # — Search limits —
       max_iterations: 500000       # cap total expansions to bail out if unreachable
@@ -317,7 +279,7 @@ planner_server:
 
       # — Motion model & discretization —
       motion_model_for_search: "REEDS_SHEPP"   # allows forward & reverse arcs (better for diff-drive)
-      minimum_turning_radius: 0.165           # half your 0.33 m wheel base (m)
+      minimum_turning_radius: 0.148           # half your 0.296 m wheel base (m)
       angle_quantization_bins: 64             # 5° bins → faster, coarse heading search
 
       # — Analytic expansions (fast shortcuts) —
@@ -327,21 +289,21 @@ planner_server:
       analytic_expansion_max_cost_override: false
 
       # — Cost penalties (shape your path) —
-      reverse_penalty:      40.0    # discourage backing up
-      change_penalty:       1.0    # mild penalty for switching forward⇄reverse
-      non_straight_penalty: 5.0    # slight penalty for any curvature vs. straight
-      cost_penalty:         10.0    # steer away from high-cost (narrow) regions
-      retrospective_penalty: 0.00   # small bias to reuse previous paths
+      reverse_penalty:      500.0  # Heuristic penalty applied to SE2 node if searching in reverse direction.
+      change_penalty:       0.0    # Disabled to guarantee the admissibility of the Hybrid-A\* planner.
+      non_straight_penalty: 1.2    # Heuristic penalty to apply if the motion at an SE2 node is non-straight.
+      cost_penalty:         2.0    # Heuristic penalty to apply at each SE2 node for accumulated cost. Allows Hybrid-A\* to be cost-aware.
+      retrospective_penalty: 0.00   # Causes Hybrid-A* to prefer later maneuvers before earlier ones along the path. Must be >= 0.0 and <= 1.0. Must be 0.0 to be fully admissible.
 
       # — Heuristic caching & performance —
       lookup_table_size:          20.0   # meters of Dubin/Reeds-Shepp distance you cache
       cache_obstacle_heuristic:   false  # non-static map → no cache
-      downsample_obstacle_heuristic: true
+      downsample_obstacle_heuristic: true #TODO 
       use_quadratic_cost_penalty: false
       allow_primitive_interpolation: false
-      debug_visualizations: false         # off for normal runs  #THINK - set to false when not testing, as it is very computationally expensive
+      debug_visualizations: false         # off for normal runs  #TODO - set to false when not testing, as it is very computationally expensive
 
-      goal_heading_mode: "BIDIRECTIONAL"  #"ALL_DIRECTION"
+      goal_heading_mode: "ALL_DIRECTION"  #"BIDIRECTIONAL", or "DEFAULT"
       # — Post‐planning smoothing —
       smooth_path: true
       smoother:
@@ -352,7 +314,7 @@ planner_server:
         do_refinement:    true
         refinement_num:   1
 
-smoother_server:                   #THINK - add if the SmacPlannerHybrid smoother is not enough
+smoother_server:                  
   ros__parameters:
     use_sim_time: False
     smoother_plugins: ["simple_smoother"]
