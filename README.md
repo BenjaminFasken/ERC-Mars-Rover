@@ -235,3 +235,5 @@ To test individual containers, use the following commands. These require privile
 
 
 ros2 run tf2_ros static_transform_publisher -0.146422 -0.0598990 -0.238857 0 -0.34906585 0 zed_camera_link base_link
+
+ros2 topic pub --once /trigger_exploration std_msgs/Bool "data: true"

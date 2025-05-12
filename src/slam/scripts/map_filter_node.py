@@ -20,7 +20,7 @@ class MapFilterNode(Node):
         self.map_sub = self.create_subscription(
             OccupancyGrid, '/map', self.map_callback, 10)
         self.path_sub = self.create_subscription(
-            Path, '/path', self.path_callback, 10)
+            Path, '/zed/zed_node/path_map', self.path_callback, 10)
         # Publisher
         self.map_pub = self.create_publisher(
             OccupancyGrid, '/filtered_map', 10)
@@ -123,7 +123,14 @@ class MapFilterNode(Node):
         new_data_2d = np.full_like(original_data, -1) # Start with all unknown
         mask_indices = mask > 0
         new_data_2d[mask_indices] = original_data[mask_indices]
-
+        # Apply threshold: values < 90 (and not -1) are set to 0.
+        # This is to clear low-confidence obstacles from the path.
+        # Values >= 90 (definite obstacles) and -1 (unknown) are preserved.
+        threshold_val = 45
+        # Create a boolean mask for elements that are less than threshold_val AND not -1
+        condition_for_zeroing = (new_data_2d < threshold_val) & (new_data_2d != -1)
+        # Apply the zeroing to elements meeting the condition
+        new_data_2d[condition_for_zeroing] = 0
 
         # Prepare the new map message
         new_map = OccupancyGrid()
