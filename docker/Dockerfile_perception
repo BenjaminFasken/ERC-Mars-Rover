@@ -28,9 +28,9 @@ RUN apt-get update && \
         wget && \
     rm -rf /var/lib/apt/lists/*
 
-# Uninstall any existing NumPy, then install 1.26.4
-RUN pip3 uninstall -y numpy || true && \
-    pip3 install --no-cache-dir numpy==1.26.4
+# # Uninstall any existing NumPy, then install 1.26.4
+# RUN pip3 uninstall -y numpy || true && \
+#     pip3 install --no-cache-dir numpy==1.26.4
 
 # Install ultralytics and opencv-python
 RUN pip3 install --no-cache-dir --no-deps ultralytics   
@@ -44,6 +44,10 @@ RUN git clone --recurse-submodules -b humble-v4.1.4 \
     https://github.com/stereolabs/zed-ros2-wrapper.git \
     src/zed-ros2-wrapper
 
+# Insert common.yaml
+RUN cd src/zed-ros2-wrapper && \
+    cp -r ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}/src/slam/config/common.yaml zed_wrapper/config/common.yaml
+
 RUN apt-get update && \
     rosdep update && \
     rosdep install --from-paths src --ignore-src -r -y && \
@@ -52,6 +56,7 @@ RUN apt-get update && \
 RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash && \
 colcon build --parallel-workers $(nproc) --symlink-install \
     --event-handlers console_direct+ --base-paths src \
+    --packages-select interfaces probe_detection zed_interfaces zed_components zed_wrapper \
     --cmake-args \
         ' -DCMAKE_BUILD_TYPE=Release' \
         ' -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda-12.6' \

@@ -92,10 +92,19 @@ Build the images in the following order:
    docker build -t erc-mars-rover_nav:latest -f docker/Dockerfile_nav .
    ```
 
-4. **Simulation Image (Optional)** 
-  ```bash
-   docker build -t erc-mars-rover_sim:latest -f docker/Dockerfile_sim .
-  ```
+4. **Isaac Simulation Images (Optional)**
+
+   a. **Isaac & Perception Simulation Image**:
+
+   ```bash
+   docker build -t erc-mars-rover_sim_isaac:latest -f docker/Dockerfile_sim_isaac .
+   ```
+
+   b. **Navigation & Mapping Image**:
+
+   ```bash
+   docker build -t erc-mars-rover_sim_nav:latest -f docker/Dockerfile_sim_nav .
+   ```
 
 > **Note**: Building the images requires significant disk space and time. Ensure at least 50 GB is available.
 
@@ -223,3 +232,8 @@ To test individual containers, use the following commands. These require privile
   ```bash
   ros2 launch zed_wrapper zed_camera.launch.py camera_model:=zed2i
   ```
+
+
+ros2 run tf2_ros static_transform_publisher -0.146422 -0.0598990 -0.238857 0 -0.34906585 0 zed_camera_link base_link
+
+ros2 topic pub --once /trigger_exploration std_msgs/Bool "data: true"
