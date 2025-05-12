@@ -77,7 +77,7 @@ public:
   {
     // subscribe vision-system detections
     subscription_ = this->create_subscription<ProbeLocations>(
-      "probe_detections", 10,
+      "/probe_detector/probe_locations", 10,
       std::bind(&ProbeFilteringNode::probeCallback, this, std::placeholders::_1));
 
     // subscribe global pose
@@ -134,6 +134,9 @@ private:
   // --- vision callback, now using global coords ---
   void probeCallback(const ProbeLocations::SharedPtr msg)
   {
+    RCLCPP_INFO(get_logger(), "Received new probe locations");
+
+
     bool new_probe_found = false;
     for (size_t i = 0; i < msg->num_probes; ++i) {
       size_t base = i * 3;
@@ -153,6 +156,17 @@ private:
       Probe incoming_probe(gx, gy, gz, confidence);
       bool matched_existing = false;
       for (Probe &tracked : tracked_probes_) {
+        //print gx, gy, gz
+        RCLCPP_INFO(get_logger(), "Incoming probe: %f %f %f", gx, gy, gz);
+
+        // print tracked probe
+        auto [tx, ty, tz] = tracked.getAveragePosition();
+        RCLCPP_INFO(get_logger(), "Tracked probe: %f %f %f", tx, ty, tz);
+        
+        // print distance
+        RCLCPP_INFO(get_logger(), "Distance to existing probe: %f", tracked.distanceTo(gx, gy, gz));
+
+
         if (tracked.distanceTo(gx, gy, gz) < merge_threshold_) {
           tracked.update(gx, gy, gz, confidence);
           matched_existing = true;
@@ -181,7 +195,7 @@ private:
     }
   }
 
-  int merge_threshold_ = 10;
+  int merge_threshold_ = 0.3; // distance in meters to merge probes
   std::vector<Probe> tracked_probes_;
   rclcpp::Subscription<ProbeLocations>::SharedPtr subscription_;
   rclcpp::Publisher<ProbeData>::SharedPtr publisher_;
