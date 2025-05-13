@@ -27,7 +27,7 @@ def generate_launch_description():
             PythonLaunchDescriptionSource(rtab_launch_path)
         ),
 
-        # Launch frontier_exploration explorer
+        # # Launch frontier_exploration explorer
         ExecuteProcess(
             cmd=['ros2', 'run', 'frontier_exploration', 'explorer'],
             output='screen'
@@ -36,12 +36,15 @@ def generate_launch_description():
         # Launch the map_filter_node
         ExecuteProcess(
             cmd=['ros2', 'run', 'slam', 'map_filter_node.py'],
-            output='screen'
+            output=None
         ),
         
         ExecuteProcess(
-            cmd=['ros2', 'run', 'slam', 'path_node.py']),
-
+            cmd=['ros2', 'run', 'slam', 'path_node.py'],
+            output=None
+        ),
+            
+       
         #Include nav2_bringup navigation_launch.py 
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(nav2_bringup_path)
