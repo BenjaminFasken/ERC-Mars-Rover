@@ -31,6 +31,24 @@ services:
       retries: 60 # Wait for 30 minutes for the camera to be ready (Should be less than 30 minutes)
       start_period: 60s
 
+
+  perception_container:
+    image: erc-mars-rover_perception:latest
+    container_name: perception_container
+    runtime: nvidia
+    privileged: true
+    network_mode: host
+    volumes:
+      - /lib/modules/$(uname -r):/lib/modules/$(uname -r)
+      - /run/nvargus:/run/nvargus
+      - /tmp/argus_socket:/tmp/argus_socket
+    devices:
+      - /dev/video0:/dev/video0
+    entrypoint: /bin/bash
+    command: -c "source install/setup.bash && ros2 run probe_detection detect_probe.py"
+    depends_on:
+      - zed_container
+
   Nav2_And_RTAB_container:
     image: erc-mars-rover_nav:latest
     container_name: nav2_and_rtab_container
