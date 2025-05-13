@@ -174,7 +174,7 @@ def plot_position_error_over_time(df):
     return fig
 
 def main():
-    folder_path = r"test\1min data"
+    folder_path = r"test/1min data"
     file_paths = [os.path.join(folder_path, file) for file in os.listdir(folder_path) if file.endswith('.csv')]
     pos_error_all = []
     heading_error_all = []

@@ -173,7 +173,7 @@ def plot_position_error_over_time(df):
     return fig
 
 def main():
-    file_path = r"C:\Users\mikke\test\data.csv"
+    file_path = r"test/data.csv"
     df = load_pose_data(file_path)
     
     # Calculate errors
