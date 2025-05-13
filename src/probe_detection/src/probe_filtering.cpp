@@ -100,36 +100,57 @@ private:
     RCLCPP_DEBUG(get_logger(), "Received new localization_pose");  // for debug
   }
 
-  // --- transform helper ---
-  std::tuple<float, float, float> transformToGlobal(float lx, float ly, float lz)
-  {
-    if (!pose_received_) {
-      RCLCPP_WARN(get_logger(), "No global pose yet; returning local coords unchanged");
-      return {lx, ly, lz};
-    }
-
-    // translation from pose
-    const auto &pos = latest_pose_.pose.position;
-    tf2::Vector3 trans(pos.x, pos.y, pos.z);
-
-    // orientation quaternion from pose
-    const auto &ori = latest_pose_.pose.orientation;
-    tf2::Quaternion q;
-    tf2::fromMsg(ori, q);                                       // convert geometry_msgs→tf2 
-
-    // rotate local vector
-    tf2::Vector3 local(lx, ly, lz);
-    tf2::Vector3 rotated = tf2::quatRotate(q, local);            // rotate via quaternion 
-
-    // translate into global
-    tf2::Vector3 global = trans + rotated;
-
-    return {
-      static_cast<float>(global.x()),
-      static_cast<float>(global.y()),
-      static_cast<float>(global.z())
-    };
+// --- transform helper ---
+// Transforms a point (lx,ly,lz) in the *camera* frame all the way into the global frame
+std::tuple<float, float, float> transformToGlobalFromCamera(float lx, float ly, float lz)
+{
+  if (!pose_received_) {
+    RCLCPP_WARN(get_logger(),
+      "No global pose yet; returning camera coords unchanged");
+    return {lx, ly, lz};
   }
+
+  // Camera to base link transformation:
+  //
+  //    [ 0.9397,  0,     -0.3420,  -0.146422 ]
+  //    [ 0,       1.0000,  0,      -0.0598990]
+  //    [ 0.3420,  0,      0.9397,  -0.238857 ]
+  //    [ 0,       0,      0,        1       ]
+  //
+  tf2::Matrix3x3 R_cam2base(
+     0.9397,  0.0,   -0.3420,
+     0.0,     1.0,    0.0,
+     0.3420,  0.0,    0.9397
+  );
+  tf2::Vector3 t_cam2base(-0.146422, -0.0598990, -0.238857);
+  tf2::Transform T_cam2base(R_cam_base, t_cam_base);
+
+  // Transform the input point from camera→base_link:
+  tf2::Vector3 p_cam(lx, ly, lz);
+  tf2::Vector3 p_base = T_cam2base * p_cam;
+
+  // Applying base link to global transform:
+  // translation from latest_pose_
+  const auto &pos = latest_pose_.pose.position;
+  tf2::Vector3 trans(pos.x, pos.y, pos.z);
+
+  // orientation quaternion from latest_pose_
+  const auto &ori = latest_pose_.pose.orientation;
+  tf2::Quaternion q;
+  tf2::fromMsg(ori, q);  // geometry_msgs → tf2
+
+  // rotate the base-frame vector
+  tf2::Vector3 rotated = tf2::quatRotate(q, p_base);
+
+  // translate into global
+  tf2::Vector3 global = trans + rotated;
+
+  return {
+    static_cast<float>(global.x()),
+    static_cast<float>(global.y()),
+    static_cast<float>(global.z())
+  };
+}
 
   // --- vision callback, now using global coords ---
   void probeCallback(const ProbeLocations::SharedPtr msg)
@@ -147,11 +168,11 @@ private:
 
       //! change back once the global pose is actually being broadcasted ----------------------------------------------------
       // convert to global frame before merging
-      // auto [gx, gy, gz] = transformToGlobal(lx, ly, lz);
+      auto [gx, gy, gz] = transformToGlobal(lx, ly, lz);
 
-      auto gx = lx; // for now, no transformation
-      auto gy = ly; // for now, no transformation
-      auto gz = lz; // for now, no transformation
+      // auto gx = lx; // for now, no transformation
+      // auto gy = ly; // for now, no transformation
+      // auto gz = lz; // for now, no transformation
 
       Probe incoming_probe(gx, gy, gz, confidence);
       bool matched_existing = false;
