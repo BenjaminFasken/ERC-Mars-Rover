@@ -7,8 +7,8 @@ import os
 
 # Initialize ClearML
 task = Task.init(
-    project_name="YOLOv12n hyperparameter1",
-    task_name="hyptest2",
+    project_name="test",
+    task_name="v12-seg-yaml",
     output_uri=True
 )
 
@@ -23,45 +23,27 @@ def objective(trial):
     
     torch.cuda.empty_cache()
     
-    # Hyperparameters
-    optimizer = trial.suggest_categorical("optimizer", ["SGD", "AdamW"])
-    
-    # Set ranges depending on the optimizer
-    lr0_range = {
-        "SGD": (3e-3, 3e-2),    # 0.003 to 0.03
-        "AdamW": (1e-4, 1e-3)   # 0.0001 to 0.001
-    }
-    
-    # Fix: Remove duplicate weight_decay key.
     params = {
-        "optimizer": optimizer,
-        "lr0": trial.suggest_float("lr0", *lr0_range[optimizer], log=True),
+        "optimizer": "AdamW",
+        "lr0": 0.006139934761214245,
         # Use a single weight_decay parameter – adjust range as needed:
-        "weight_decay": trial.suggest_float("weight_decay", 1e-5, 1e-3, log=True),
-        "cos_lr": trial.suggest_categorical("cos_lr", [True, False]),
-        "warmup_epochs": trial.suggest_int("warmup_epochs", 3, 5),
+        "weight_decay":  1.506924614063381e-05,
+        "cos_lr": True,
+        "warmup_epochs": 3,
         "overlap_mask": False,
         "mask_ratio": 2,
         "imgsz": 640,
         "batch": 180,   # Using ~80% of the tested absolute max
-        "epochs": 10,   # Adjust as needed 25 for now
+        "epochs": 800,   
+        "lrf": 0.05027396903022164,
+	"patience": 150,
+	"save_period":40,
     }
     
-    if optimizer == "SGD":
-        params["momentum"] = trial.suggest_float("momentum", 0.9, 0.98)
-        
-    if params["cos_lr"]:
-        params["lrf"] = trial.suggest_float("lrf", 0.01, 0.3)
-    
-    if params["warmup_epochs"] > 0:
-        params["warmup_bias_lr"] = trial.suggest_float("warmup_bias_lr", 0.01, 0.2)
-        if optimizer == "SGD":
-            params["warmup_momentum"] = trial.suggest_float("warmup_momentum", 0.8, 0.95)
-    
     # Train model using YOLO
-    model = YOLO('yolo12n.pt')
+    model = YOLO('yolo12-seg.yaml', model='n')
     results = model.train(
-        data='/home/ucloud/ucloud_training/marsYardData/rocky_mars.v8-big-ahh-dataset-v2.yolov12/data.yaml',
+        data='/home/ucloud/Training/marsYardData/rocky_mars.v8-big-ahh-dataset-v2.yolov12/data.yaml',
         cache=True,
         device=0,
         project=f"runs/trial_{trial.number}",
@@ -126,7 +108,7 @@ def objective(trial):
 
 # Run optimization
 try:
-    study.optimize(objective, n_trials=10, gc_after_trial=True)
+    study.optimize(objective, n_trials=1, gc_after_trial=True)
     if current_best_mAP > -1:  # If at least one trial succeeded
         best_trial = study.best_trial
         best_weights_path = f"runs/trial_{best_trial.number}/train/weights/best.pt"

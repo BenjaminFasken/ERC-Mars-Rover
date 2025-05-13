@@ -19,6 +19,7 @@ find_package(sensor_msgs REQUIRED)
 set(cv_bridge_DIR /opt/ros/humble/lib/cmake/cv_bridge)
 find_package(cv_bridge REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(visualization_msgs REQUIRED)
 find_package(interfaces REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
@@ -91,7 +92,7 @@ message(STATUS "Using TensorRT libs: ${TENSORRT_LIBRARY}, ${TENSORRT_PLUGIN_LIBR
 
 # Add the probe_filter node
 add_executable(probe_filtering_node src/probe_filtering.cpp)
-ament_target_dependencies(probe_filtering_node rclcpp interfaces geometry_msgs tf2_geometry_msgs tf2 tf2_ros)
+ament_target_dependencies(probe_filtering_node rclcpp interfaces geometry_msgs tf2_geometry_msgs tf2 tf2_ros visualization_msgs)
 
 # Add the probe_localizer executable
 # add_executable(probe_localizer src/probe_localizer.cpp)
