@@ -15,11 +15,13 @@ idna==3.10
 Jinja2==3.1.6
 jsonschema==4.23.0
 jsonschema-specifications==2024.10.1
+kaleido==0.2.1
 kiwisolver==1.4.8
 Mako==1.3.9
 MarkupSafe==3.0.2
 matplotlib==3.10.1
 mpmath==1.3.0
+narwhals==1.38.2
 networkx==3.4.2
 numpy==2.1.1
 nvidia-cublas-cu12==12.4.5.8
@@ -42,6 +44,7 @@ packaging==24.2
 pandas==2.2.3
 pathlib2==2.3.7.post1
 pillow==11.1.0
+plotly==6.0.1
 psutil==7.0.0
 py-cpuinfo==9.0.0
 PyJWT==2.9.0
