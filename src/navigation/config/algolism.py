@@ -1,12 +1,13 @@
 import rclpy
 from rclpy.node import Node
 from nav_msgs.msg import OccupancyGrid
-from geometry_msgs.msg import PoseStamped, Point
+from geometry_msgs.msg import PoseStamped, Point, Quaternion  # Added Quaternion
 from action_msgs.msg import GoalStatusArray
 from std_msgs.msg import Bool  # Added for manual triggering
 from nav_msgs.msg import Odometry
 import numpy as np
 import random
+import math  # Added math
 
 class FrontierExplorationNode(Node):
     def __init__(self):
@@ -20,7 +21,7 @@ class FrontierExplorationNode(Node):
             self.goal_status_callback,
             10)
         self.odom_subscriber = self.create_subscription(
-            Odometry, '/odom', self.odom_callback, 10)
+            Odometry, '/zed/zed_node/odom', self.odom_callback, 10)
         self.trigger_subscriber = self.create_subscription(
             Bool,
             '/trigger_exploration',  # New topic for manual triggering
@@ -75,9 +76,11 @@ class FrontierExplorationNode(Node):
             self.get_logger().info("Detecting new frontier")
             frontiers = self.detect_frontiers(self.map_info)
             if frontiers:
-                goal = self.select_goal(frontiers, self.map_array)
-                if goal[0] is not None:
-                    self.publish_goal(goal)
+                goal_xy = self.select_goal(frontiers, self.map_array)  # Renamed for clarity
+                if goal_xy[0] is not None:
+                    # Calculate orientation towards the goal
+                    orientation_q = self.calculate_orientation_to_goal(goal_xy[0], goal_xy[1])
+                    self.publish_goal(goal_xy, orientation_q)
                 else:
                     self.get_logger().warn("No valid frontiers found")
             else:
@@ -119,16 +122,53 @@ class FrontierExplorationNode(Node):
             return real_x, real_y
         return None, None
 
-    def publish_goal(self, goal):
-        if goal[0] is None or goal[1] is None:
+    def calculate_orientation_to_goal(self, goal_x, goal_y):
+        """
+        Calculates the orientation (as a Quaternion) from the robot's current pose
+        to the given goal coordinates.
+        """
+        # Calculate the difference in coordinates
+        delta_x = goal_x - self.robot_x
+        delta_y = goal_y - self.robot_y
+        
+        self.get_logger().warn("goal_x: {}, goal_y: {}, robot_x: {}, robot_y: {}".format(
+            goal_x, goal_y, self.robot_x, self.robot_y))
+        self.get_logger().warn("delta_x: {}, delta_y: {}".format(delta_x, delta_y))
+        # Calculate the yaw angle
+        yaw = math.atan2(delta_y, delta_x)
+        self.get_logger().warn("Yaw angle: {}".format(yaw))
+        # Convert yaw to quaternion
+        # For 2D navigation, roll and pitch are 0
+        orientation_q = Quaternion()
+        orientation_q.x = 0.0
+        orientation_q.y = 0.0
+        orientation_q.z = math.sin(yaw / 2.0)
+        orientation_q.w = math.cos(yaw / 2.0)
+        self.get_logger().warn("Orientation quaternion: x={}, y={}, z={}, w={}".format(
+            orientation_q.x, orientation_q.y, orientation_q.z, orientation_q.w))
+        
+        return orientation_q
+
+    def publish_goal(self, goal_xy, orientation_q):  # Modified signature to include orientation
+        if goal_xy[0] is None or goal_xy[1] is None:
             self.get_logger().warn("No valid frontier found, skipping goal publication")
             return
+        
         goal_msg = PoseStamped()
         goal_msg.header.stamp = self.get_clock().now().to_msg()
-        goal_msg.header.frame_id = "map"
-        goal_msg.pose.position = Point(x=goal[0], y=goal[1], z=0.0)
+        goal_msg.header.frame_id = "map"  # Ensure this is your fixed frame
+        
+        # Set the position
+        goal_msg.pose.position.x = goal_xy[0]
+        goal_msg.pose.position.y = goal_xy[1]
+        goal_msg.pose.position.z = 0.0  # Assuming 2D navigation
+        
+        # Set the orientation
+        goal_msg.pose.orientation = orientation_q
+        
         self.goal_publisher.publish(goal_msg)
-        self.get_logger().info(f"Published goal: x={goal[0]}, y={goal[1]}")
+        self.get_logger().info(f"Published goal: x={goal_xy[0]:.2f}, y={goal_xy[1]:.2f}, "
+                               f"orientation_z={orientation_q.z:.2f}, orientation_w={orientation_q.w:.2f}")
 
 def main(args=None):
     rclpy.init(args=args)
