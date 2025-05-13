@@ -47,7 +47,7 @@ class PathNode(Node):
         # Add parameter for max path length
         self.declare_parameter('max_path_poses', 500) # Store approx last 500 poses
         self.max_path_poses = self.get_parameter('max_path_poses').get_parameter_value().integer_value
-        self.get_logger().info(f"Path node initialized. Max path poses: {self.max_path_poses}")
+        #self.get_logger().info(f"Path node initialized. Max path poses: {self.max_path_poses}")
 
 
     def pose_callback(self, msg: PoseStamped): # Renamed and type hint changed
@@ -55,7 +55,7 @@ class PathNode(Node):
         if not self.path_msg.header.frame_id:
              self.path_msg.header.frame_id = msg.header.frame_id
         elif self.path_msg.header.frame_id != msg.header.frame_id:
-             self.get_logger().warn(f"Pose frame_id changed from {self.path_msg.header.frame_id} to {msg.header.frame_id}. Resetting path.")
+             #self.get_logger().warn(f"Pose frame_id changed from {self.path_msg.header.frame_id} to {msg.header.frame_id}. Resetting path.")
              self.path_msg.poses = []
              self.last_appended_pose = None
              self.path_msg.header.frame_id = msg.header.frame_id
