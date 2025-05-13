@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import rclpy
 from rclpy.node import Node
 import numpy as np
@@ -22,7 +21,7 @@ class MapFilterNode(Node):
             # OccupancyGrid, '/map', self.map_callback, 10)
             OccupancyGrid, '/global_costmap/costmap', self.map_callback, 10)
         self.path_sub = self.create_subscription(
-            Path, '/my_path', self.path_callback, 10)
+            Path, '/traversed_path', self.path_callback, 10)
             # Path, '/zed/zed_node/path_map', self.path_callback, 10)
         # Publisher
         self.map_pub = self.create_publisher(
@@ -34,13 +33,13 @@ class MapFilterNode(Node):
     def map_callback(self, msg):
         """Store the latest traversability map."""
         self.latest_map = msg
-        #self.get_logger().info('Received new map')
+        self.get_logger().info('Received new map')
 
     def path_callback(self, msg):
         """Process the path and generate a filtered map."""
         self.latest_path = msg
         if self.latest_map is None:
-            #self.get_logger().warn('No map received yet')
+            self.get_logger().warn('No map received yet')
             return
         self.generate_filtered_map()
 
@@ -69,8 +68,7 @@ class MapFilterNode(Node):
             if 0 <= col < width and 0 <= row < height:
                 points.append((col, row))
             else:
-                pass
-                #self.get_logger().warn(f"Path point ({col}, {row}) is outside map bounds ({width}, {height}). Skipping.")
+                self.get_logger().warn(f"Path point ({col}, {row}) is outside map bounds ({width}, {height}). Skipping.")
 
 
         # Create a blank mask
@@ -148,7 +146,7 @@ class MapFilterNode(Node):
 
         # Publish the filtered map
         self.map_pub.publish(new_map)
-        #self.get_logger().info('Published filtered map')
+        self.get_logger().info('Published filtered map')
 
 def main(args=None):
     rclpy.init(args=args)
