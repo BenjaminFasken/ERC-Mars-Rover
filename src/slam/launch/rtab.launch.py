@@ -106,7 +106,7 @@ def generate_launch_description():
                 'Grid/MinClusterSize': '10',
                 'Grid/CellSize': '0.04', # Increased from 0.037
                 'Grid/NoiseFilteringRadius': '0.15',
-                'Grid/NoiseFilteringMinNeighbors': '30',
+                'Grid/NoiseFilteringMinNeighbors': '32',
                 'Grid/RayTracing': 'false', # Disabled from true
             }],
             remappings=[
