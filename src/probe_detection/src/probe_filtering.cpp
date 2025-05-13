@@ -102,7 +102,7 @@ private:
 
 // --- transform helper ---
 // Transforms a point (lx,ly,lz) in the *camera* frame all the way into the global frame
-std::tuple<float, float, float> transformToGlobalFromCamera(float lx, float ly, float lz)
+std::tuple<float, float, float> transformToGlobal(float lx, float ly, float lz)
 {
   if (!pose_received_) {
     RCLCPP_WARN(get_logger(),
