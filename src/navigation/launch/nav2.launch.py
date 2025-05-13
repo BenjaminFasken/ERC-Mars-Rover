@@ -36,15 +36,14 @@ def generate_launch_description():
         # Launch the map_filter_node
         ExecuteProcess(
             cmd=['ros2', 'run', 'slam', 'map_filter_node.py'],
-            output=None
+            output='log'
         ),
         
         ExecuteProcess(
             cmd=['ros2', 'run', 'slam', 'path_node.py'],
-            output=None
+            output='log'
         ),
             
-       
         #Include nav2_bringup navigation_launch.py 
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(nav2_bringup_path)
