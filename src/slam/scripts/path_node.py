@@ -1,7 +1,9 @@
+#!/usr/bin/env python3
+
 import rclpy
 from rclpy.node import Node
 from rclpy.duration import Duration
-from nav_msgs.msg import Odometry, Path
+from nav_msgs.msg import Path
 from geometry_msgs.msg import PoseStamped, Pose, Quaternion
 from std_msgs.msg import Header
 import math
@@ -28,13 +30,13 @@ class PathNode(Node):
     def __init__(self):
         super().__init__('path_node')
         self.subscription = self.create_subscription(
-            Odometry,
-            '/odom',
-            self.odom_callback,
+            PoseStamped,  # Changed from Odometry
+            '/zed/zed_node/pose', # Changed topic
+            self.pose_callback,  # Renamed callback for clarity
             10)
         self.publisher_ = self.create_publisher(
             Path,
-            '/path',
+            '/my_path',
             10)
         self.path_msg = Path()
         self.path_msg.header.frame_id = 'odom' # Initialize frame_id
@@ -48,18 +50,18 @@ class PathNode(Node):
         self.get_logger().info(f"Path node initialized. Max path poses: {self.max_path_poses}")
 
 
-    def odom_callback(self, msg: Odometry):
+    def pose_callback(self, msg: PoseStamped): # Renamed and type hint changed
         # Ensure frame_id is consistent
         if not self.path_msg.header.frame_id:
              self.path_msg.header.frame_id = msg.header.frame_id
         elif self.path_msg.header.frame_id != msg.header.frame_id:
-             self.get_logger().warn(f"Odom frame_id changed from {self.path_msg.header.frame_id} to {msg.header.frame_id}. Resetting path.")
+             self.get_logger().warn(f"Pose frame_id changed from {self.path_msg.header.frame_id} to {msg.header.frame_id}. Resetting path.")
              self.path_msg.poses = []
              self.last_appended_pose = None
              self.path_msg.header.frame_id = msg.header.frame_id
 
 
-        current_pose = msg.pose.pose
+        current_pose = msg.pose # Changed: PoseStamped directly contains Pose
         should_append = False
 
         if self.last_appended_pose is None:
@@ -80,11 +82,8 @@ class PathNode(Node):
                 should_append = True
 
         if should_append:
-            pose_stamped = PoseStamped()
-            pose_stamped.header = msg.header # Use odom message header timestamp
-            pose_stamped.pose = current_pose
-
-            self.path_msg.poses.append(pose_stamped)
+            # PoseStamped message is already in the correct format to be added to Path
+            self.path_msg.poses.append(msg) # Changed: append the whole PoseStamped msg
             self.last_appended_pose = current_pose
 
             # --- Limit the number of poses in the path ---

@@ -19,13 +19,15 @@ def generate_launch_description():
         'rtab.launch.py'
     )
     
+    
+    
     return LaunchDescription([
         # Include yovio.launch.py
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(rtab_launch_path)
         ),
 
-        # Launch frontier_exploration explorer
+        # # Launch frontier_exploration explorer
         ExecuteProcess(
             cmd=['ros2', 'run', 'frontier_exploration', 'explorer'],
             output='screen'
@@ -33,10 +35,15 @@ def generate_launch_description():
 
         # Launch the map_filter_node
         ExecuteProcess(
-            cmd=['ros2', 'run', 'slam', 'map_filter_node'],
-            output='screen'
+            cmd=['ros2', 'run', 'slam', 'map_filter_node.py'],
+            output='log'
         ),
-
+        
+        ExecuteProcess(
+            cmd=['ros2', 'run', 'slam', 'path_node.py'],
+            output='log'
+        ),
+            
         #Include nav2_bringup navigation_launch.py 
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(nav2_bringup_path)
