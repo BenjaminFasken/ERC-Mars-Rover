@@ -117,14 +117,26 @@ private:
     marker.header.stamp = this->get_clock()->now();
     marker.ns = "probes";
     marker.id = 0;
-    marker.type = visualization_msgs::msg::Marker::CYLINDER; // Display as cylinders
+    marker.type = visualization_msgs::msg::Marker::SPHERE_LIST; // Changed to SPHERE_LIST for multiple points
     marker.action = visualization_msgs::msg::Marker::ADD;
 
     // Set marker properties
-    marker.scale.x = 0.03; // Size of each cylinder (meters)
-    marker.scale.y = 0.03;
-    marker.scale.z = 0.2;
-    marker.color.a = 1.0; // Fully opaque
+    marker.scale.x = 0.1; // Diameter of each sphere (10 cm)
+    marker.scale.y = 0.1;
+    marker.scale.z = 0.1; // Uniform scale for spheres
+    marker.color.r = 0.0; // Base color (transparent to rely on per-point colors)
+    marker.color.g = 0.0;
+    marker.color.b = 0.0;
+    marker.color.a = 0.0; // Transparent base color
+
+    // Set pose (required for SPHERE_LIST, typically at origin if points are in global frame)
+    marker.pose.position.x = 0.0;
+    marker.pose.position.y = 0.0;
+    marker.pose.position.z = 0.0;
+    marker.pose.orientation.w = 1.0; // No rotation
+    marker.pose.orientation.x = 0.0;
+    marker.pose.orientation.y = 0.0;
+    marker.pose.orientation.z = 0.0;
 
     // Add each probe as a point with color based on confidence
     for (const auto &p : tracked_probes_) {
@@ -155,8 +167,8 @@ private:
             color.g = 1.0;
             color.b = 0.0;
         } else {
-            // 80% to 90%: Transition (e.g., greenish-yellow)
-            color.r = 0.5; // Adjust for desired transition color
+            // 80% to 90%: Greenish-yellow
+            color.r = 0.5;
             color.g = 1.0;
             color.b = 0.0;
         }
