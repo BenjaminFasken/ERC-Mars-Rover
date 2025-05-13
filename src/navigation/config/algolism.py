@@ -61,6 +61,15 @@ class FrontierExplorationNode(Node):
         if msg.data:
             self.goal_reached = True
             self.get_logger().info("Exploration manually triggered")
+        if not msg.data:
+            self.goal_reached = False
+            self.get_logger().info("Exploration stopped, going HOME")
+            zero_orientation_q = Quaternion()
+            zero_orientation_q.x = 0.0
+            zero_orientation_q.y = 0.0
+            zero_orientation_q.z = 0.0
+            zero_orientation_q.w = 1.0  # Neutral orientation
+            self.publish_goal([0.0, 0.0], zero_orientation_q)
 
     def map_callback(self, msg):
         self.map_data = msg.data
