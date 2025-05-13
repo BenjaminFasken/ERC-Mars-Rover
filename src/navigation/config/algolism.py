@@ -32,6 +32,7 @@ class FrontierExplorationNode(Node):
         self.goal_publisher = self.create_publisher(PoseStamped, 'goal_pose', 10)
         
         # Internal state
+        self.homing = False
         self.map_data = None
         self.map_array = None
         self.map_metadata = None
@@ -43,26 +44,29 @@ class FrontierExplorationNode(Node):
 
     def goal_status_callback(self, msg):
         if msg.status_list:
-            current_status = msg.status_list[-1].status
-            if current_status == 4:  # STATUS_SUCCEEDED
-                self.goal_reached = True
-                self.get_logger().info("Goal succeeded")
-            elif current_status == 6:  # STATUS_ABORTED
-                self.goal_reached = True
-                self.get_logger().info("Goal aborted")
-            elif current_status == 2:  # STATUS_EXECUTING
-                self.goal_reached = False
-                self.get_logger().info("Goal is executing")
-            else:
-                self.goal_reached = False
-                self.get_logger().info(f"Goal status: {current_status}")
+            if not self.homing:
+                current_status = msg.status_list[-1].status
+                if current_status == 4:  # STATUS_SUCCEEDED
+                    self.goal_reached = True
+                    self.get_logger().info("Goal succeeded")
+                elif current_status == 6:  # STATUS_ABORTED
+                    self.goal_reached = True
+                    self.get_logger().info("Goal aborted")
+                elif current_status == 2:  # STATUS_EXECUTING
+                    self.goal_reached = False
+                    self.get_logger().info("Goal is executing")
+                else:
+                    self.goal_reached = False
+                    self.get_logger().info(f"Goal status: {current_status}")
 
     def trigger_callback(self, msg):
         if msg.data:
+            self.homing = False
             self.goal_reached = True
             self.get_logger().info("Exploration manually triggered")
         if not msg.data:
             self.goal_reached = False
+            self.homing = True
             self.get_logger().info("Exploration stopped, going HOME")
             zero_orientation_q = Quaternion()
             zero_orientation_q.x = 0.0
@@ -140,12 +144,8 @@ class FrontierExplorationNode(Node):
         delta_x = goal_x - self.robot_x
         delta_y = goal_y - self.robot_y
         
-        self.get_logger().warn("goal_x: {}, goal_y: {}, robot_x: {}, robot_y: {}".format(
-            goal_x, goal_y, self.robot_x, self.robot_y))
-        self.get_logger().warn("delta_x: {}, delta_y: {}".format(delta_x, delta_y))
         # Calculate the yaw angle
         yaw = math.atan2(delta_y, delta_x)
-        self.get_logger().warn("Yaw angle: {}".format(yaw))
         # Convert yaw to quaternion
         # For 2D navigation, roll and pitch are 0
         orientation_q = Quaternion()
@@ -153,8 +153,6 @@ class FrontierExplorationNode(Node):
         orientation_q.y = 0.0
         orientation_q.z = math.sin(yaw / 2.0)
         orientation_q.w = math.cos(yaw / 2.0)
-        self.get_logger().warn("Orientation quaternion: x={}, y={}, z={}, w={}".format(
-            orientation_q.x, orientation_q.y, orientation_q.z, orientation_q.w))
         
         return orientation_q
 
