@@ -85,47 +85,6 @@ controller_server:
       plugin: "nav2_controller::SimpleGoalChecker"
       xy_goal_tolerance: 0.25                                    #Distance tolerance (m) to the goal position
       yaw_goal_tolerance: 0.25                                  #Angle tolerance (rad) to the goal orientation
-    # DWB parameters
-    # FollowPath:
-    #   plugin: "dwb_core::DWBLocalPlanner"
-    #   debug_trajectory_details: True
-    #   min_vel_x: -0.5
-    #   min_vel_y: 0.0
-    #   max_vel_x: 0.5
-    #   max_vel_y: 0.0
-    #   max_vel_theta: 1.2
-    #   min_speed_xy: 0.0
-    #   max_speed_xy: 0.5
-    #   min_speed_theta: -1.2
-    #   acc_lim_x: 1.0
-    #   acc_lim_y: 0.0
-    #   acc_lim_theta: 2.4
-    #   decel_lim_x: -1.0
-    #   decel_lim_y: 0.0
-    #   decel_lim_theta: -2.4
-    #   vx_samples: 20
-    #   vy_samples: 5
-    #   vtheta_samples: 20
-    #   sim_time: 1.7
-    #   linear_granularity: 0.05
-    #   angular_granularity: 0.025
-    #   transform_tolerance: 0.2
-    #   xy_goal_tolerance: 0.25
-    #   trans_stopped_velocity: 0.25
-    #   short_circuit_trajectory_evaluation: True
-    #   limit_vel_cmd_in_traj: False
-    #   stateful: True
-    #   critics: ["RotateToGoal", "Oscillation", "BaseObstacle", "GoalAlign", "PathAlign", "PathDist", "GoalDist"]
-    #   BaseObstacle.scale: 20.0
-    #   PathAlign.scale: 32.0
-    #   GoalAlign.scale: 0.1
-    #   PathAlign.forward_point_distance: 0.1
-    #   GoalAlign.forward_point_distance: 0.1
-    #   PathDist.scale: 32.0
-    #   GoalDist.scale: 24.0
-    #   RotateToGoal.scale: 32.0
-    #   RotateToGoal.slowing_factor: 5.0
-    #   RotateToGoal.lookahead_time: -1.0
     FollowPath:
       plugin: "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
       desired_linear_vel: 0.5
@@ -179,7 +138,7 @@ local_costmap:
         plugin: "nav2_costmap_2d::InflationLayer"
         enabled: True 
         cost_scaling_factor: 4.0      # how steeply costs decay from obstacles
-        inflation_radius: 0.45       # how far (m) to inflate around each obstacle
+        inflation_radius: 0.55       # how far (m) to inflate around each obstacle
         inflate_unknown: True                   #If true, any unknown cells (i.e. neither marked free nor occupied in the costmap) are treated as lethal obstacles and then inflated like normal obstacles.
         inflate_around_unknown: False            #If true, even when inflate_unknown is false, Nav2 will still apply the inflation gradient around unknown cells—so you get a “soft buffer” at the boundary of unmapped areas.
 
@@ -259,7 +218,7 @@ global_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         enabled: True                # Turns the Inflation Layer on or off. When false, Nav2 will not apply any inflation gradient around obstacles at all—only the raw obstacle footprint will be used.
-        inflation_radius: 0.45       # how far (meters) to “inflate” around each obstacle
+        inflation_radius: 0.55       # how far (meters) to “inflate” around each obstacle
         cost_scaling_factor: 3.0     # larger → costs drop off more sharply with distance
         inflate_unknown: True                   #If true, any unknown cells (i.e. neither marked free nor occupied in the costmap) are treated as lethal obstacles and then inflated like normal obstacles.
         inflate_around_unknown: False            #If true, even when inflate_unknown is false, Nav2 will still apply the inflation gradient around unknown cells—so you get a “soft buffer” at the boundary of unmapped areas.
@@ -309,7 +268,7 @@ planner_server:
       reverse_penalty:      5000.0  # Heuristic penalty applied to SE2 node if searching in reverse direction.
       change_penalty:       1.0    # Disabled to guarantee the admissibility of the Hybrid-A\* planner.
       non_straight_penalty: 1.2    # Heuristic penalty to apply if the motion at an SE2 node is non-straight.
-      cost_penalty:         2.0    # Heuristic penalty to apply at each SE2 node for accumulated cost. Allows Hybrid-A\* to be cost-aware.
+      cost_penalty:         20.0    # Heuristic penalty to apply at each SE2 node for accumulated cost. Allows Hybrid-A\* to be cost-aware.
       retrospective_penalty: 0.00   # Causes Hybrid-A* to prefer later maneuvers before earlier ones along the path. Must be >= 0.0 and <= 1.0. Must be 0.0 to be fully admissible.
 
       # — Heuristic caching & performance —
