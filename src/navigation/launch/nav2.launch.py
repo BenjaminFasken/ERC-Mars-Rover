@@ -34,15 +34,15 @@ def generate_launch_description():
         ),
 
         # Launch the map_filter_nodes
-        ExecuteProcess(
-            cmd=['ros2', 'run', 'slam', 'map_filter_node.py'],
-            output='log'
-        ),
+        # ExecuteProcess(
+        #     cmd=['ros2', 'run', 'slam', 'map_filter_node.py'],
+        #     output='log'
+        # ),
         
-        ExecuteProcess(
-            cmd=['ros2', 'run', 'slam', 'path_node.py'],
-            output='log'
-        ),
+        # ExecuteProcess(
+        #     cmd=['ros2', 'run', 'slam', 'path_node.py'],
+        #     output='log'
+        # ),
         
         # Launch probe filter
         ExecuteProcess(
