@@ -59,7 +59,7 @@ public:
 
     // Subscribe to global pose
     pose_sub_ = this->create_subscription<geometry_msgs::msg::PoseStamped>(
-        "localization_pose", 10,
+        "/zed/zed_node/pose", 10,
         std::bind(&ProbeFilteringNode::poseCallback, this, std::placeholders::_1));
 
     // Existing publisher for filtered probes
