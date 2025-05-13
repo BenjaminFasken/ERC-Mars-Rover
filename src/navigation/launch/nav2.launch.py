@@ -44,6 +44,12 @@ def generate_launch_description():
             output='log'
         ),
         
+        # Launch probe filter
+        ExecuteProcess(
+            cmd=['ros2', 'run', 'navigation', 'probe_filtering_node'],
+            output='log'
+        ),
+        
         #Build
         #Include nav2_bringup navigation_launch.py 
         IncludeLaunchDescription(
