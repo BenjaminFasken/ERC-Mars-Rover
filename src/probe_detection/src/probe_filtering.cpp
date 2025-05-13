@@ -123,7 +123,7 @@ std::tuple<float, float, float> transformToGlobal(float lx, float ly, float lz)
      0.3420,  0.0,    0.9397
   );
   tf2::Vector3 t_cam2base(-0.146422, -0.0598990, -0.238857);
-  tf2::Transform T_cam2base(R_cam_base, t_cam_base);
+  tf2::Transform T_cam2base(R_cam2base, t_cam2base);
 
   // Transform the input point from camera→base_link:
   tf2::Vector3 p_cam(lx, ly, lz);
