@@ -178,7 +178,7 @@ private:
 
     // Publish the marker
     marker_publisher_->publish(marker);
-  } 
+  }   
  
 
   void probeCallback(const ProbeLocations::SharedPtr msg) {

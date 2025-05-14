@@ -157,7 +157,7 @@ If you wish to start the simulated system use this command:
 
 ```bash
 cd ~/ERC-Mars-Rover
-docker-compose -f docker-compose_sim.yml up
+docker compose -f docker-compose_sim.yaml up
 ```
 
 ### Running Individual Containers (Optional)
