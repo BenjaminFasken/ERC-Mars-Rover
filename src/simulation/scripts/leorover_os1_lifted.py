@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from isaacsim import SimulationApp
 import carb
 import numpy as np

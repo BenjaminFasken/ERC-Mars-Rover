@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from isaacsim import SimulationApp
 
 # This sample enables a livestream server to connect to when running headless

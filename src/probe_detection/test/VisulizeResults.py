@@ -104,8 +104,8 @@ try:
     x_max = max(vital_data['x_gt'].max(), max_depth)
     y_min = vital_data['y_gt'].min()
     y_max = vital_data['y_gt'].max()
-    x_pad = (x_max - x_min) * 1.5
-    y_pad = (y_max - y_min) * 1.5
+    x_pad = (x_max - x_min) * 0.41
+    y_pad = (y_max - y_min) * 0.41
     ax.set_xlim(x_min - x_pad, x_max + x_pad)
     ax.set_ylim(y_min - y_pad, y_max + y_pad)
     ax.set_aspect('equal')
