@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import rclpy
 from rclpy.node import Node
 import numpy as np
@@ -21,7 +22,7 @@ class MapFilterNode(Node):
             # OccupancyGrid, '/map', self.map_callback, 10)
             OccupancyGrid, '/global_costmap/costmap', self.map_callback, 10)
         self.path_sub = self.create_subscription(
-            Path, '/traversed_path', self.path_callback, 10)
+            Path, '/my_path', self.path_callback, 10)
             # Path, '/zed/zed_node/path_map', self.path_callback, 10)
         # Publisher
         self.map_pub = self.create_publisher(
