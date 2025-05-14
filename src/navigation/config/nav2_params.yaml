@@ -137,7 +137,7 @@ local_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         enabled: True 
-        cost_scaling_factor: 4.0      # how steeply costs decay from obstacles
+        cost_scaling_factor: 2.0      # how steeply costs decay from obstacles
         inflation_radius: 0.55       # how far (m) to inflate around each obstacle
         inflate_unknown: True                   #If true, any unknown cells (i.e. neither marked free nor occupied in the costmap) are treated as lethal obstacles and then inflated like normal obstacles.
         inflate_around_unknown: False            #If true, even when inflate_unknown is false, Nav2 will still apply the inflation gradient around unknown cells—so you get a “soft buffer” at the boundary of unmapped areas.
@@ -219,7 +219,7 @@ global_costmap:
         plugin: "nav2_costmap_2d::InflationLayer"
         enabled: True                # Turns the Inflation Layer on or off. When false, Nav2 will not apply any inflation gradient around obstacles at all—only the raw obstacle footprint will be used.
         inflation_radius: 0.55       # how far (meters) to “inflate” around each obstacle
-        cost_scaling_factor: 3.0     # larger → costs drop off more sharply with distance
+        cost_scaling_factor: 2.0     # larger → costs drop off more sharply with distance
         inflate_unknown: True                   #If true, any unknown cells (i.e. neither marked free nor occupied in the costmap) are treated as lethal obstacles and then inflated like normal obstacles.
         inflate_around_unknown: False            #If true, even when inflate_unknown is false, Nav2 will still apply the inflation gradient around unknown cells—so you get a “soft buffer” at the boundary of unmapped areas.
       always_send_full_costmap: True
@@ -302,20 +302,16 @@ smoother_server:
 
 behavior_server:
   ros__parameters:
-    costmap_topic: local_costmap/costmap_raw    #Make it a blank costmap or nothing
+    costmap_topic: local_costmap/costmap_raw_blanc    #Make it a blank costmap or nothing
     footprint_topic: local_costmap/published_footprint
     cycle_frequency: 10.0
-    behavior_plugins: ["spin", "backup", "drive_on_heading", "assisted_teleop", "wait"]
+    behavior_plugins: ["spin", "backup", "wait"]
     spin:
       plugin: "nav2_behaviors/Spin"
     backup:
       plugin: "nav2_behaviors/BackUp"
-    drive_on_heading:
-      plugin: "nav2_behaviors/DriveOnHeading"
     wait:
       plugin: "nav2_behaviors/Wait"
-    assisted_teleop:
-      plugin: "nav2_behaviors/AssistedTeleop"
     global_frame: odom
     robot_base_frame: base_link
     transform_tolerance: 0.1
