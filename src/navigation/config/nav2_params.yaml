@@ -79,7 +79,7 @@ controller_server:
     progress_checker:                                            #Monitors whether the robot is actually making progress along its path.
       plugin: "nav2_controller::SimpleProgressChecker"
       required_movement_radius: 0.1                              #Required movement radius (m), the distance the robot must move
-      movement_time_allowance: 30.0                              #Time allowance (s) for the robot to move the required distance
+      movement_time_allowance: 10.0                              #Time allowance (s) for the robot to move the required distance
     general_goal_checker:
       stateful: True
       plugin: "nav2_controller::SimpleGoalChecker"
@@ -155,15 +155,15 @@ local_costmap:
         mark_threshold: 0             # number of “hits” before marking a cell occupied  
 
         # Use your LiDAR scan as the observation source
-        observation_sources: scan
-        scan:
-          topic: /scan
-          data_type: "LaserScan"
+        observation_sources: pointcloud
+        pointcloud:
+          topic: /livox/lidar
+          data_type: "PointCloud2"
           marking: True               # mark occupied cells where beams hit
           clearing: True              # clear free cells along the beam path
-          raytrace_min_range: 0.0
+          raytrace_min_range: 0.4
           raytrace_max_range: 3.0
-          obstacle_min_range: 0.0
+          obstacle_min_range: 0.4
           obstacle_max_range: 2.5
 
       # 3) Static Layer (bring in the map geometry around you)
@@ -200,15 +200,15 @@ global_costmap:
         mark_threshold: 0             # number of “hits” before marking a cell occupied  
 
         # Use your LiDAR scan as the observation source
-        observation_sources: scan
-        scan:
-          topic: /scan
-          data_type: "LaserScan"
+        observation_sources: pointcloud
+        pointcloud:
+          topic: /livox/lidar
+          data_type: "PointCloud2"
           marking: True               # mark occupied cells where beams hit
           clearing: True              # clear free cells along the beam path
-          raytrace_min_range: 0.0
+          raytrace_min_range: 0.4
           raytrace_max_range: 3.0
-          obstacle_min_range: 0.0
+          obstacle_min_range: 0.4
           obstacle_max_range: 2.5
       static_layer:
         plugin: "nav2_costmap_2d::StaticLayer"
@@ -302,7 +302,7 @@ smoother_server:
 
 behavior_server:
   ros__parameters:
-    costmap_topic: local_costmap/costmap_raw_blanc    #Make it a blank costmap or nothing
+    costmap_topic: local_costmap/costmap_raw    #Make it a blank costmap or nothing
     footprint_topic: local_costmap/published_footprint
     cycle_frequency: 10.0
     behavior_plugins: ["spin", "backup", "wait"]

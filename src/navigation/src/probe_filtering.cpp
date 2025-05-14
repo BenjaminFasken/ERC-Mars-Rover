@@ -188,51 +188,50 @@ private:
     marker_publisher_->publish(marker);
   } 
   //! COOK for probe meshes
-  '''
-  void publishProbeMarkersMesh() {
-  int id = 0;
-    for (const auto &p : tracked_probes_) {
-      auto [x, y, z] = p.getAveragePosition();
+  
+  // void publishProbeMarkersMesh() {
+  // int id = 0;
+  //   for (const auto &p : tracked_probes_) {
+  //     auto [x, y, z] = p.getAveragePosition();
 
-      visualization_msgs::msg::Marker marker;
-      marker.header.frame_id = latest_pose_.header.frame_id; // Use global frame (e.g., "map")
-      marker.header.stamp = this->get_clock()->now();
-      marker.ns = "probes";
-      marker.id = id++; // Unique ID per probe
-      marker.type = visualization_msgs::msg::Marker::MESH_RESOURCE;
-      marker.action = visualization_msgs::msg::Marker::ADD;
+  //     visualization_msgs::msg::Marker marker;
+  //     marker.header.frame_id = latest_pose_.header.frame_id; // Use global frame (e.g., "map")
+  //     marker.header.stamp = this->get_clock()->now();
+  //     marker.ns = "probes";
+  //     marker.id = id++; // Unique ID per probe
+  //     marker.type = visualization_msgs::msg::Marker::MESH_RESOURCE;
+  //     marker.action = visualization_msgs::msg::Marker::ADD;
 
-      // Your actual mesh file path
-      marker.mesh_resource = "package://navigation/assets/probeModel.dae";
-      marker.mesh_use_embedded_materials = false;
+  //     // Your actual mesh file path
+  //     marker.mesh_resource = "package://navigation/assets/probeModel.dae";
+  //     marker.mesh_use_embedded_materials = false;
 
-      marker.pose.position.x = x;
-      marker.pose.position.y = y;
-      marker.pose.position.z = z;
-      marker.pose.orientation.x = 0.0;
-      marker.pose.orientation.y = 0.0;
-      marker.pose.orientation.z = 0.0;
-      marker.pose.orientation.w = 1.0;
+  //     marker.pose.position.x = x;
+  //     marker.pose.position.y = y;
+  //     marker.pose.position.z = z;
+  //     marker.pose.orientation.x = 0.0;
+  //     marker.pose.orientation.y = 0.0;
+  //     marker.pose.orientation.z = 0.0;
+  //     marker.pose.orientation.w = 1.0;
 
-      marker.scale.x = 1.0;
-      marker.scale.y = 1.0;
-      marker.scale.z = 1.0;
+  //     marker.scale.x = 1.0;
+  //     marker.scale.y = 1.0;
+  //     marker.scale.z = 1.0;
 
-      marker.color.r = 0.2f;
-      marker.color.g = 0.8f;
-      marker.color.b = 1.0f;
-      marker.color.a = 1.0f;
+  //     marker.color.r = 0.2f;
+  //     marker.color.g = 0.8f;
+  //     marker.color.b = 1.0f;
+  //     marker.color.a = 1.0f;
 
-      // Set lifetime to 1 second
-      //marker.lifetime = rclcpp::Duration::from_seconds(1.0);
+  //     // Set lifetime to 1 second
+  //     //marker.lifetime = rclcpp::Duration::from_seconds(1.0);
 
-      //infinite lifetime
-      marker.lifetime = rclcpp::Duration::from_seconds(0.0);
+  //     //infinite lifetime
+  //     marker.lifetime = rclcpp::Duration::from_seconds(0.0);
 
-      marker_publisher_->publish(marker);
-    }
-  }
-  '''
+  //     marker_publisher_->publish(marker);
+  //   }
+  // }
 
   void probeCallback(const ProbeLocations::SharedPtr msg) {
     RCLCPP_INFO(get_logger(), "Received new probe locations");
