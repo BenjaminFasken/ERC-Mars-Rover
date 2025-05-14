@@ -1,7 +1,8 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
 import numpy as np
+import seaborn as sns
+from matplotlib.patches import Wedge
 
 # Set plot style for better visuals
 sns.set(style="whitegrid")
@@ -12,146 +13,112 @@ try:
 
     # Select vital columns and create a copy to avoid SettingWithCopyWarning
     vital_columns = ['image_id', 'probe_id', 'error', 
-                     'x_estimated', 'y_estimated', 'z_estimated', 'x_transformed', 'y_transformed', 'z_transformed',
-                     'x_gt', 'y_gt', 'z_gt', 'centroid_x', 'centroid_y']
+                     'x_estimated', 'y_estimated', 'z_estimated', 
+                     'x_gt', 'y_gt', 'z_gt']
     vital_data = data[vital_columns].copy()
 
-    # Display the first few rows
-    print("Vital Information from results.csv:")
-    print(vital_data.head())
+    # Print probe position statistics (in meters)
+    print("Probe Position Statistics (meters):")
+    print(vital_data[['x_gt', 'y_gt']].describe())
 
-    # Basic statistics for error
-    print("\nBasic Statistics of Error:")
-    print(vital_data['error'].describe())
+    # Parameters
+    max_depth = 2.2  # meters
+    num_bins = 7  # Number of depth bins
+    fov_angle = 100  # Field of view angle in degrees
+    half_fov_rad = np.radians(fov_angle / 2)  # Half FOV in radians
 
-    # Calculate error without Z coordinate
-    vital_data.loc[:, 'error_no_z'] = np.sqrt((vital_data['x_estimated'] - vital_data['x_gt'])**2 +
-                                              (vital_data['y_estimated'] - vital_data['y_gt'])**2)
-    print("\nBasic Statistics of Error without Z Coordinate:")
-    print(vital_data['error_no_z'].describe())
-    print("\nError without Z Coordinate (First 5 Rows):")
-    print(vital_data[['image_id', 'probe_id', 'error_no_z']].head())
-    
- 
+    # Initialize bins
+    bin_edges = np.linspace(0, max_depth, num_bins + 1)  # e.g., [0, 0.214, 0.428, ..., 1.5]
+    bin_errors = [[] for _ in range(num_bins)]  # List to store errors for each bin
+    bin_probe_counts = [0] * num_bins  # Count probes per bin
 
-    # Average error per image
-    avg_error_per_image = vital_data.groupby('image_id')[['error', 'error_no_z']].mean().reset_index()
-    print("\nAverage Error per Image (Error and Error without Z):")
-    print(avg_error_per_image)
+    # Iterate through probes to assign to bins and collect errors (only for probes in cone)
+    cone_probe_count = 0
+    for idx, row in vital_data.iterrows():
+        x_gt = row['x_gt']
+        y_gt = row['y_gt']
+        error = row['error']
 
-    # Average error per probe
-    avg_error_per_probe = vital_data.groupby('probe_id')[['error', 'error_no_z']].mean().reset_index()
-    print("\nAverage Error per Probe (Error and Error without Z):")
-    print(avg_error_per_probe)
+        # Check if probe is within cone (X ≥ 0 and |Y| ≤ X * tan(FOV/2))
+        if x_gt >= 0 and abs(y_gt) <= x_gt * np.tan(half_fov_rad):
+            cone_probe_count += 1
+            # Determine bin based on x_gt
+            for i in range(num_bins):
+                if bin_edges[i] <= x_gt < bin_edges[i + 1]:
+                    bin_errors[i].append(error)
+                    bin_probe_counts[i] += 1
+                    break
 
-    # Check for missing probes
-    expected_probes = set([f'probe_{i}' for i in range(1, 6)])
-    actual_probes = set(vital_data['probe_id'].unique())
-    missing_probes = expected_probes - actual_probes
-    if missing_probes:
-        print(f"\nWarning: Missing probes: {missing_probes}")
+    # Calculate mean error per bin
+    mean_errors = [np.mean(errors) if errors else 0 for errors in bin_errors]
+    mean_errors = np.array(mean_errors)
 
-    # Save vital data
-    # vital_data.to_csv('vital_results.csv', index=False)
-    # print("\nVital data saved to 'vital_results.csv'")
+    # Print diagnostics
+    print(f"\nTotal Probes in Dataset: {len(vital_data)}")
+    print(f"Probes within Cone (X ≥ 0 and |Y| ≤ X * tan(FOV/2)): {cone_probe_count}")
+    print(f"Probes outside Cone: {len(vital_data) - cone_probe_count}")
+    print("\nAverage 3D Error and Probe Count per Bin (within cone):")
+    for i in range(num_bins):
+        print(f"Bin {i} ({bin_edges[i]:.3f}-{bin_edges[i+1]:.3f} m): Mean Error = {mean_errors[i]:.4f}, Probes = {bin_probe_counts[i]}")
 
-    # Visualization 1: Histogram of Errors (with and without Z)
-    plt.figure(figsize=(12, 6))
-    sns.histplot(vital_data['error'], bins=20, kde=True, color='blue', label='Error (3D)', alpha=0.5)
-    sns.histplot(vital_data['error_no_z'], bins=20, kde=True, color='orange', label='Error (2D)', alpha=0.5)
-    plt.title('Distribution of Localization Errors (3D vs 2D)')
-    plt.xlabel('Error')
-    plt.ylabel('Frequency')
-    plt.legend()
-    #plt.savefig('error_histogram_combined.png')
+    # Visualization: 2D Cone with Radial Average Error
+    fig, ax = plt.subplots(figsize=(10, 8))
+    cmap = plt.get_cmap('plasma')  # High-contrast colormap
+    # Normalize colors based on non-zero errors
+    valid_errors = mean_errors[mean_errors > 0]
+    vmin = valid_errors.min() if valid_errors.size > 0 else 0
+    vmax = valid_errors.max() if valid_errors.size > 0 else 1
+    if vmin == vmax:  # Expand range if all non-zero errors are the same
+        vmin = max(0, vmin - 0.1)
+        vmax = vmin + 0.2
+    norm = plt.Normalize(vmin=vmin, vmax=vmax)
+
+    # Plot radial bins as annular sectors (Wedge patches)
+    for i in range(num_bins):
+        r_inner = bin_edges[i]
+        r_outer = bin_edges[i + 1]
+        mean_error = mean_errors[i]
+        probe_count = bin_probe_counts[i]
+
+        # Color empty bins gray, otherwise use colormap
+        color = 'gray' if probe_count == 0 else cmap(norm(mean_error))
+        # Wedge: center at (0,0), radius from r_inner to r_outer, angles from -fov_angle/2 to +fov_angle/2
+        wedge = Wedge((0, 0), r_outer, -fov_angle/2, fov_angle/2, 
+                      width=r_outer - r_inner, facecolor=color, alpha=0.6, edgecolor='black')
+        ax.add_patch(wedge)
+
+    # Scatter probes: inside cone (red), outside cone (blue)
+    cone_probes = vital_data[
+        (vital_data['x_gt'] >= 0) & 
+        (np.abs(vital_data['y_gt']) <= vital_data['x_gt'] * np.tan(half_fov_rad))
+    ]
+    outside_probes = vital_data[
+        ~((vital_data['x_gt'] >= 0) & 
+          (np.abs(vital_data['y_gt']) <= vital_data['x_gt'] * np.tan(half_fov_rad)))
+    ]
+    ax.scatter(cone_probes['x_gt'], cone_probes['y_gt'], c='red', s=10, label='Probes in Cone')
+    ax.scatter(outside_probes['x_gt'], outside_probes['y_gt'], c='blue', s=10, marker='x', label='Probes Outside Cone')
+
+    # Set plot limits to include all probes
+    x_min = min(vital_data['x_gt'].min(), 0)
+    x_max = max(vital_data['x_gt'].max(), max_depth)
+    y_min = vital_data['y_gt'].min()
+    y_max = vital_data['y_gt'].max()
+    x_pad = (x_max - x_min) * 1.5
+    y_pad = (y_max - y_min) * 1.5
+    ax.set_xlim(x_min - x_pad, x_max + x_pad)
+    ax.set_ylim(y_min - y_pad, y_max + y_pad)
+    ax.set_aspect('equal')
+    ax.set_title('Radial Average Error in 2D Cone vs Depth')
+    ax.set_xlabel('Depth (X Ground Truth, m)')
+    ax.set_ylabel('Lateral Position (Y Ground Truth, m)')
+    sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+    plt.colorbar(sm, ax=ax, label='Mean 3D Error (non-empty bins)')
+    ax.legend()
+
+    # Save and show plot
+    plt.savefig('cone_radial_average_error.png')
     plt.show()
-
-    # # Visualization 2: Error vs X and Y Distances
-    # plt.figure(figsize=(10, 8))
-    # scatter = sns.scatterplot(x=vital_data['x_estimated'] - vital_data['x_gt'],
-    #                           y=vital_data['y_estimated'] - vital_data['y_gt'],
-    #                           hue=vital_data['error'], size=vital_data['error'],
-    #                           palette='viridis', alpha=0.6, sizes=(20, 200))
-    # plt.title('Error vs X and Y Distances')
-    # plt.xlabel('X Distance (Estimated - Ground Truth)')
-    # plt.ylabel('Y Distance (Estimated - Ground Truth)')
-    # plt.grid(False)  # Suppress Matplotlib deprecation warning
-    # plt.colorbar(scatter.collections[0], label='3D Error')
-    # plt.savefig('error_vs_xy_distances.png')
-    # plt.show()
-
-    # # Visualization 3: Bar Plot of Average Error per Image
-    # plt.figure(figsize=(12, 6))
-    # avg_error_per_image_melted = avg_error_per_image.melt(id_vars='image_id', 
-    #                                                       value_vars=['error', 'error_no_z'],
-    #                                                       var_name='Error Type', value_name='Average Error')
-    # sns.barplot(x='image_id', y='Average Error', hue='Error Type', data=avg_error_per_image_melted)
-    # plt.title('Average Localization Error per Image (3D vs 2D)')
-    # plt.xlabel('Image ID')
-    # plt.ylabel('Average Error')
-    # plt.xticks(rotation=45)
-    # plt.legend(title='Error Type', labels=['3D Error', '2D Error'])
-    # plt.savefig('avg_error_per_image.png')
-    # plt.show()
-
-    # Visualization 4: Bar Plot of Average Error per Probe
-    plt.figure(figsize=(8, 6))
-    avg_error_per_probe_melted = avg_error_per_probe.melt(id_vars='probe_id', 
-                                                          value_vars=['error', 'error_no_z'],
-                                                          var_name='Error Type', value_name='Average Error')
-    sns.barplot(x='probe_id', y='Average Error', hue='Error Type', data=avg_error_per_probe_melted)
-    plt.title('Average Localization Error per Probe (3D vs 2D)')
-    plt.xlabel('Probe ID')
-    plt.ylabel('Average Error')
-    plt.legend(title='Error Type', labels=['3D Error', '2D Error'])
-    #plt.savefig('avg_error_per_probe.png')
-    plt.show()
-
-    # # Visualization 5: Scatter Plot of Estimated vs Ground Truth (X, Y)
-    # plt.figure(figsize=(10, 8))
-    # plt.scatter(vital_data['x_gt'], vital_data['y_gt'], c='blue', label='Ground Truth', alpha=0.5)
-    # plt.scatter(vital_data['x_transformed'], vital_data['y_transformed'], c='red', label='Estimated', alpha=0.5)
-    # plt.title('Estimated vs Ground Truth Positions (X, Y)')
-    # plt.xlabel('X Coordinate')
-    # plt.ylabel('Y Coordinate')
-    # plt.legend()
-    # plt.savefig('xy_scatter.png')
-    # plt.show()
-
-    # # Visualization 6: 3D Scatter Plot of Estimated vs Ground Truth
-    # fig = plt.figure(figsize=(12, 8))
-    # ax = fig.add_subplot(111, projection='3d')
-    # ax.scatter(vital_data['x_gt'], vital_data['y_gt'], vital_data['z_gt'], c='blue', label='Ground Truth', alpha=0.5)
-    # ax.scatter(vital_data['x_transformed'], vital_data['y_transformed'], vital_data['z_transformed'], c='red', label='transformed', alpha=0.5)
-    # ax.set_title('3D Estimated vs Ground Truth Positions')
-    # ax.set_xlabel('X Coordinate')
-    # ax.set_ylabel('Y Coordinate')
-    # ax.set_zlabel('Z Coordinate')
-    # ax.legend()
-    # plt.savefig('3d_scatter.png')
-    # plt.show()
-
-    # # Visualization 7: Centroid Positions Scatter Plot
-    # plt.figure(figsize=(10, 6))
-    # sns.scatterplot(x='centroid_x', y='centroid_y', hue='image_id', size='error_no_z', 
-    #                 sizes=(20, 200), data=vital_data, alpha=0.6)
-    # plt.title('Centroid Positions with 2D Error Magnitude')
-    # plt.xlabel('Centroid X')
-    # plt.ylabel('Centroid Y')
-    # plt.savefig('centroid_scatter.png')
-    # plt.show()
-
-    # # Visualization 8: Error vs Centroid Position (X) with Fitted Line
-    # plt.figure(figsize=(10, 6))
-    # sns.scatterplot(x='centroid_x', y='error_no_z', hue='probe_id', data=vital_data, alpha=0.6)
-    # sns.regplot(x='centroid_x', y='error_no_z', data=vital_data, scatter=False, color='red', 
-    #             line_kws={"label": "Fitted Line"})
-    # plt.title('2D Error vs Centroid X Position with Fitted Line')
-    # plt.xlabel('Centroid X')
-    # plt.ylabel('2D Error')
-    # plt.legend()
-    # plt.savefig('error_no_z_vs_centroid_x_with_line.png')
-    # plt.show()
 
 except FileNotFoundError:
     print("Error: 'results.csv' not found. Please ensure the file is in the correct directory.")

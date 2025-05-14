@@ -1,16 +1,5 @@
 #!/bin/bash
 
-# Check if navigation package is built, if not, build the workspace
-if [ ! -d "install/navigation" ]; then
-    echo "Navigation package not found. Building the workspace..."
-    # Navigate to the workspace root and build the navigation package
-    colcon build --packages-select interfaces navigation
-    if [ $? -ne 0 ]; then
-        echo "Failed to build the navigation package. Exiting."
-        exit 1
-    fi
-fi
-
 # Function to check if a Docker image exists
 check_docker_image() {
     local image_name="$1"
