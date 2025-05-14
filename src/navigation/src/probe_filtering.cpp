@@ -179,6 +179,7 @@ private:
     // Publish the marker
     marker_publisher_->publish(marker);
   } 
+ 
 
   void probeCallback(const ProbeLocations::SharedPtr msg) {
     RCLCPP_INFO(get_logger(), "Received new probe locations");
@@ -196,11 +197,10 @@ private:
       Probe incoming_probe(gx, gy, gz, confidence);
       bool matched_existing = false;
       for (Probe &tracked : tracked_probes_) {
-        //RCLCPP_INFO(get_logger(), "Incoming probe: %f %f %f", gx, gy, gz);
+        RCLCPP_INFO(get_logger(), "Incoming probe: %f %f %f", gx, gy, gz);
         auto [tx, ty, tz] = tracked.getAveragePosition();
-        //RCLCPP_INFO(get_logger(), "Tracked probe: %f %f %f", tx, ty, tz);
-        //RCLCPP_INFO(get_logger(), "Distance to existing probe: %f",
-                    tracked.distanceTo(gx, gy, gz));
+        RCLCPP_INFO(get_logger(), "Tracked probe: %f %f %f", tx, ty, tz);
+        RCLCPP_INFO(get_logger(), "Distance to existing probe: %f", tracked.distanceTo(gx, gy, gz));
 
         if (tracked.distanceTo(gx, gy, gz) < merge_threshold_) {
           tracked.update(gx, gy, gz, confidence);
