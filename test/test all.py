@@ -19,7 +19,8 @@ def calculate_position_error(df):
     end_pos = df[['X (m)', 'Y (m)', 'Z (m)']].iloc[-1].values
     
     # Calculate Euclidean distance for position error
-    pos_error = np.sqrt(np.sum((end_pos - start_pos)**2))
+    #pos_error = np.sqrt(np.sum((end_pos - start_pos)**2))
+    pos_error = np.linalg.norm(end_pos - start_pos)
     
     # Calculate component-wise errors
     x_error = end_pos[0] - start_pos[0]
@@ -175,6 +176,9 @@ def plot_position_error_over_time(df):
 
 def main():
     folder_path = r"test\1min data"
+    #folder_path = r"test\1min stone data"
+    #folder_path = r"test\2_5min data"
+    #folder_path = r"test\5min data"
     file_paths = [os.path.join(folder_path, file) for file in os.listdir(folder_path) if file.endswith('.csv')]
     pos_error_all = []
     heading_error_all = []
@@ -221,23 +225,23 @@ def main():
         
    
     #mean error
-    mean_pos_error = np.mean([error['total'] for error in pos_error_all])
-    mean_yaw_error = np.mean([error['yaw'] for error in heading_error_all])
+    mean_pos_error = np.mean([abs(error['total']) for error in pos_error_all])
+    mean_yaw_error = np.mean([abs(error['yaw']) for error in heading_error_all])
     print(f"Mean Position Error: {mean_pos_error:.3f} meters")
     #mean x
-    mean_x_error = np.mean([error['x'] for error in pos_error_all])
+    mean_x_error = np.mean([abs(error['x']) for error in pos_error_all])
     print(f"Mean X Error: {mean_x_error:.3f} meters")
     #mean y
-    mean_y_error = np.mean([error['y'] for error in pos_error_all])
+    mean_y_error = np.mean([abs(error['y']) for error in pos_error_all])
     print(f"Mean Y Error: {mean_y_error:.3f} meters")
     #mean z
-    mean_z_error = np.mean([error['z'] for error in pos_error_all])
+    mean_z_error = np.mean([abs(error['z']) for error in pos_error_all])
     print(f"Mean Z Error: {mean_z_error:.3f} meters")
     #mean roll
-    mean_roll_error = np.mean([error['roll'] for error in heading_error_all])
+    mean_roll_error = np.mean([abs(error['roll']) for error in heading_error_all])
     print(f"Mean Roll Error: {mean_roll_error:.2f} degrees")
     #mean pitch
-    mean_pitch_error = np.mean([error['pitch'] for error in heading_error_all])
+    mean_pitch_error = np.mean([abs(error['pitch']) for error in heading_error_all])
     print(f"Mean Pitch Error: {mean_pitch_error:.2f} degrees")
     #mean yaw
     print(f"Mean Yaw Error: {mean_yaw_error:.2f} degrees")
