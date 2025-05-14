@@ -210,6 +210,9 @@ class FillAnnotationNode(Node):
 
             # Visualize the processed image
             #self.visualize_image(img_path, ann_path, image_id, matches)
+            
+            # Set 1 second delay
+            time.sleep(1)
 
         # Save results to CSV
         self.save_results()

@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import rclpy
 from rclpy.node import Node
 from rclpy.duration import Duration
@@ -36,7 +34,7 @@ class PathNode(Node):
             10)
         self.publisher_ = self.create_publisher(
             Path,
-            '/my_path',
+            '/traversed_path',
             10)
         self.path_msg = Path()
         self.path_msg.header.frame_id = 'odom' # Initialize frame_id
@@ -47,7 +45,7 @@ class PathNode(Node):
         # Add parameter for max path length
         self.declare_parameter('max_path_poses', 500) # Store approx last 500 poses
         self.max_path_poses = self.get_parameter('max_path_poses').get_parameter_value().integer_value
-        #self.get_logger().info(f"Path node initialized. Max path poses: {self.max_path_poses}")
+        self.get_logger().info(f"Path node initialized. Max path poses: {self.max_path_poses}")
 
 
     def pose_callback(self, msg: PoseStamped): # Renamed and type hint changed
@@ -55,7 +53,7 @@ class PathNode(Node):
         if not self.path_msg.header.frame_id:
              self.path_msg.header.frame_id = msg.header.frame_id
         elif self.path_msg.header.frame_id != msg.header.frame_id:
-             #self.get_logger().warn(f"Pose frame_id changed from {self.path_msg.header.frame_id} to {msg.header.frame_id}. Resetting path.")
+             self.get_logger().warn(f"Pose frame_id changed from {self.path_msg.header.frame_id} to {msg.header.frame_id}. Resetting path.")
              self.path_msg.poses = []
              self.last_appended_pose = None
              self.path_msg.header.frame_id = msg.header.frame_id
@@ -81,9 +79,17 @@ class PathNode(Node):
             if dist_sq > self.min_dist_sq or delta_yaw > self.min_angle_rad:
                 should_append = True
 
-        if should_append:
-            # PoseStamped message is already in the correct format to be added to Path
-            self.path_msg.poses.append(msg) # Changed: append the whole PoseStamped msg
+        if not should_append and len(self.path_msg.poses) == 1:
+            # If path has only one pose and we shouldn't append, replace it
+            msg.pose.orientation.w = 0.0
+            msg.pose.orientation.x = 0.0
+            msg.pose.orientation.y = 0.0
+            msg.pose.orientation.z = 0.0
+            self.path_msg.poses[0] = msg  # msg is PoseStamped
+            self.last_appended_pose = msg.pose # current_pose is msg.pose
+        elif should_append:
+            # Append new pose if it's different enough or path is empty
+            self.path_msg.poses.append(msg) # msg is PoseStamped
             self.last_appended_pose = current_pose
 
             # --- Limit the number of poses in the path ---
