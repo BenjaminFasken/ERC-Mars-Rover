@@ -36,7 +36,7 @@ def generate_launch_description():
 
     # Execute Isaac Sim Python script with output to log file
     isaac_sim_command = ExecuteProcess(
-        cmd=['bash', '-c', f'./python.sh assets/leorover_os1_lifted.py 2>&1 | tee {log_file}'],
+        cmd=['bash', '-c', f'./python.sh assets/leorover_os1_lifted_30fps.py 2>&1 | tee {log_file}'],
         cwd=isaac_sim_path,
         output='screen',
         shell=True

@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 import rclpy
 from rclpy.node import Node
 from rclpy.duration import Duration
@@ -36,7 +35,7 @@ class PathNode(Node):
             10)
         self.publisher_ = self.create_publisher(
             Path,
-            '/traversed_path',
+            '/my_path',
             10)
         self.path_msg = Path()
         self.path_msg.header.frame_id = 'odom' # Initialize frame_id
