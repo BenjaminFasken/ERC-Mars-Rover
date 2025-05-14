@@ -3,8 +3,7 @@ services:
     image: erc-mars-rover_sim_isaac:latest
     container_name: isaac-sim_container
     entrypoint: /bin/bash
-    command: -c "source install/setup.bash && \
-      ros2 launch simulation sim.launch.py \
+    command: -c "ros2 launch simulation sim.launch.py \
       camera_model:=zedx \
       sim_mode:=true \
       use_sim_time:=true 2>&1 | tee /tmp/zed_log.txt"
