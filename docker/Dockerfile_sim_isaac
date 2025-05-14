@@ -222,8 +222,7 @@ RUN echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> /root/.bashrc
 
 
 # Source the workspace setup file
+RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /root/.bashrc
 RUN echo "source /root/install/setup.bash" >> /root/.bashrc
-
-WORKDIR /isaac-sim
 
 ENTRYPOINT ["/bin/bash"]
