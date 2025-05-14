@@ -88,27 +88,35 @@ private:
       return {lx, ly, lz};
     }
 
-    tf2::Matrix3x3 R_cam2base(0.9397, 0.0, -0.3420, 0.0, 1.0, 0.0, 0.3420, 0.0,
-                              0.9397);
+    // 1) First build the point in your camera frame, then into the rover (base_link) frame
+    tf2::Matrix3x3 R_cam2base(0.9397, 0.0,  -0.3420,
+                              0.0,    1.0,   0.0,
+                              0.3420, 0.0,   0.9397);
     tf2::Vector3 t_cam2base(-0.146422, -0.0598990, -0.238857);
     tf2::Transform T_cam2base(R_cam2base, t_cam2base);
 
     tf2::Vector3 p_cam(lx, ly, lz);
     tf2::Vector3 p_base = T_cam2base * p_cam;
 
+    // 2) Now build the transform from base_link → global using the ZED pose
     const auto &pos = latest_pose_.pose.position;
-    tf2::Vector3 trans(pos.x, pos.y, pos.z);
-
     const auto &ori = latest_pose_.pose.orientation;
+    tf2::Transform T_base2world;
+    T_base2world.setOrigin(tf2::Vector3(pos.x, pos.y, pos.z));
     tf2::Quaternion q;
     tf2::fromMsg(ori, q);
+    T_base2world.setRotation(q);
 
-    tf2::Vector3 rotated = tf2::quatRotate(q, p_base);
-    tf2::Vector3 global = trans + rotated;
+    // 3) Apply that full transform
+    tf2::Vector3 p_world = T_base2world * p_base;
 
-    return {static_cast<float>(global.x()), static_cast<float>(global.y()),
-            static_cast<float>(global.z())};
+    return {
+      static_cast<float>(p_world.x()),
+      static_cast<float>(p_world.y()),
+      static_cast<float>(p_world.z())
+    };
   }
+
 
   // New function to publish probes as RViz markers
   void publishProbeMarkers() {
@@ -178,8 +186,53 @@ private:
 
     // Publish the marker
     marker_publisher_->publish(marker);
-  }   
- 
+  } 
+  //! COOK for probe meshes
+  '''
+  void publishProbeMarkersMesh() {
+  int id = 0;
+    for (const auto &p : tracked_probes_) {
+      auto [x, y, z] = p.getAveragePosition();
+
+      visualization_msgs::msg::Marker marker;
+      marker.header.frame_id = latest_pose_.header.frame_id; // Use global frame (e.g., "map")
+      marker.header.stamp = this->get_clock()->now();
+      marker.ns = "probes";
+      marker.id = id++; // Unique ID per probe
+      marker.type = visualization_msgs::msg::Marker::MESH_RESOURCE;
+      marker.action = visualization_msgs::msg::Marker::ADD;
+
+      // Your actual mesh file path
+      marker.mesh_resource = "package://navigation/assets/probeModel.dae";
+      marker.mesh_use_embedded_materials = false;
+
+      marker.pose.position.x = x;
+      marker.pose.position.y = y;
+      marker.pose.position.z = z;
+      marker.pose.orientation.x = 0.0;
+      marker.pose.orientation.y = 0.0;
+      marker.pose.orientation.z = 0.0;
+      marker.pose.orientation.w = 1.0;
+
+      marker.scale.x = 1.0;
+      marker.scale.y = 1.0;
+      marker.scale.z = 1.0;
+
+      marker.color.r = 0.2f;
+      marker.color.g = 0.8f;
+      marker.color.b = 1.0f;
+      marker.color.a = 1.0f;
+
+      // Set lifetime to 1 second
+      //marker.lifetime = rclcpp::Duration::from_seconds(1.0);
+
+      //infinite lifetime
+      marker.lifetime = rclcpp::Duration::from_seconds(0.0);
+
+      marker_publisher_->publish(marker);
+    }
+  }
+  '''
 
   void probeCallback(const ProbeLocations::SharedPtr msg) {
     RCLCPP_INFO(get_logger(), "Received new probe locations");
@@ -234,7 +287,7 @@ private:
     }
   }
 
-  float merge_threshold_ = 0.3; // distance in meters to merge probes
+  float merge_threshold_ = 0.4; // distance in meters to merge probes
   std::vector<Probe> tracked_probes_;
   rclcpp::Subscription<ProbeLocations>::SharedPtr subscription_;
   rclcpp::Publisher<ProbeData>::SharedPtr publisher_;
