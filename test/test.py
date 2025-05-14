@@ -210,7 +210,7 @@ def main():
     fig3 = plot_position_over_time(df)
     plt.show()
     
-    fig4 = plot_orientation_over_time(df)
+    #fig4 = plot_orientation_over_time(df)
     plt.show()
     
     fig5 = plot_position_error_over_time(df)
