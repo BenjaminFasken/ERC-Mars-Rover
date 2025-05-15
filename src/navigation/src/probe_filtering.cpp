@@ -67,7 +67,7 @@ public:
         std::bind(&ProbeFilteringNode::poseCallback, this, std::placeholders::_1));
 
     // Existing publisher for filtered probes
-    publisher_ = this->create_publisher<ProbeData>("filtered_probes", 10);
+    publisher_ = this->create_publisher<ProbeData>("/filtered_probes", 10);
 
     // New publisher for RViz visualization
     marker_publisher_ = this->create_publisher<visualization_msgs::msg::Marker>(
