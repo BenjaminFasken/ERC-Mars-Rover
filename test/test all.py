@@ -175,7 +175,8 @@ def plot_position_error_over_time(df):
     return fig
 
 def main():
-    folder_path = r"test\1min data"
+    #!---------------------------------------------------------------------------------------------------------
+    #folder_path = r"test\1min data"
     #folder_path = r"test\1min stone data"
     #folder_path = r"test\2_5min data"
     #folder_path = r"test\5min data"
@@ -196,34 +197,75 @@ def main():
         heading_error = calculate_heading_error(df)
         
         # Print error statistics
-        print("Position Error Analysis:")
-        print(f"Start position: X={pos_error['start_pos'][0]:.3f}, Y={pos_error['start_pos'][1]:.3f}, Z={pos_error['start_pos'][2]:.3f}")
-        print(f"End position: X={pos_error['end_pos'][0]:.3f}, Y={pos_error['end_pos'][1]:.3f}, Z={pos_error['end_pos'][2]:.3f}")
-        print(f"Total position error: {pos_error['total']:.3f} meters")
-        print(f"X error: {pos_error['x']:.3f} meters")
-        print(f"Y error: {pos_error['y']:.3f} meters")
-        print(f"Z error: {pos_error['z']:.3f} meters")
+        # print("Position Error Analysis:")
+        # print(f"Start position: X={pos_error['start_pos'][0]:.3f}, Y={pos_error['start_pos'][1]:.3f}, Z={pos_error['start_pos'][2]:.3f}")
+        # print(f"End position: X={pos_error['end_pos'][0]:.3f}, Y={pos_error['end_pos'][1]:.3f}, Z={pos_error['end_pos'][2]:.3f}")
+        # print(f"Total position error: {pos_error['total']:.3f} meters")
+        # print(f"X error: {pos_error['x']:.3f} meters")
+        # print(f"Y error: {pos_error['y']:.3f} meters")
+        # print(f"Z error: {pos_error['z']:.3f} meters")
         
-        print("\nHeading Error Analysis:")
-        print(f"Start orientation: Roll={heading_error['start_orientation'][0]:.2f}°, "
-              f"Pitch={heading_error['start_orientation'][1]:.2f}°, "
-              f"Yaw={heading_error['start_orientation'][2]:.2f}°")
-        print(f"End orientation: Roll={heading_error['end_orientation'][0]:.2f}°, "
-              f"Pitch={heading_error['end_orientation'][1]:.2f}°, "
-              f"Yaw={heading_error['end_orientation'][2]:.2f}°")
-        print(f"Roll error: {heading_error['roll']:.2f}°")
-        print(f"Pitch error: {heading_error['pitch']:.2f}°")
-        print(f"Yaw error: {heading_error['yaw']:.2f}°")
-        print("-" * 50)
+        # print("\nHeading Error Analysis:")
+        # print(f"Start orientation: Roll={heading_error['start_orientation'][0]:.2f}°, "
+        #       f"Pitch={heading_error['start_orientation'][1]:.2f}°, "
+        #       f"Yaw={heading_error['start_orientation'][2]:.2f}°")
+        # print(f"End orientation: Roll={heading_error['end_orientation'][0]:.2f}°, "
+        #       f"Pitch={heading_error['end_orientation'][1]:.2f}°, "
+        #       f"Yaw={heading_error['end_orientation'][2]:.2f}°")
+        # print(f"Roll error: {heading_error['roll']:.2f}°")
+        # print(f"Pitch error: {heading_error['pitch']:.2f}°")
+        # print(f"Yaw error: {heading_error['yaw']:.2f}°")
+        #print("-" * 50)
+        
+               # Prepare data for CSV
+        trial_data = {
+            "File": file_path,
+            "Start_X": pos_error['start_pos'][0],
+            "Start_Y": pos_error['start_pos'][1],
+            "Start_Z": pos_error['start_pos'][2],
+            "End_X": pos_error['end_pos'][0],
+            "End_Y": pos_error['end_pos'][1],
+            "End_Z": pos_error['end_pos'][2],
+            "Total_Position_Error": pos_error['total'],
+            "X_Error": pos_error['x'],
+            "Y_Error": pos_error['y'],
+            "Z_Error": pos_error['z'],
+            "Start_Roll": heading_error['start_orientation'][0],
+            "Start_Pitch": heading_error['start_orientation'][1],
+            "Start_Yaw": heading_error['start_orientation'][2],
+            "End_Roll": heading_error['end_orientation'][0],
+            "End_Pitch": heading_error['end_orientation'][1],
+            "End_Yaw": heading_error['end_orientation'][2],
+            "Roll_Error": heading_error['roll'],
+            "Pitch_Error": heading_error['pitch'],
+            "Yaw_Error": heading_error['yaw']
+        }
+        
+    
+        # Save to CSV
+        output_file = os.path.join("test", "pose_errors.csv")
+        if not os.path.exists(output_file):
+            # Create header if file doesn't exist
+            with open(output_file, 'w') as f:
+                f.write(','.join(trial_data.keys()) + '\n')
+        with open(output_file, 'a') as f:
+            f.write(','.join([str(value) for value in trial_data.values()]) + '\n')
+    
+        
+
+       
+            
+        
         
         #list of error
         pos_error_all.append(pos_error)
         heading_error_all.append(heading_error)
         #fig2 = plot_trajectory_3d(df)
         #plt.show()
+    
         
         
-   
+    print(folder_path)
     #mean error
     mean_pos_error = np.mean([abs(error['total']) for error in pos_error_all])
     mean_yaw_error = np.mean([abs(error['yaw']) for error in heading_error_all])
@@ -245,7 +287,7 @@ def main():
     print(f"Mean Pitch Error: {mean_pitch_error:.2f} degrees")
     #mean yaw
     print(f"Mean Yaw Error: {mean_yaw_error:.2f} degrees")
-    ja=1
+    ja=0
     if ja:
         # Plot aggregated errors for all files
         fig, ax = plt.subplots(2, 1, figsize=(12, 10))
