@@ -7,11 +7,13 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <visualization_msgs/msg/marker.hpp> 
 #include <cmath>
+#include <deque>
+#include <mutex>
 
 using ProbeLocations = interfaces::msg::ProbeLocations;
 using ProbeData = interfaces::msg::ProbeData;
 
-// [Probe class unchanged]
+// Probe class
 class Probe {
 public:
   Probe(float x, float y, float z, float confidence)
@@ -49,6 +51,8 @@ private:
   int count_;
 };
 
+
+// Node class
 class ProbeFilteringNode : public rclcpp::Node {
 public:
   ProbeFilteringNode() : Node("probe_filtering_node") {
@@ -75,13 +79,63 @@ public:
 private:
   bool pose_received_ = false;
 
+  // Return a copy of the pose history
+  std::vector<geometry_msgs::msg::PoseStamped> getPoseHistoryCopy() const {
+    std::lock_guard<std::mutex> lock(pose_mutex_);
+
+    if (pose_history_.empty()) {
+      throw std::runtime_error("No poses in history");
+    }
+
+    return std::vector<geometry_msgs::msg::PoseStamped>(pose_history_.begin(), pose_history_.end());
+  }
+
   void poseCallback(const geometry_msgs::msg::PoseStamped::SharedPtr msg) {
+    std::lock_guard<std::mutex> lock(pose_mutex_);
     latest_pose_ = *msg;
     pose_received_ = true;
+
+    // Maintain fixed size history of 30 poses
+    if (pose_history_.size() >= 30) {
+      pose_history_.pop_front();  // Remove oldest
+    }
+    pose_history_.push_back(*msg);  // Add newest
+
     RCLCPP_DEBUG(get_logger(), "Received new localization_pose");
   }
 
-  std::tuple<float, float, float> transformToGlobal(float lx, float ly, float lz) {
+  // Finds the pose closest to the given timestamp
+  geometry_msgs::msg::PoseStamped getClosestPose(const rclcpp::Time& query_time) const {
+
+    // safe copy of pose history
+    std::vector<geometry_msgs::msg::PoseStamped> pose_history_copy = getPoseHistoryCopy();
+
+    auto closest = pose_history_copy.front();
+    rclcpp::Duration min_diff = absTimeDiff(query_time, closest.header.stamp);
+
+    for (const auto& pose : pose_history_copy) {
+      auto diff = absTimeDiff(query_time, pose.header.stamp);
+      if (diff < min_diff) {
+        closest = pose;
+        min_diff = diff;
+      }
+    }
+
+    // print closest pose time
+    RCLCPP_DEBUG(get_logger(), "Closest pose time: %d", closest.header.stamp.sec);
+    // print query time
+    RCLCPP_DEBUG(get_logger(), "Query time: %f", query_time.seconds());
+    // print time difference
+    RCLCPP_DEBUG(get_logger(), "Time difference: %f", min_diff.seconds());
+    return closest;
+  }
+  
+  // Helper to compute absolute time difference
+  rclcpp::Duration absTimeDiff(const rclcpp::Time& t1, const rclcpp::Time& t2) const {
+    return (t1 > t2) ? (t1 - t2) : (t2 - t1);
+  }
+
+  std::tuple<float, float, float> transformToGlobal(float lx, float ly, float lz, const geometry_msgs::msg::PoseStamped &matched_pose) {
     if (!pose_received_) {
       RCLCPP_WARN(get_logger(),
                   "No global pose yet; returning camera coords unchanged");
@@ -98,9 +152,9 @@ private:
     tf2::Vector3 p_cam(lx, ly, lz);
     tf2::Vector3 p_base = T_cam2base * p_cam;
 
-    // 2) Now build the transform from base_link → global using the ZED pose
-    const auto &pos = latest_pose_.pose.position;
-    const auto &ori = latest_pose_.pose.orientation;
+    // 2) Now build the transform from base_link → global using the provided pose
+    const auto &pos = matched_pose.pose.position;
+    const auto &ori = matched_pose.pose.orientation;
     tf2::Transform T_base2world;
     T_base2world.setOrigin(tf2::Vector3(pos.x, pos.y, pos.z));
     tf2::Quaternion q;
@@ -120,8 +174,10 @@ private:
 
   // New function to publish probes as RViz markers
   void publishProbeMarkers() {
+
     visualization_msgs::msg::Marker marker;
-    marker.header.frame_id = latest_pose_.header.frame_id; // Use global frame (e.g., "map")
+
+    //marker.header.frame_id = latest_pose_.header.frame_id;
     marker.header.stamp = this->get_clock()->now();
     marker.ns = "probes";
     marker.id = 0;
@@ -188,53 +244,55 @@ private:
     marker_publisher_->publish(marker);
   } 
   //! COOK for probe meshes
-  
-  // void publishProbeMarkersMesh() {
-  // int id = 0;
-  //   for (const auto &p : tracked_probes_) {
-  //     auto [x, y, z] = p.getAveragePosition();
+  void publishProbeMarkersMesh() {
+  int id = 0;
+    for (const auto &p : tracked_probes_) {
+      auto [x, y, z] = p.getAveragePosition();
 
-  //     visualization_msgs::msg::Marker marker;
-  //     marker.header.frame_id = latest_pose_.header.frame_id; // Use global frame (e.g., "map")
-  //     marker.header.stamp = this->get_clock()->now();
-  //     marker.ns = "probes";
-  //     marker.id = id++; // Unique ID per probe
-  //     marker.type = visualization_msgs::msg::Marker::MESH_RESOURCE;
-  //     marker.action = visualization_msgs::msg::Marker::ADD;
+      visualization_msgs::msg::Marker marker;
+      marker.header.frame_id = latest_pose_.header.frame_id; // Use global frame (e.g., "map")
+      marker.header.stamp = this->get_clock()->now();
+      marker.ns = "probes";
+      marker.id = id++; // Unique ID per probe
+      marker.type = visualization_msgs::msg::Marker::MESH_RESOURCE;
+      marker.action = visualization_msgs::msg::Marker::ADD;
 
-  //     // Your actual mesh file path
-  //     marker.mesh_resource = "package://navigation/assets/probeModel.dae";
-  //     marker.mesh_use_embedded_materials = false;
+      // Your actual mesh file path
+      marker.mesh_resource = "package://navigation/assets/probeModel.dae";
+      marker.mesh_use_embedded_materials = false;
 
-  //     marker.pose.position.x = x;
-  //     marker.pose.position.y = y;
-  //     marker.pose.position.z = z;
-  //     marker.pose.orientation.x = 0.0;
-  //     marker.pose.orientation.y = 0.0;
-  //     marker.pose.orientation.z = 0.0;
-  //     marker.pose.orientation.w = 1.0;
+      marker.pose.position.x = x;
+      marker.pose.position.y = y;
+      marker.pose.position.z = z;
+      marker.pose.orientation.x = 0.0;
+      marker.pose.orientation.y = 0.0;
+      marker.pose.orientation.z = 0.0;
+      marker.pose.orientation.w = 1.0;
 
-  //     marker.scale.x = 1.0;
-  //     marker.scale.y = 1.0;
-  //     marker.scale.z = 1.0;
+      marker.scale.x = 1.0;
+      marker.scale.y = 1.0;
+      marker.scale.z = 1.0;
 
-  //     marker.color.r = 0.2f;
-  //     marker.color.g = 0.8f;
-  //     marker.color.b = 1.0f;
-  //     marker.color.a = 1.0f;
+      marker.color.r = 0.2f;
+      marker.color.g = 0.8f;
+      marker.color.b = 1.0f;
+      marker.color.a = 1.0f;
 
-  //     // Set lifetime to 1 second
-  //     //marker.lifetime = rclcpp::Duration::from_seconds(1.0);
+      // Set lifetime to 1 second
+      //marker.lifetime = rclcpp::Duration::from_seconds(1.0);
 
-  //     //infinite lifetime
-  //     marker.lifetime = rclcpp::Duration::from_seconds(0.0);
+      //infinite lifetime
+      marker.lifetime = rclcpp::Duration::from_seconds(0.0);
 
-  //     marker_publisher_->publish(marker);
-  //   }
-  // }
+      marker_publisher_->publish(marker);
+    }
+  }
 
   void probeCallback(const ProbeLocations::SharedPtr msg) {
     RCLCPP_INFO(get_logger(), "Received new probe locations");
+
+    // find the closest pose to the probe message timestamp
+    auto closest_pose = getClosestPose(msg->header.stamp);
 
     bool new_probe_found = false;
     for (size_t i = 0; i < msg->num_probes; ++i) {
@@ -244,7 +302,7 @@ private:
       float lz = msg->probes[base + 2];
       float confidence = msg->classification_confidence[i];
 
-      auto [gx, gy, gz] = transformToGlobal(lx, ly, lz);
+      auto [gx, gy, gz] = transformToGlobal(lx, ly, lz, closest_pose);
 
       Probe incoming_probe(gx, gy, gz, confidence);
       bool matched_existing = false;
@@ -293,6 +351,8 @@ private:
   rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr marker_publisher_; // New marker publisher
   rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr pose_sub_;
   geometry_msgs::msg::PoseStamped latest_pose_;
+  std::deque<geometry_msgs::msg::PoseStamped> pose_history_;
+  mutable std::mutex pose_mutex_;
 };
 
 int main(int argc, char *argv[]) {
