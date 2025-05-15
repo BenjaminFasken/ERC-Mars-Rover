@@ -31,8 +31,9 @@ public:
     auto [avg_x, avg_y, avg_z] = getAveragePosition();
     float dx = avg_x - x;
     float dy = avg_y - y;
-    float dz = avg_z - z;
-    return std::sqrt(dx * dx + dy * dy + dz * dz);
+    //float dz = avg_z - z;
+    //return std::sqrt(dx * dx + dy * dy + dz * dz);
+    return std::sqrt(dx * dx + dy * dy);
   }
 
   std::tuple<float, float, float> getAveragePosition() const {
@@ -205,7 +206,7 @@ private:
         geometry_msgs::msg::Point point;
         point.x = x;
         point.y = y;
-        point.z = z;
+        point.z = 0; //z; //<- brug z hvis den skal plottes i 3D
         marker.points.push_back(point);
 
         // Color based on confidence thresholds
@@ -258,7 +259,7 @@ private:
     
         marker.pose.position.x = x;
         marker.pose.position.y = y;
-        marker.pose.position.z = z;
+        marker.pose.position.z = 0; //z; //<- brug z hvis den skal plottes i 3D
         marker.pose.orientation.w = 1.0;
     
         marker.scale.x = 1.0;
