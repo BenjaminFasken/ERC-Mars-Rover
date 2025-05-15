@@ -31,8 +31,9 @@ public:
     auto [avg_x, avg_y, avg_z] = getAveragePosition();
     float dx = avg_x - x;
     float dy = avg_y - y;
-    float dz = avg_z - z;
-    return std::sqrt(dx * dx + dy * dy + dz * dz);
+    //float dz = avg_z - z;
+    //return std::sqrt(dx * dx + dy * dy + dz * dz);
+    return std::sqrt(dx * dx + dy * dy);
   }
 
   std::tuple<float, float, float> getAveragePosition() const {
@@ -120,13 +121,8 @@ private:
         min_diff = diff;
       }
     }
-
-    // print closest pose time
-    RCLCPP_DEBUG(get_logger(), "Closest pose time: %d", closest.header.stamp.sec);
-    // print query time
-    RCLCPP_DEBUG(get_logger(), "Query time: %f", query_time.seconds());
     // print time difference
-    RCLCPP_DEBUG(get_logger(), "Time difference: %f", min_diff.seconds());
+    RCLCPP_INFO(get_logger(), "Time difference: %f", min_diff.seconds());
     return closest;
   }
   
@@ -210,7 +206,7 @@ private:
         geometry_msgs::msg::Point point;
         point.x = x;
         point.y = y;
-        point.z = z;
+        point.z = 0; //z; //<- brug z hvis den skal plottes i 3D
         marker.points.push_back(point);
 
         // Color based on confidence thresholds
@@ -243,50 +239,63 @@ private:
     // Publish the marker
     marker_publisher_->publish(marker);
   } 
-  //! COOK for probe meshes
-  void publishProbeMarkersMesh() {
-  int id = 0;
-    for (const auto &p : tracked_probes_) {
-      auto [x, y, z] = p.getAveragePosition();
-
-      visualization_msgs::msg::Marker marker;
-      marker.header.frame_id = latest_pose_.header.frame_id; // Use global frame (e.g., "map")
-      marker.header.stamp = this->get_clock()->now();
-      marker.ns = "probes";
-      marker.id = id++; // Unique ID per probe
-      marker.type = visualization_msgs::msg::Marker::MESH_RESOURCE;
-      marker.action = visualization_msgs::msg::Marker::ADD;
-
-      // Your actual mesh file path
-      marker.mesh_resource = "package://navigation/assets/probeModel.dae";
-      marker.mesh_use_embedded_materials = false;
-
-      marker.pose.position.x = x;
-      marker.pose.position.y = y;
-      marker.pose.position.z = z;
-      marker.pose.orientation.x = 0.0;
-      marker.pose.orientation.y = 0.0;
-      marker.pose.orientation.z = 0.0;
-      marker.pose.orientation.w = 1.0;
-
-      marker.scale.x = 1.0;
-      marker.scale.y = 1.0;
-      marker.scale.z = 1.0;
-
-      marker.color.r = 0.2f;
-      marker.color.g = 0.8f;
-      marker.color.b = 1.0f;
-      marker.color.a = 1.0f;
-
-      // Set lifetime to 1 second
-      //marker.lifetime = rclcpp::Duration::from_seconds(1.0);
-
-      //infinite lifetime
-      marker.lifetime = rclcpp::Duration::from_seconds(0.0);
-
-      marker_publisher_->publish(marker);
+    //! COOK for probe meshes
+    void publishProbeMarkersMesh() {
+      int id = 0;
+      for (const auto &p : tracked_probes_) {
+        auto [x, y, z] = p.getAveragePosition();
+        float confidence = p.getAverageConfidence();
+    
+        visualization_msgs::msg::Marker marker;
+        marker.header.frame_id = latest_pose_.header.frame_id;
+        marker.header.stamp    = this->get_clock()->now();
+        marker.ns              = "probes";
+        marker.id              = id++;  
+        marker.type            = visualization_msgs::msg::Marker::MESH_RESOURCE;
+        marker.action          = visualization_msgs::msg::Marker::ADD;
+    
+        marker.mesh_resource = "package://navigation/meshes/probeModel.dae";
+        marker.mesh_use_embedded_materials = false;
+    
+        marker.pose.position.x = x;
+        marker.pose.position.y = y;
+        marker.pose.position.z = 0; //z; //<- brug z hvis den skal plottes i 3D
+        marker.pose.orientation.w = 1.0;
+    
+        marker.scale.x = 1.0;
+        marker.scale.y = 1.0;
+        marker.scale.z = 1.0;
+    
+        // Color based on confidence thresholds
+        if (confidence < 0.7f) {
+          // Below 70%: Red
+          marker.color.r = 1.0f;
+          marker.color.g = 0.0f;
+          marker.color.b = 0.0f;
+        } else if (confidence <= 0.8f) {
+          // 70% to 80%: Yellow
+          marker.color.r = 1.0f;
+          marker.color.g = 1.0f;
+          marker.color.b = 0.0f;
+        } else if (confidence > 0.9f) {
+          // Above 90%: Green
+          marker.color.r = 0.0f;
+          marker.color.g = 1.0f;
+          marker.color.b = 0.0f;
+        } else {
+          // 80% to 90%: Greenish-yellow
+          marker.color.r = 0.5f;
+          marker.color.g = 1.0f;
+          marker.color.b = 0.0f;
+        }
+        marker.color.a = 1.0f;
+    
+        // infinite lifetime
+        marker.lifetime = rclcpp::Duration::from_seconds(0.0);
+    
+        marker_publisher_->publish(marker);
+      }
     }
-  }
 
   void probeCallback(const ProbeLocations::SharedPtr msg) {
     RCLCPP_INFO(get_logger(), "Received new probe locations");
@@ -309,8 +318,8 @@ private:
       for (Probe &tracked : tracked_probes_) {
         RCLCPP_INFO(get_logger(), "Incoming probe: %f %f %f", gx, gy, gz);
         auto [tx, ty, tz] = tracked.getAveragePosition();
-        RCLCPP_INFO(get_logger(), "Tracked probe: %f %f %f", tx, ty, tz);
-        RCLCPP_INFO(get_logger(), "Distance to existing probe: %f", tracked.distanceTo(gx, gy, gz));
+        // RCLCPP_INFO(get_logger(), "Tracked probe: %f %f %f", tx, ty, tz);
+        // RCLCPP_INFO(get_logger(), "Distance to existing probe: %f", tracked.distanceTo(gx, gy, gz));
 
         if (tracked.distanceTo(gx, gy, gz) < merge_threshold_) {
           tracked.update(gx, gy, gz, confidence);
