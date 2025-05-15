@@ -45,7 +45,6 @@ services:
   #   devices:
   #     - /dev/video0:/dev/video0
   #   entrypoint: /bin/bash
-  #   command: -c "source install/setup.bash && ros2 run probe_detection detect_probe.py"
   #   command: -c "source install/setup.bash && ros2 run probe_detection detect_probe.py > /dev/null 2>&1"
   #   depends_on:
   #     - zed_container

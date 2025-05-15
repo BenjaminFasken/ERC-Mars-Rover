@@ -15,6 +15,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 # Install additional system packages not necessarily in the base image
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
+    libspdlog-dev \
     python3-pip \
     python3-dev \
     libopenblas-dev \
@@ -222,8 +223,7 @@ RUN echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> /root/.bashrc
 
 
 # Source the workspace setup file
+RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /root/.bashrc
 RUN echo "source /root/install/setup.bash" >> /root/.bashrc
-
-WORKDIR /isaac-sim
 
 ENTRYPOINT ["/bin/bash"]

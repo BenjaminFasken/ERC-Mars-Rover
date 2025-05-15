@@ -7,11 +7,13 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <visualization_msgs/msg/marker.hpp> 
 #include <cmath>
+#include <deque>
+#include <mutex>
 
 using ProbeLocations = interfaces::msg::ProbeLocations;
 using ProbeData = interfaces::msg::ProbeData;
 
-// [Probe class unchanged]
+// Probe class
 class Probe {
 public:
   Probe(float x, float y, float z, float confidence)
@@ -49,6 +51,8 @@ private:
   int count_;
 };
 
+
+// Node class
 class ProbeFilteringNode : public rclcpp::Node {
 public:
   ProbeFilteringNode() : Node("probe_filtering_node") {
@@ -75,45 +79,100 @@ public:
 private:
   bool pose_received_ = false;
 
+  // Return a copy of the pose history
+  std::vector<geometry_msgs::msg::PoseStamped> getPoseHistoryCopy() const {
+    std::lock_guard<std::mutex> lock(pose_mutex_);
+
+    if (pose_history_.empty()) {
+      throw std::runtime_error("No poses in history");
+    }
+
+    return std::vector<geometry_msgs::msg::PoseStamped>(pose_history_.begin(), pose_history_.end());
+  }
+
   void poseCallback(const geometry_msgs::msg::PoseStamped::SharedPtr msg) {
+    std::lock_guard<std::mutex> lock(pose_mutex_);
     latest_pose_ = *msg;
     pose_received_ = true;
+
+    // Maintain fixed size history of 30 poses
+    if (pose_history_.size() >= 30) {
+      pose_history_.pop_front();  // Remove oldest
+    }
+    pose_history_.push_back(*msg);  // Add newest
+
     RCLCPP_DEBUG(get_logger(), "Received new localization_pose");
   }
 
-  std::tuple<float, float, float> transformToGlobal(float lx, float ly, float lz) {
+  // Finds the pose closest to the given timestamp
+  geometry_msgs::msg::PoseStamped getClosestPose(const rclcpp::Time& query_time) const {
+
+    // safe copy of pose history
+    std::vector<geometry_msgs::msg::PoseStamped> pose_history_copy = getPoseHistoryCopy();
+
+    auto closest = pose_history_copy.front();
+    rclcpp::Duration min_diff = absTimeDiff(query_time, closest.header.stamp);
+
+    for (const auto& pose : pose_history_copy) {
+      auto diff = absTimeDiff(query_time, pose.header.stamp);
+      if (diff < min_diff) {
+        closest = pose;
+        min_diff = diff;
+      }
+    }
+    // print time difference
+    RCLCPP_INFO(get_logger(), "Time difference: %f", min_diff.seconds());
+    return closest;
+  }
+  
+  // Helper to compute absolute time difference
+  rclcpp::Duration absTimeDiff(const rclcpp::Time& t1, const rclcpp::Time& t2) const {
+    return (t1 > t2) ? (t1 - t2) : (t2 - t1);
+  }
+
+  std::tuple<float, float, float> transformToGlobal(float lx, float ly, float lz, const geometry_msgs::msg::PoseStamped &matched_pose) {
     if (!pose_received_) {
       RCLCPP_WARN(get_logger(),
                   "No global pose yet; returning camera coords unchanged");
       return {lx, ly, lz};
     }
 
-    tf2::Matrix3x3 R_cam2base(0.9397, 0.0, -0.3420, 0.0, 1.0, 0.0, 0.3420, 0.0,
-                              0.9397);
+    // 1) First build the point in your camera frame, then into the rover (base_link) frame
+    tf2::Matrix3x3 R_cam2base(0.9397, 0.0,  -0.3420,
+                              0.0,    1.0,   0.0,
+                              0.3420, 0.0,   0.9397);
     tf2::Vector3 t_cam2base(-0.146422, -0.0598990, -0.238857);
     tf2::Transform T_cam2base(R_cam2base, t_cam2base);
 
     tf2::Vector3 p_cam(lx, ly, lz);
     tf2::Vector3 p_base = T_cam2base * p_cam;
 
-    const auto &pos = latest_pose_.pose.position;
-    tf2::Vector3 trans(pos.x, pos.y, pos.z);
-
-    const auto &ori = latest_pose_.pose.orientation;
+    // 2) Now build the transform from base_link → global using the provided pose
+    const auto &pos = matched_pose.pose.position;
+    const auto &ori = matched_pose.pose.orientation;
+    tf2::Transform T_base2world;
+    T_base2world.setOrigin(tf2::Vector3(pos.x, pos.y, pos.z));
     tf2::Quaternion q;
     tf2::fromMsg(ori, q);
+    T_base2world.setRotation(q);
 
-    tf2::Vector3 rotated = tf2::quatRotate(q, p_base);
-    tf2::Vector3 global = trans + rotated;
+    // 3) Apply that full transform
+    tf2::Vector3 p_world = T_base2world * p_base;
 
-    return {static_cast<float>(global.x()), static_cast<float>(global.y()),
-            static_cast<float>(global.z())};
+    return {
+      static_cast<float>(p_world.x()),
+      static_cast<float>(p_world.y()),
+      static_cast<float>(p_world.z())
+    };
   }
+
 
   // New function to publish probes as RViz markers
   void publishProbeMarkers() {
+
     visualization_msgs::msg::Marker marker;
-    marker.header.frame_id = latest_pose_.header.frame_id; // Use global frame (e.g., "map")
+
+    //marker.header.frame_id = latest_pose_.header.frame_id;
     marker.header.stamp = this->get_clock()->now();
     marker.ns = "probes";
     marker.id = 0;
@@ -179,10 +238,69 @@ private:
     // Publish the marker
     marker_publisher_->publish(marker);
   } 
- 
+    //! COOK for probe meshes
+    void publishProbeMarkersMesh() {
+      int id = 0;
+      for (const auto &p : tracked_probes_) {
+        auto [x, y, z] = p.getAveragePosition();
+        float confidence = p.getAverageConfidence();
+    
+        visualization_msgs::msg::Marker marker;
+        marker.header.frame_id = latest_pose_.header.frame_id;
+        marker.header.stamp    = this->get_clock()->now();
+        marker.ns              = "probes";
+        marker.id              = id++;  
+        marker.type            = visualization_msgs::msg::Marker::MESH_RESOURCE;
+        marker.action          = visualization_msgs::msg::Marker::ADD;
+    
+        marker.mesh_resource = "package://navigation/meshes/probeModel.dae";
+        marker.mesh_use_embedded_materials = false;
+    
+        marker.pose.position.x = x;
+        marker.pose.position.y = y;
+        marker.pose.position.z = z;
+        marker.pose.orientation.w = 1.0;
+    
+        marker.scale.x = 1.0;
+        marker.scale.y = 1.0;
+        marker.scale.z = 1.0;
+    
+        // Color based on confidence thresholds
+        if (confidence < 0.7f) {
+          // Below 70%: Red
+          marker.color.r = 1.0f;
+          marker.color.g = 0.0f;
+          marker.color.b = 0.0f;
+        } else if (confidence <= 0.8f) {
+          // 70% to 80%: Yellow
+          marker.color.r = 1.0f;
+          marker.color.g = 1.0f;
+          marker.color.b = 0.0f;
+        } else if (confidence > 0.9f) {
+          // Above 90%: Green
+          marker.color.r = 0.0f;
+          marker.color.g = 1.0f;
+          marker.color.b = 0.0f;
+        } else {
+          // 80% to 90%: Greenish-yellow
+          marker.color.r = 0.5f;
+          marker.color.g = 1.0f;
+          marker.color.b = 0.0f;
+        }
+        marker.color.a = 1.0f;
+    
+        // infinite lifetime
+        marker.lifetime = rclcpp::Duration::from_seconds(0.0);
+    
+        marker_publisher_->publish(marker);
+      }
+    }
 
   void probeCallback(const ProbeLocations::SharedPtr msg) {
     RCLCPP_INFO(get_logger(), "Received new probe locations");
+
+    // find the closest pose to the probe message timestamp
+    auto closest_pose = getClosestPose(msg->header.stamp);
 
     bool new_probe_found = false;
     for (size_t i = 0; i < msg->num_probes; ++i) {
@@ -192,15 +310,15 @@ private:
       float lz = msg->probes[base + 2];
       float confidence = msg->classification_confidence[i];
 
-      auto [gx, gy, gz] = transformToGlobal(lx, ly, lz);
+      auto [gx, gy, gz] = transformToGlobal(lx, ly, lz, closest_pose);
 
       Probe incoming_probe(gx, gy, gz, confidence);
       bool matched_existing = false;
       for (Probe &tracked : tracked_probes_) {
         RCLCPP_INFO(get_logger(), "Incoming probe: %f %f %f", gx, gy, gz);
         auto [tx, ty, tz] = tracked.getAveragePosition();
-        RCLCPP_INFO(get_logger(), "Tracked probe: %f %f %f", tx, ty, tz);
-        RCLCPP_INFO(get_logger(), "Distance to existing probe: %f", tracked.distanceTo(gx, gy, gz));
+        // RCLCPP_INFO(get_logger(), "Tracked probe: %f %f %f", tx, ty, tz);
+        // RCLCPP_INFO(get_logger(), "Distance to existing probe: %f", tracked.distanceTo(gx, gy, gz));
 
         if (tracked.distanceTo(gx, gy, gz) < merge_threshold_) {
           tracked.update(gx, gy, gz, confidence);
@@ -234,13 +352,15 @@ private:
     }
   }
 
-  float merge_threshold_ = 0.3; // distance in meters to merge probes
+  float merge_threshold_ = 0.4; // distance in meters to merge probes
   std::vector<Probe> tracked_probes_;
   rclcpp::Subscription<ProbeLocations>::SharedPtr subscription_;
   rclcpp::Publisher<ProbeData>::SharedPtr publisher_;
   rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr marker_publisher_; // New marker publisher
   rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr pose_sub_;
   geometry_msgs::msg::PoseStamped latest_pose_;
+  std::deque<geometry_msgs::msg::PoseStamped> pose_history_;
+  mutable std::mutex pose_mutex_;
 };
 
 int main(int argc, char *argv[]) {

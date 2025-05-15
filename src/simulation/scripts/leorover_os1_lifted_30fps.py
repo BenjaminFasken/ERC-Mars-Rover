@@ -98,8 +98,10 @@ class Leo_rover(object):
         print("Leo_rover setup completed, marker file created: /tmp/isaac_sim_setup_ready")
 
     def run(self):
+        self.my_world.set_simulation_dt(1.0 / 30.0)  # Simulate at 30 Hz
         while self.running:
-            kit.update()
+            #kit.update()
+            self.my_world.step(True)
         kit._app.close()
 
 def main():

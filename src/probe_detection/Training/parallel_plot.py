@@ -6,20 +6,16 @@ import matplotlib.cm as cm
 import matplotlib.colors as mcolors
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-# Load data from CSV
-data = pd.read_csv('optuna_trials.csv')
+# 1) Load data from CSV
+df = pd.read_csv('optuna_trials.csv')
 
-# Load into dataframe
-df = pd.DataFrame(data)
+# 2) Keep only COMPLETE trials
+df = df[df['state'] == 'COMPLETE'].reset_index(drop=True)
 
-# Columns to plot (parameters)
+# 3) Specify which hyper-parameter columns to plot
 columns = [
-    'params_cos_lr',
-    'params_lrf',
-    'params_momentum',
-    'params_warmup_epochs',
-    'params_warmup_momentum',
-    'params_weight_decay',
+    'params_cos_lr', 'params_lrf', 'params_momentum',
+    'params_warmup_epochs', 'params_warmup_momentum', 'params_weight_decay'
 ]
 
 # Normalize data

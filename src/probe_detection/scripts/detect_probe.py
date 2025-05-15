@@ -19,7 +19,7 @@ class SegmentationNode(Node):
         super().__init__('segmentation_node')
         
         self.previous_time = 0
-        self.fps = 30
+        self.fps = 1
         self.confidence_threshold = 0.75
         self.rgb_image = None
         self.depth_image = None

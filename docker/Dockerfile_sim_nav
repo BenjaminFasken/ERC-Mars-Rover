@@ -118,16 +118,16 @@ rm -rf /var/lib/apt/lists/*
 # Create workspace for ROS 2
 COPY ../src/ src/
 
-RUN cp ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}/src/slam/config/nav2_params.yaml /opt/ros/humble/share/nav2_bringup/params/nav2_params.yaml && \
-    cp ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}/src/slam/config/navigation_launch.py /opt/ros/humble/share/nav2_bringup/launch/navigation_launch.py && \
-    cp ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}/src/slam/config/navigate_to_pose_w_replanning_and_recovery.xml /opt/ros/humble/share/nav2_bt_navigator/behavior_trees/navigate_to_pose_w_replanning_and_recovery.xml && \
-    cp ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}/src/slam/config/navigate_through_poses_w_replanning_and_recovery.xml /opt/ros/humble/share/nav2_bt_navigator/behavior_trees/navigate_through_poses_w_replanning_and_recovery.xml
+RUN cp ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}/src/navigation/config/nav2_params.yaml /opt/ros/humble/share/nav2_bringup/params/nav2_params.yaml && \
+    cp ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}/src/navigation/config/navigation_launch.py /opt/ros/humble/share/nav2_bringup/launch/navigation_launch.py && \
+    cp ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}/src/navigation/config/navigate_to_pose_w_replanning_and_recovery.xml /opt/ros/humble/share/nav2_bt_navigator/behavior_trees/navigate_to_pose_w_replanning_and_recovery.xml && \
+    cp ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}/src/navigation/config/navigate_through_poses_w_replanning_and_recovery.xml /opt/ros/humble/share/nav2_bt_navigator/behavior_trees/navigate_through_poses_w_replanning_and_recovery.xml
 RUN find src/ -path "*/scripts/*" -type f -exec chmod +x {} \;
 
 # Clone Frontier exploration
 RUN git clone https://github.com/Nyanziba/AutoFrontierSearch_ros2-humble.git src/AutoFrontierSearch_ros2-humble && \
     cd src/AutoFrontierSearch_ros2-humble && \
-    cp ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}/src/slam/config/algolism.py src/frontier_exploration/frontier_exploration/algolism.py
+    cp ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}/src/navigation/config/algolism.py src/frontier_exploration/frontier_exploration/algolism.py
 
 RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash && \
     colcon build --parallel-workers $(nproc) --symlink-install \
