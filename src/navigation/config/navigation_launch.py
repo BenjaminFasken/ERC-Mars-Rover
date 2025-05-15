@@ -108,29 +108,29 @@ def generate_launch_description():
         description='log level')
 
     # whether to launch robot_state_publisher
-    use_robot_state_pub = LaunchConfiguration('use_robot_state_pub')
+    # use_robot_state_pub = LaunchConfiguration('use_robot_state_pub')
 
-    declare_use_robot_state_pub_cmd = DeclareLaunchArgument(
-        'use_robot_state_pub',
-        default_value='True',
-        description='Whether to start the robot state publisher')
+    # declare_use_robot_state_pub_cmd = DeclareLaunchArgument(
+    #     'use_robot_state_pub',
+    #     default_value='True',
+    #     description='Whether to start the robot state publisher')
 
-    # Locate the URDF file #### SIMON FIX DET HER ######
-    urdf_path = os.path.join(get_package_share_directory('navigation'), 'urdf', 'leo.urdf.xacro')
-    robot_description = process_file(urdf_path).toxml()
+    # Locate the URDF file 
+    # urdf_path = os.path.join(get_package_share_directory('navigation'), 'urdf', 'leo.urdf.xacro')
+    # robot_description = process_file(urdf_path).toxml()
 
-    start_robot_state_publisher_cmd = Node(
-        condition=IfCondition(use_robot_state_pub),
-        package='robot_state_publisher',
-        executable='robot_state_publisher',
-        name='robot_state_publisher',
-        namespace=namespace,
-        output='screen',
-        parameters=[
-          {'use_sim_time': use_sim_time},
-          {'robot_description': robot_description}
-        ],
-        remappings=remappings)
+    # start_robot_state_publisher_cmd = Node(
+    #     condition=IfCondition(use_robot_state_pub),
+    #     package='robot_state_publisher',
+    #     executable='robot_state_publisher',
+    #     name='robot_state_publisher',
+    #     namespace=namespace,
+    #     output='screen',
+    #     parameters=[
+    #       {'use_sim_time': use_sim_time},
+    #       {'robot_description': robot_description}
+    #     ],
+    #     remappings=remappings)
 
 
 
@@ -146,16 +146,6 @@ def generate_launch_description():
                 parameters=[configured_params],
                 arguments=['--ros-args', '--log-level', log_level],
                 remappings=remappings + [('cmd_vel', 'cmd_vel_nav')] + [('odom', 'zed/zed_node/odom')]),
-            # Node(
-            #     package='nav2_smoother',
-            #     executable='smoother_server',
-            #     name='smoother_server',
-            #     output='screen',
-            #     respawn=use_respawn,
-            #     respawn_delay=2.0,
-            #     parameters=[configured_params],
-            #     arguments=['--ros-args', '--log-level', log_level],
-            #     remappings=remappings),
             Node(
                 package='nav2_planner',
                 executable='planner_server',
@@ -186,16 +176,6 @@ def generate_launch_description():
                 parameters=[configured_params],
                 arguments=['--ros-args', '--log-level', log_level],
                 remappings=remappings + [('odom', 'zed/zed_node/odom')]),
-            # Node(
-            #     package='nav2_waypoint_follower',
-            #     executable='waypoint_follower',
-            #     name='waypoint_follower',
-            #     output='screen',
-            #     respawn=use_respawn,
-            #     respawn_delay=2.0,
-            #     parameters=[configured_params],
-            #     arguments=['--ros-args', '--log-level', log_level],
-            #     remappings=remappings),
             Node(
                 package='nav2_velocity_smoother',
                 executable='velocity_smoother',
@@ -229,12 +209,6 @@ def generate_launch_description():
                 name='controller_server',
                 parameters=[configured_params],
                 remappings=remappings + [('cmd_vel', 'cmd_vel_nav')]),
-            # ComposableNode(
-            #     package='nav2_smoother',
-            #     plugin='nav2_smoother::SmootherServer',
-            #     name='smoother_server',
-            #     parameters=[configured_params],
-            #     remappings=remappings),
             ComposableNode(
                 package='nav2_planner',
                 plugin='nav2_planner::PlannerServer',
@@ -253,12 +227,6 @@ def generate_launch_description():
                 name='bt_navigator',
                 parameters=[configured_params],
                 remappings=remappings),
-            # ComposableNode(
-            #     package='nav2_waypoint_follower',
-            #     plugin='nav2_waypoint_follower::WaypointFollower',
-            #     name='waypoint_follower',
-            #     parameters=[configured_params],
-            #     remappings=remappings),
             ComposableNode(
                 package='nav2_velocity_smoother',
                 plugin='nav2_velocity_smoother::VelocitySmoother',
@@ -292,8 +260,8 @@ def generate_launch_description():
     ld.add_action(declare_use_respawn_cmd)
     ld.add_action(declare_log_level_cmd)
     # Add the actions to launch all of the navigation nodes
-    ld.add_action(declare_use_robot_state_pub_cmd)        #Added this to launch robot_state_publisher
-    ld.add_action(start_robot_state_publisher_cmd)
+    # ld.add_action(declare_use_robot_state_pub_cmd)        #Added this to launch robot_state_publisher
+    # ld.add_action(start_robot_state_publisher_cmd)
     ld.add_action(load_nodes)
     ld.add_action(load_composable_nodes)
 

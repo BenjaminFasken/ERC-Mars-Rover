@@ -177,7 +177,7 @@ private:
 
     visualization_msgs::msg::Marker marker;
 
-    //marker.header.frame_id = latest_pose_.header.frame_id;
+    marker.header.frame_id = latest_pose_.header.frame_id;
     marker.header.stamp = this->get_clock()->now();
     marker.ns = "probes";
     marker.id = 0;
