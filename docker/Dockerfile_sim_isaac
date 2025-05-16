@@ -201,10 +201,9 @@ RUN apt-get update && \
 RUN cd ../isaac-sim && \
     mkdir -p assets && \
     cp -r ${BASE_FOLDER}/src/simulation/usd/. assets/ && \
-    cp -r ${BASE_FOLDER}/src/simulation/scripts/. assets/
-    # && \
-    #mkdir -p "kit/data/Kit/Isaac-Sim Python/4.5/exts/3" && \
-    #cp -r ${BASE_FOLDER}/src/simulation/config/* "kit/data/Kit/Isaac-Sim Python/4.5/exts/3/"
+    cp -r ${BASE_FOLDER}/src/simulation/scripts/. assets/ && \
+    mkdir -p "kit/data/Kit/Isaac-Sim Python/4.5/exts/3" && \
+    cp -r ${BASE_FOLDER}/src/simulation/config/* "kit/data/Kit/Isaac-Sim Python/4.5/exts/3/"
 
 
 # Build ROS workspace with dynamic CUDA version
