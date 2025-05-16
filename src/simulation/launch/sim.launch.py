@@ -28,15 +28,15 @@ def generate_launch_description():
     )
 
     # Path to Isaac Sim directory
-    isaac_sim_path = "/isaac-sim"
+    isaac_sim_path = "../isaac-sim"
 
     # Log file and readiness marker. These are used to make the launch of the ZED camera dependent on the completion of the Isaac Sim script.
     log_file = "/tmp/isaac_sim_log.txt"
     ready_file = "/tmp/isaac_sim_setup_ready"
-
+    
     # Execute Isaac Sim Python script with output to log file
     isaac_sim_command = ExecuteProcess(
-        cmd=['bash', '-c', f'./python.sh assets/leorover_os1_lifted_30fps.py'],
+        cmd=['bash', '-c', f'pwd && ./python.sh assets/leorover_os1_lifted_30fps.py 2>&1 | tee {log_file}'],
         cwd=isaac_sim_path,
         output='screen',
         shell=True

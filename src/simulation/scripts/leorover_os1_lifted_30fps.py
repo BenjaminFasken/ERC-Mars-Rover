@@ -1,35 +1,59 @@
 #!/usr/bin/env python3
 from isaacsim import SimulationApp
-import carb
-import numpy as np
-from isaacsim.core.api import World
-from isaacsim.core.utils.stage import add_reference_to_stage
-from omni.isaac.core import World
-from omni.isaac.core.utils import stage as stage_utils
-from pxr import UsdPhysics, UsdGeom, Gf, UsdLux
-import omni.appwindow
-from isaacsim.core.utils.extensions import enable_extension
 
-# Configuration for SimulationApp
+# This sample enables a livestream server to connect to when running headless
 CONFIG = {
     "width": 1280,
     "height": 720,
     "window_width": 1920,
     "window_height": 1080,
     "headless": True,
-    "hide_ui": False,
+    "hide_ui": False,  # Show the GUI
     "renderer": "RaytracedLighting",
-    "display_options": 3286,
+    "display_options": 3286,  # Set display options to show default grid
 }
 
 # Start the omniverse application
 kit = SimulationApp(launch_config=CONFIG)
 
-# Enable extensions
+from isaacsim.core.utils.extensions import enable_extension
+
+# Default Livestream settings
 kit.set_setting("/app/window/drawMouse", True)
+
+# Enable Livestream extension
 enable_extension("omni.kit.livestream.webrtc")
+
+# Enable ROS2 bridge extension:
 enable_extension("isaacsim.ros2.bridge")
+
+# Enable the Isaac Sim extension for the ZED camera:
 enable_extension("sl.sensor.camera")
+
+
+
+import carb
+import numpy as np
+from scipy.spatial.transform import Rotation as R
+from isaacsim.core.api import World
+from isaacsim.core.prims import Articulation
+from isaacsim.core.utils.stage import add_reference_to_stage, get_stage_units
+from isaacsim.core.utils.types import ArticulationAction
+from isaacsim.core.utils.viewports import set_camera_view
+from isaacsim.storage.native import get_assets_root_path
+from isaacsim.core.api.robots import Robot
+
+from omni.isaac.core import World
+from omni.isaac.core.utils import stage as stage_utils
+from pxr import UsdPhysics, UsdGeom, Usd, Gf, UsdLux
+
+# import import WheeledRobot
+from omni.isaac.wheeled_robots.robots import WheeledRobot
+import omni.appwindow  # Contains handle to keyboard
+
+# Import the BaseController from Isaac Sim for implementing custom controllers
+from omni.isaac.core.controllers import BaseController
+
 
 class Leo_rover(object):
     def __init__(self):
