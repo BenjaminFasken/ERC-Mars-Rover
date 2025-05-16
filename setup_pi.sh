@@ -9,6 +9,7 @@ WORKSPACE_DIR="/home/$USER/ERC-Mars-Rover"
 SERVICE_NAME="mars-rover-nodes.service"
 SERVICE_FILE="/etc/systemd/system/$SERVICE_NAME"
 LAUNCH_FILE="$WORKSPACE_DIR/src/navigation/launch/pi.launch.py"
+UDEV_RULE_FILE="/etc/udev/rules.d/99-gpio.rules"
 
 # Check if running user matches expected user
 if [ "$(whoami)" != "$USER" ]; then
@@ -21,6 +22,45 @@ if [ ! -d "$WORKSPACE_DIR" ]; then
     echo "Error: Workspace directory $WORKSPACE_DIR does not exist."
     exit 1
 fi
+
+# Ensure user is in the gpio group for non-root GPIO access
+echo "Adding user $USER to gpio group..."
+if ! groups "$USER" | grep -q "gpio"; then
+    sudo usermod -aG gpio "$USER" || {
+        echo "Error: Failed to add $USER to gpio group."
+        exit 1
+    }
+    echo "User $USER added to gpio group. You may need to log out and back in or reboot for changes to take effect."
+else
+    echo "User $USER is already in gpio group."
+fi
+
+# Create udev rule for GPIO access
+echo "Creating udev rule for GPIO access..."
+sudo bash -c "cat > $UDEV_RULE_FILE" << EOL
+SUBSYSTEM=="gpio*", PROGRAM="/bin/sh -c 'chown -R root:gpio /sys/class/gpio && chmod -R ug+rw /sys/class/gpio'"
+EOL
+sudo chmod 644 "$UDEV_RULE_FILE"
+sudo udevadm control --reload-rules || {
+    echo "Error: Failed to reload udev rules."
+    exit 1
+}
+sudo udevadm trigger || {
+    echo "Error: Failed to trigger udev rules."
+    exit 1
+}
+echo "Udev rule created at $UDEV_RULE_FILE."
+
+# Check if pigpiod is needed and enable it (optional, uncomment if using pigpio)
+# echo "Enabling and starting pigpiod service for pigpio library..."
+# sudo systemctl enable pigpiod || {
+#     echo "Error: Failed to enable pigpiod service."
+#     exit 1
+# }
+# sudo systemctl start pigpiod || {
+#     echo "Error: Failed to start pigpiod service."
+#     exit 1
+# }
 
 # Source ROS 2 setup file (assumes ROS 2 Humble)
 source /opt/ros/humble/setup.bash || {
@@ -85,10 +125,14 @@ sudo bash -c "cat > $SERVICE_FILE" << EOL
 Description=ROS 2 Mars Rover Startup Nodes
 After=network-online.target
 Wants=network-online.target
+# Uncomment the following line if using pigpiod
+# After=network-online.target pigpiod.service
+# Wants=network-online.target pigpiod.service
 
 [Service]
 Type=simple
 User=$USER
+Group=gpio
 Environment="HOME=/home/$USER"
 WorkingDirectory=$WORKSPACE_DIR
 ExecStart=/bin/bash -c "source /opt/ros/humble/setup.bash && export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp && source /home/$USER/ERC-Mars-Rover/install/setup.bash && ros2 launch navigation pi.launch.py"
@@ -137,4 +181,4 @@ if ! sudo systemctl is-active --quiet "$SERVICE_NAME"; then
 fi
 sudo systemctl status "$SERVICE_NAME" --no-pager
 
-echo "Setup complete! The interfaces, gpio_controller, and navigation packages are built, and $SERVICE_NAME is enabled and active."
+echo "Setup complete! The interfaces, gpio_controller, and navigation packages are built, GPIO permissions are configured, and $SERVICE_NAME is enabled and active."
