@@ -15,7 +15,6 @@ ARG DEBIAN_FRONTEND=noninteractive
 # Install additional system packages not necessarily in the base image
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    libspdlog-dev \
     python3-pip \
     python3-dev \
     libopenblas-dev \
@@ -64,8 +63,7 @@ RUN apt-get update && \
     apt-get clean
 
 # Set LD_LIBRARY_PATH to prioritize system and ROS 2 paths
-ENV LD_LIBRARY_PATH=/lib/x86_64-linux-gnu:/opt/ros/humble/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/root/install/zed_components/lib:/root/install/zed_interfaces/lib:/root/install/interfaces/lib:/isaac-sim/exts/isaacsim.ros2.bridge/humble/lib
-
+ENV LD_LIBRARY_PATH=/opt/ros/humble/lib:/lib/x86_64-linux-gnu:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/root/install/zed_components/lib:/root/install/zed_interfaces/lib:/root/install/interfaces/lib:/isaac-sim/exts/isaacsim.ros2.bridge/humble/lib
 # Install additional utilities and tools
 RUN apt-get update && apt-get install -y --no-install-recommends \
     nano \
@@ -226,4 +224,4 @@ RUN echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> /root/.bashrc
 RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /root/.bashrc
 RUN echo "source /root/install/setup.bash" >> /root/.bashrc
 
-ENTRYPOINT ["/bin/bash"]
+ENTRYPOINT ["/bin/bash", "-c", "source install/setup.bash && exec \"$@\"", "bash"]

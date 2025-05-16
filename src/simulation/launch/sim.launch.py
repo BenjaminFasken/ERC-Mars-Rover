@@ -36,7 +36,7 @@ def generate_launch_description():
 
     # Execute Isaac Sim Python script with output to log file
     isaac_sim_command = ExecuteProcess(
-        cmd=['bash', '-c', f'./python.sh assets/leorover_os1_lifted_30fps.py 2>&1 | tee {log_file}'],
+        cmd=['bash', '-c', f'./python.sh assets/leorover_os1_lifted_30fps.py'],
         cwd=isaac_sim_path,
         output='screen',
         shell=True
@@ -63,7 +63,9 @@ def generate_launch_description():
             'sim_mode': LaunchConfiguration('sim_mode'),
             'use_sim_time': LaunchConfiguration('use_sim_time')
         }.items(),
-        condition=UnlessCondition(Command(['test -f ', ready_file, ' && echo 0 || echo 1']))
+        condition=UnlessCondition(
+            Command(['bash -c "test -f /tmp/isaac_sim_setup_ready && echo 0 || echo 1"'])
+        )
     )
 
     # Create launch description
