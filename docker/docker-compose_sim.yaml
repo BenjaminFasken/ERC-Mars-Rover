@@ -36,7 +36,7 @@ services:
       test: [ "CMD-SHELL", "grep 'Q: \\[0,0,0,1\\]' /tmp/zed_log.txt" ]
       interval: 30s
       timeout: 10s
-      retries: 60
+      retries: 300
       start_period: 60s
 
   nav2_and_rtab_container:
