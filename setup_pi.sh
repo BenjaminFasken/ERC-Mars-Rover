@@ -6,9 +6,10 @@ set -e
 # Define workspace path and user
 USER="pi"  # Change to "leorover" if that's the correct user
 WORKSPACE_DIR="/home/$USER/ERC-Mars-Rover"
-SERVICE_NAME="mars-rover-nodes.service"
-SERVICE_FILE="/etc/systemd/system/$SERVICE_NAME"
-LAUNCH_FILE="$WORKSPACE_DIR/src/navigation/launch/pi.launch.py"
+CMD_REPEATER_SERVICE="mars-rover-cmd-repeater.service"
+GPIO_NODE_SERVICE="mars-rover-gpio-node.service"
+CMD_REPEATER_SERVICE_FILE="/etc/systemd/system/$CMD_REPEATER_SERVICE"
+GPIO_NODE_SERVICE_FILE="/etc/systemd/system/$GPIO_NODE_SERVICE"
 UDEV_RULE_FILE="/etc/udev/rules.d/99-gpio.rules"
 
 # Check if running user matches expected user
@@ -51,17 +52,6 @@ sudo udevadm trigger || {
 }
 echo "Udev rule created at $UDEV_RULE_FILE."
 
-# Check if pigpiod is needed and enable it (optional, uncomment if using pigpio)
-# echo "Enabling and starting pigpiod service for pigpio library..."
-# sudo systemctl enable pigpiod || {
-#     echo "Error: Failed to enable pigpiod service."
-#     exit 1
-# }
-# sudo systemctl start pigpiod || {
-#     echo "Error: Failed to start pigpiod service."
-#     exit 1
-# }
-
 # Source ROS 2 setup file (assumes ROS 2 Humble)
 source /opt/ros/humble/setup.bash || {
     echo "Error: Failed to source ROS 2 setup.bash. Ensure ROS 2 is installed."
@@ -89,45 +79,13 @@ chmod +x "$WORKSPACE_DIR/src/gpio_controller/scripts/gpio_node.py" || {
     exit 1
 }
 
-# Check if the launch file exists, create if it doesn't
-if [ ! -f "$LAUNCH_FILE" ]; then
-    echo "Creating launch file $LAUNCH_FILE..."
-    mkdir -p "$WORKSPACE_DIR/src/navigation/launch"
-    cat > "$LAUNCH_FILE" << EOL
-from launch import LaunchDescription
-from launch_ros.actions import Node
-
-def generate_launch_description():
-    return LaunchDescription([
-        Node(
-            package='navigation',
-            executable='cmd_repeater.py',
-            name='cmd_repeater',
-            output='screen'
-        ),
-        Node(
-            package='gpio_controller',
-            executable='gpio_node.py',
-            name='gpio_node',
-            output='screen'
-        )
-    ])
-EOL
-    echo "Created $LAUNCH_FILE."
-else
-    echo "Launch file $LAUNCH_FILE already exists."
-fi
-
-# Create or update systemd service file
-echo "Creating/updating systemd service file $SERVICE_FILE..."
-sudo bash -c "cat > $SERVICE_FILE" << EOL
+# Create systemd service file for cmd_repeater (Cyclone DDS)
+echo "Creating/updating systemd service file $CMD_REPEATER_SERVICE_FILE..."
+sudo bash -c "cat > $CMD_REPEATER_SERVICE_FILE" << EOL
 [Unit]
-Description=ROS 2 Mars Rover Startup Nodes
+Description=ROS 2 Mars Rover cmd_repeater Node (Cyclone DDS)
 After=network-online.target
 Wants=network-online.target
-# Uncomment the following line if using pigpiod
-# After=network-online.target pigpiod.service
-# Wants=network-online.target pigpiod.service
 
 [Service]
 Type=simple
@@ -135,7 +93,7 @@ User=$USER
 Group=gpio
 Environment="HOME=/home/$USER"
 WorkingDirectory=$WORKSPACE_DIR
-ExecStart=/bin/bash -c "source /opt/ros/humble/setup.bash && export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp && source /home/$USER/ERC-Mars-Rover/install/setup.bash && ros2 launch navigation pi.launch.py"
+ExecStart=/bin/bash -c "source /opt/ros/humble/setup.bash && export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp && source /home/$USER/ERC-Mars-Rover/install/setup.bash && ros2 run navigation cmd_repeater.py"
 Restart=always
 RestartSec=10
 
@@ -143,8 +101,31 @@ RestartSec=10
 WantedBy=multi-user.target
 EOL
 
-# Set permissions for service file
-sudo chmod 644 "$SERVICE_FILE"
+# Create systemd service file for gpio_node (Fast RTPS)
+echo "Creating/updating systemd service file $GPIO_NODE_SERVICE_FILE..."
+sudo bash -c "cat > $GPIO_NODE_SERVICE_FILE" << EOL
+[Unit]
+Description=ROS 2 Mars Rover gpio_node (Fast RTPS)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=$USER
+Group=gpio
+Environment="HOME=/home/$USER"
+WorkingDirectory=$WORKSPACE_DIR
+ExecStart=/bin/bash -c "source /opt/ros/humble/setup.bash && export RMW_IMPLEMENTATION=rmw_fastrtps_cpp && source /home/$USER/ERC-Mars-Rover/install/setup.bash && ros2 run gpio_controller gpio_node.py"
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+EOL
+
+# Set permissions for service files
+sudo chmod 644 "$CMD_REPEATER_SERVICE_FILE"
+sudo chmod 644 "$GPIO_NODE_SERVICE_FILE"
 
 # Reload systemd daemon
 echo "Reloading systemd daemon..."
@@ -153,32 +134,52 @@ sudo systemctl daemon-reload || {
     exit 1
 }
 
-# Enable the service
-echo "Enabling $SERVICE_NAME..."
-sudo systemctl enable "$SERVICE_NAME" || {
-    echo "Error: Failed to enable $SERVICE_NAME."
+# Enable the services
+echo "Enabling $CMD_REPEATER_SERVICE and $GPIO_NODE_SERVICE..."
+sudo systemctl enable "$CMD_REPEATER_SERVICE" || {
+    echo "Error: Failed to enable $CMD_REPEATER_SERVICE."
+    exit 1
+}
+sudo systemctl enable "$GPIO_NODE_SERVICE" || {
+    echo "Error: Failed to enable $GPIO_NODE_SERVICE."
     exit 1
 }
 
-# Stop the service if it's running (to ensure clean start)
-sudo systemctl stop "$SERVICE_NAME" || true
+# Stop the services if they're running (to ensure clean start)
+sudo systemctl stop "$CMD_REPEATER_SERVICE" || true
+sudo systemctl stop "$GPIO_NODE_SERVICE" || true
 
-# Start the service
-echo "Starting $SERVICE_NAME..."
-sudo systemctl start "$SERVICE_NAME" || {
-    echo "Error: Failed to start $SERVICE_NAME."
-    journalctl -u "$SERVICE_NAME" -n 50 --no-pager
+# Start the services
+echo "Starting $CMD_REPEATER_SERVICE..."
+sudo systemctl start "$CMD_REPEATER_SERVICE" || {
+    echo "Error: Failed to start $CMD_REPEATER_SERVICE."
+    journalctl -u "$CMD_REPEATER_SERVICE" -n 50 --no-pager
+    exit 1
+}
+echo "Starting $GPIO_NODE_SERVICE..."
+sudo systemctl start "$GPIO_NODE_SERVICE" || {
+    echo "Error: Failed to start $GPIO_NODE_SERVICE."
+    journalctl -u "$GPIO_NODE_SERVICE" -n 50 --no-pager
     exit 1
 }
 
 # Check service status
-echo "Checking status of $SERVICE_NAME..."
-if ! sudo systemctl is-active --quiet "$SERVICE_NAME"; then
-    echo "Error: $SERVICE_NAME is not active."
-    sudo systemctl status "$SERVICE_NAME" --no-pager
-    journalctl -u "$SERVICE_NAME" -n 50 --no-pager
+echo "Checking status of $CMD_REPEATER_SERVICE..."
+if ! sudo systemctl is-active --quiet "$CMD_REPEATER_SERVICE"; then
+    echo "Error: $CMD_REPEATER_SERVICE is not active."
+    sudo systemctl status "$CMD_REPEATER_SERVICE" --no-pager
+    journalctl -u "$CMD_REPEATER_SERVICE" -n 50 --no-pager
     exit 1
 fi
-sudo systemctl status "$SERVICE_NAME" --no-pager
+sudo systemctl status "$CMD_REPEATER_SERVICE" --no-pager
 
-echo "Setup complete! The interfaces, gpio_controller, and navigation packages are built, GPIO permissions are configured, and $SERVICE_NAME is enabled and active."
+echo "Checking status of $GPIO_NODE_SERVICE..."
+if ! sudo systemctl is-active --quiet "$GPIO_NODE_SERVICE"; then
+    echo "Error: $GPIO_NODE_SERVICE is not active."
+    sudo systemctl status "$GPIO_NODE_SERVICE" --no-pager
+    journalctl -u "$GPIO_NODE_SERVICE" -n 50 --no-pager
+    exit 1
+fi
+sudo systemctl status "$GPIO_NODE_SERVICE" --no-pager
+
+echo "Setup complete! The interfaces, gpio_controller, and navigation packages are built, GPIO permissions are configured, and $CMD_REPEATER_SERVICE (Cyclone DDS) and $GPIO_NODE_SERVICE (Fast RTPS) are enabled and active."
