@@ -1,0 +1,16 @@
+digraph G {
+"zed_left_camera_frame" -> "zed_imu_link"[label=" Broadcaster: default_authority\nAverage rate: 173.446\nBuffer length: 5.051\nMost recent transform: 1747315162.89058\nOldest transform: 1747315157.840006\n"];
+"zed_camera_center" -> "zed_left_camera_frame"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"zed_camera_link" -> "zed_camera_center"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"odom" -> "zed_camera_link"[label=" Broadcaster: default_authority\nAverage rate: 4.963\nBuffer length: 4.836\nMost recent transform: 1747315162.555604\nOldest transform: 1747315157.719632\n"];
+"zed_left_camera_frame" -> "zed_left_camera_optical_frame"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"zed_camera_center" -> "zed_right_camera_frame"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"zed_right_camera_frame" -> "zed_right_camera_optical_frame"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"zed_camera_link" -> "base_link"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"base_link" -> "livox_frame"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"map" -> "odom"[label=" Broadcaster: default_authority\nAverage rate: 23.792\nBuffer length: 5.254\nMost recent transform: 1747315162.973576\nOldest transform: 1747315157.719632\n"];
+edge [style=invis];
+ subgraph cluster_legend { style=bold; color=black; label ="view_frames Result";
+"Recorded at time: 1747315162.9261684"[ shape=plaintext ] ;
+}->"map";
+}
