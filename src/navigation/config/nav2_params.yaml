@@ -125,7 +125,7 @@ local_costmap:
       rolling_window: true            # the costmap “window” moves with the robot
       width: 3                        # meters across (x dimension)
       height: 3                       # meters across (y dimension)
-      resolution: 0.04                # grid cell size (m) — matches your global 0.025  
+      resolution: 0.04                # grid cell size (m) — matches your global 0.04 m resolution  
 
       # — Footprint for inflation & clearing —
       footprint: "[[-0.217, -0.2275], [0.217, -0.2275], [0.217, 0.2275], [-0.217, 0.2275]]"
