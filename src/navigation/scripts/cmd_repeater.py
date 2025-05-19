@@ -36,7 +36,7 @@ class CmdVelRepublisher(Node):
         self.battery_publisher = self.create_publisher(
             Float32,
             '/firmware/battery_averaged_cyclone',
-            qos_profile
+            10
         )
         
     def cmd_vel_callback(self, msg):
