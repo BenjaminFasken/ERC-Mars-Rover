@@ -7,13 +7,13 @@
 	- Press submit
 
 ## 1: SSH into the machine
-	- Replace `<IP-address>` with the one given after launching your machine and run the following command:
+- Replace `<IP-address>` with the one given after launching your machine and run the following command:
 	```bash
 	ssh ucloud@<IP-address>
 	```
-	- write 'yes' when prompted and press enter
-	- You will see a confirmation once you're connected to the machine
-	> **Note**: If the machine does not connect immediately, try again after a few moments.
+- write 'yes' when prompted and press enter
+- You will see a confirmation once you're connected to the machine
+> **Note**: If the machine does not connect immediately, try again after a few moments.
 
 ## 2: Copy training folder to the remote machine
 	- Open local terminal and write the following command:
