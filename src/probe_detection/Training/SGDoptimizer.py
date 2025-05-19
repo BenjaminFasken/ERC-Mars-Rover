@@ -6,8 +6,8 @@ import pandas as pd
 
 # ClearML init
 task = Task.init(
-    project_name="YOLO11n training",
-    task_name="lr_sweep",
+    project_name="YOLO11s training",
+    task_name="lr_sweep2",
     output_uri=False
 )
 
@@ -33,11 +33,18 @@ for i, lr in enumerate(lr_values):
         "lr0": lr,
         "epochs": 10,
         "imgsz": 640,
-        "batch": 160
+        "batch": 160,
+        "weight_decay": 0.007208451131577511,
+        "warmup_momentum": 0.7761339474344272,
+        "warmup_epochs": 0,
+        "momentum": 0.8927381164312145,
+        "lrf": 0.3565968756353834,
+        "cos_lr": True,
+
     }
 
     # Train model
-    model = YOLO('yolo11n-seg.pt')
+    model = YOLO('yolo11s-seg.pt')
     results = model.train(
         data='/home/ucloud/Training/marsYardData/rocky_mars.v8-big-ahh-dataset-v2.yolov12/data.yaml',
         cache=True,
