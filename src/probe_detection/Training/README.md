@@ -1,4 +1,4 @@
-## Guide to setup UCLOUD remote machine for yolo training in python
+# Guide to setup UCLOUD remote machine for yolo training in python
 
 ##0: Start ucloud
 	- Find Ubuntu(virtual machine) 22.04 with CUDA form the application store
@@ -45,7 +45,7 @@
 	- If the file dows not exist: 
 		- rename <setup_clearml_template.sh> to <setup_clearml.sh> and fill in the blanks with you clearml API information
 
-#6: Run python script
+##6: Run python script
 	```bash
 	python3 TrainYolo_[some version].py
 	```
