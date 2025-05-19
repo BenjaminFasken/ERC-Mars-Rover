@@ -22,16 +22,21 @@ class CmdVelRepublisher(Node):
         self.get_logger().info('CmdVelRepublisher node started')
         
         # Republish "/firmware/battery_averaged" as "/firmware/battery_averaged_cyclone"
+        qos_profile = rclpy.qos.QoSProfile(
+            reliability=rclpy.qos.ReliabilityPolicy.BEST_EFFORT,
+            history=rclpy.qos.HistoryPolicy.KEEP_LAST,
+            depth=10
+        )
         self.create_subscription(
             Float32,
             '/firmware/battery_averaged',
             self.battery_callback,
-            10
+            qos_profile
         )
         self.battery_publisher = self.create_publisher(
             Float32,
             '/firmware/battery_averaged_cyclone',
-            10
+            qos_profile
         )
         
     def cmd_vel_callback(self, msg):
