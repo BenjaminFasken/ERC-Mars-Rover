@@ -15,7 +15,6 @@ ARG DEBIAN_FRONTEND=noninteractive
 # Install additional system packages not necessarily in the base image
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    libspdlog-dev \
     python3-pip \
     python3-dev \
     libopenblas-dev \
@@ -202,7 +201,9 @@ RUN apt-get update && \
 RUN cd ../isaac-sim && \
     mkdir -p assets && \
     cp -r ${BASE_FOLDER}/src/simulation/usd/. assets/ && \
-    cp -r ${BASE_FOLDER}/src/simulation/scripts/. assets/
+    cp -r ${BASE_FOLDER}/src/simulation/scripts/. assets/ && \
+    mkdir -p "kit/data/Kit/Isaac-Sim Python/4.5/exts/3" && \
+    cp -r ${BASE_FOLDER}/src/simulation/config/* "kit/data/Kit/Isaac-Sim Python/4.5/exts/3/"
 
 
 # Build ROS workspace with dynamic CUDA version
@@ -226,4 +227,4 @@ RUN echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> /root/.bashrc
 RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /root/.bashrc
 RUN echo "source /root/install/setup.bash" >> /root/.bashrc
 
-ENTRYPOINT ["/bin/bash"]
+ENTRYPOINT ["/bin/bash", "-c", "source install/setup.bash && exec \"$@\"", "bash"]

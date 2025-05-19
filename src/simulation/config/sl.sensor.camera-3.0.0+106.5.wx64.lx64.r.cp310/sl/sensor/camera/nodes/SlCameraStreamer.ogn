@@ -1,0 +1,68 @@
+{
+    "ZED_Camera": {
+        "version": 1,
+        "categories": {"Stereolabs": "Nodes used with the Stereolabs ZED SDK"},
+        "description": "Streams ZED camera data to the ZED SDK",
+        "language": "Python",
+        "metadata": {
+            "uiName": "ZED camera streamer"
+        },
+        "inputs": {
+            "exec_in": {
+                "type": "execution",
+                "description": "Triggers execution",
+                "default": 0,
+                "metadata": {
+                    "uiName": "ExecIn"
+                }
+            },
+            "camera_prim": {
+                "type": "target",
+                "description": "ZED Camera prim used to stream data",
+                "metadata": {
+                    "uiName": "ZED Camera prim"
+                }
+            },
+            "fps": {
+                "type" : "uint",
+                "description": "Camera stream frame rate. Can be either 60, 30 or 15.",
+                "metadata": {
+                    "uiName": "FPS"
+                },
+                "default": 30
+            },
+            "resolution": {
+                "type" : "token",
+                "description": "Camera stream resolution. Can be either HD1200, HD1080 or SVGA",
+                "metadata": {
+                    "allowedTokens": ["HD1200", "HD1080", "SVGA"]
+                },
+                "default" : "HD1200"
+            },
+            "streaming_port": {
+                "type": "uint",
+                "description": "Streaming port - unique per camera",
+                "metadata": {
+                    "uiName": "Streaming port"
+                },
+                "default" : 30000
+            },
+            "serial_number": {
+                "type": "uint",
+                "description": "Serial number (identification) of the camera to stream, can be left to default. It must be of one of the compatible values: 40976320, 41116066, 49123828, 45626933, 47890353, 45263213, 47800035, 47706147",
+                "metadata": {
+                    "uiName": "Serial number"
+                },
+                "default" : 40976320
+            },
+            "use_system_time": {
+                "type": "bool",
+                "description": "Override simulation time with system time for image timestamps",
+                "metadata": {
+                    "uiName": "Use system time"
+                },
+                "default" : false
+            }
+        }
+    }
+}

@@ -25,7 +25,6 @@ install(TARGETS
 # install scripts
 install(PROGRAMS
   scripts/cmd_repeater.py
-  scripts/path_visulizer.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
