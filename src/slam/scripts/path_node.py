@@ -93,13 +93,6 @@ class PathNode(Node):
             self.path_msg.poses.append(msg) # msg is PoseStamped
             self.last_appended_pose = current_pose
 
-            # --- Limit the number of poses in the path ---
-            if len(self.path_msg.poses) > self.max_path_poses:
-                # Remove the oldest poses to maintain max length
-                num_to_remove = len(self.path_msg.poses) - self.max_path_poses
-                self.path_msg.poses = self.path_msg.poses[num_to_remove:]
-                # self.get_logger().debug(f"Path trimmed to {self.max_path_poses} poses.") # Optional debug log
-
 
         # --- Publishing logic ---
         current_time = self.get_clock().now()
