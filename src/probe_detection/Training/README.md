@@ -43,7 +43,7 @@ source setup_venv.sh
 source setup_clearml.sh
 ```
 - If the file does not exist: 
-	- rename <setup_clearml_template.sh> to <setup_clearml.sh> and fill in the blanks with you clearml API information
+	- rename `setup_clearml_template.sh` to `setup_clearml.sh` and fill in the blanks with you clearml API information
 
 ## 6: Run python script
 ```bash
