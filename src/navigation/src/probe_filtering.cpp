@@ -288,28 +288,24 @@ private:
       }
     }
 
-    // ProbeData publishing
-    ProbeData msg_out;
-    msg_out.stamp = this->get_clock()->now();
-
-    // Only include probes with contribution >= 2
-    size_t valid_probe_count = 0;
-    for (auto &p : tracked_probes_) {
-      if (p.getCount() >= 2) {
+    // Existing ProbeData publishing logic (unchanged)
+    if (new_probe_found) {
+      ProbeData msg_out;
+      msg_out.stamp = this->get_clock()->now();
+      msg_out.probe_count = tracked_probes_.size();
+      for (auto &p : tracked_probes_) {
         auto [ax, ay, az] = p.getAveragePosition();
         msg_out.x.push_back(ax);
         msg_out.y.push_back(ay);
         msg_out.z.push_back(az);
         msg_out.confidence.push_back(p.getAverageConfidence());
         msg_out.contribution.push_back(p.getCount());
-        ++valid_probe_count;
       }
-    }
-    msg_out.probe_count = valid_probe_count;
-    publisher_->publish(msg_out);
+      publisher_->publish(msg_out);
 
-    // Add marker publishing for RViz
-    publishProbeMarkers();
+      // Add marker publishing for RViz
+      publishProbeMarkers();
+    }
   }
 
   float merge_threshold_ = 0.6; // distance in meters to merge probes
