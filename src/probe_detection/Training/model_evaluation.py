@@ -40,6 +40,6 @@ def evaluate_yolo_model(model_path, data_yaml, imgsz=640, batch=16):
 
 if __name__ == "__main__":
     # Example usage
-    model_path = "insert_something.pt"         # Replace with model path
+    model_path = "/home/emil/Downloads/best(1).pt"         # Replace with model path
     data_yaml = '/home/ucloud/Training/marsYardData/rocky_mars.v8-big-ahh-dataset-v2.yolov12/data.yaml'
     evaluate_yolo_model(model_path, data_yaml)
