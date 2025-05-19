@@ -82,9 +82,9 @@ class Leo_rover(object):
         default_light.GetColorTemperatureAttr().Set(6500)
         print("DomeLight added with default settings!")
         
-        asset_path = "/isaac-sim/assets/Leo_rover_ZED_OS1_32.usdz"
+        asset_path = "/isaac-sim/assets/LEO_rover_ZED_OS1_32.usdz"
         print("asset_path: ", asset_path)
-        add_reference_to_stage(usd_path=asset_path, prim_path="/World/Leo_rover_ZED_OS1_32")
+        add_reference_to_stage(usd_path=asset_path, prim_path="/World/LEO_rover_ZED_OS1_32")
         
         self._input_keyboard_mapping = {
             "Q": [0.0, 0.0, True], "q": [0.0, 0.0, True], "ESCAPE": [0.0, 0.0, True],
