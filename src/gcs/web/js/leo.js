@@ -37,7 +37,7 @@ var currentOptions = ["None"];
 function initROS() {
 
     ros = new ROSLIB.Ros({
-        url: "ws://192.168.1.12:9090"
+        url: "ws://192.168.1.24:9090"
     });
 
     // Init message with zero values.
