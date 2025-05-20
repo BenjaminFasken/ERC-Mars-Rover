@@ -19,7 +19,8 @@ def generate_launch_description():
         package='tf2_ros',
         executable='static_transform_publisher',
         #arguments=['-0.13278', '0.0', '-0.42577', '0', '0.0', '0', 'zed_camera_link', 'base_link']
-        arguments=['-0.13278', '0.0', '-0.22794', '0', '0.0', '0', 'zed_camera_link', 'base_link']
+        #arguments=['-0.13278', '0.0', '-0.22794', '0', '0.0', '0', 'zed_camera_link', 'base_link']
+        arguments=['-0.14187', '0.05994', '-0.24134', '0', '0.0', '0', 'zed_camera_link', 'base_link']
     )
     
     static_transform_publisher_2 = Node(
@@ -27,7 +28,8 @@ def generate_launch_description():
         executable='static_transform_publisher',
         #arguments=['0.065', '0.0', '0.24783', '0', '0', '0', 'base_link', 'livox_frame']
         #arguments=['0.065', '0.0', '0.29783', '0', '0', '0', 'base_link', 'livox_frame']
-        arguments=['0.065', '0.0', '0.1', '0', '0', '0', 'base_link', 'livox_frame']
+        #arguments=['0.065', '0.0', '0.1', '0', '0', '0', 'base_link', 'livox_frame']
+        arguments=['0.065', '0.0', '0.13622', '0', '0', '0', 'base_link', 'livox_frame']
     )
     
 
