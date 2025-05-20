@@ -23,5 +23,5 @@
         "valarray": "cpp",
         "vector": "cpp"
     },
-    "cmake.sourceDirectory": "/home/daroe/ERC-Mars-Rover/src/probe_detection"
+    "cmake.sourceDirectory": "/home/leorover/ERC-Mars-Rover/src/gcs"
 }
