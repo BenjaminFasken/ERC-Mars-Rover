@@ -121,7 +121,7 @@ def generate_launch_description():
     
     # Create and return launch description
     return LaunchDescription([
-        LogInfo(msg='Starting combined Livox LiDAR and ZED2i Camera with RTAB-Map...'),
+        LogInfo(msg='Starting RTAB ...'),
         DeclareLaunchArgument(
             'deskewing', default_value='false',
             description='Enable lidar deskewing'
