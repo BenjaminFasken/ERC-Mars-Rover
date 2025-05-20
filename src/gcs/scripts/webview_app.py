@@ -56,7 +56,7 @@ print(f"HTML content loaded from {html_path}")
 html_content = html_content.replace('ws://localhost:9090', f'ws://{local_ip}:9090')
 html_content = html_content.replace('192.168.1.18', f'{discovered_hosts[0]}')  # Replace with the first discovered host
 # Save the modified HTML content to index2.html
-index2_path = os.path.join(script_dir, 'index2.html')
+index2_path = os.path.join(script_dir, 'leo.html')
 with open(index2_path, 'w', encoding='utf-8') as file:
     file.write(html_content)
 print(f"Modified HTML content saved to {index2_path}")
@@ -66,4 +66,4 @@ if __name__ == '__main__':
     url = 'file://' + html_path
     webview.create_window('LeoRover UI', url=index2_path, width=1200, height=800)
 
-    webview.start()
+    webview.start(http_port=3042)
