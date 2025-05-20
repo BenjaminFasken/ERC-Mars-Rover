@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # ros2 run rosbridge_server rosbridge_websocket
 # /bin/python3 /home/benjamin/cc2/webview_app.py
 # python3 -m http.server 3001
@@ -6,7 +7,7 @@ import os
 
 # Get the directory where the script is located
 script_dir = os.path.dirname(os.path.abspath(__file__))
-html_path = os.path.join(script_dir, '/src/gcs/web/index.html')
+html_path = os.path.join(script_dir, 'index.html')
 
 if __name__ == '__main__':
     # option A) load by URL so all relative CSS/JS/img assets just work:

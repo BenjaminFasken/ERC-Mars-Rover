@@ -1,5 +1,7 @@
 # Guide to setup UCLOUD remote machine for yolo training in python
 
+For this project a uCloud remote server with an NVIDIA a40 GPU was used to train everything related to the YOLO11 model used for image segmentation. Following is a guide on how to setup the remote server and how to execute python scripts on it.
+
 ## 0: Start ucloud
 - Find Ubuntu(virtual machine) 22.04 with CUDA form the application store
 - Enter name and machine type

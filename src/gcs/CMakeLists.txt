@@ -29,6 +29,7 @@ install(PROGRAMS
 )
 
 install(DIRECTORY launch DESTINATION share/${PROJECT_NAME}/)
+install(DIRECTORY web/ DESTINATION lib/${PROJECT_NAME})
 
 # Mark the package as complete
 ament_package()
