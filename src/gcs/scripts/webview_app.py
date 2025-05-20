@@ -19,7 +19,7 @@ s.close()
 # Initialize nmap scanner
 nm = nmap.PortScanner()
 # Construct the network range from the local IP
-network_prefix = '.'.join(local_ip.split('.')[:3]) + '.0/25'
+network_prefix = '.'.join(local_ip.split('.')[:3]) + '.0/24'
 print(f"Scanning network: {network_prefix}")
 # Scan the local network
 nm.scan(hosts=network_prefix, arguments='-sn')  # -sn for ping scan (no port scan)

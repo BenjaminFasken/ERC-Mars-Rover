@@ -220,10 +220,9 @@ function setProbeThresh(){
 }
 
 function probeCallBack(message) {
-   var probeData = message.data;
-   var probeCount = probeData.probe_count;
-   document.getElementById('pinsID').innerHTML = probeCount;
-
+    var probeCount = message.probe_count;
+    document.getElementById('pinsID').innerHTML = probeCount;
+    console.log("Probe count: ", probeCount);
    if (probeCount >= probeThresh && robotState == "frontier") {
       // return home
       goHome();
@@ -232,7 +231,7 @@ function probeCallBack(message) {
 }
 
 function batteryCallback(message) {
-    console.log("Battery voltage: ", message.data);
+    // console.log("Battery voltage: ", message.data);
     document.getElementById('batteryID').innerHTML = message.data.toPrecision(4) + 'V';
 }
 
