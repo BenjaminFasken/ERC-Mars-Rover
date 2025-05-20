@@ -28,6 +28,9 @@ install(PROGRAMS
   DESTINATION lib/${PROJECT_NAME}
 )
 
+# Install assets
+install(DIRECTORY assets DESTINATION share/${PROJECT_NAME}/)
+
 install(DIRECTORY launch DESTINATION share/${PROJECT_NAME}/)
 install(DIRECTORY urdf/ DESTINATION share/${PROJECT_NAME}/urdf)
 ament_package()
