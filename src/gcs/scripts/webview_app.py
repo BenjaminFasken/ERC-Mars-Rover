@@ -66,4 +66,4 @@ if __name__ == '__main__':
     url = 'file://' + html_path
     webview.create_window('LeoRover UI', url=index2_path, width=1200, height=800)
 
-    webview.start()
+    webview.start(http_port=3042)
