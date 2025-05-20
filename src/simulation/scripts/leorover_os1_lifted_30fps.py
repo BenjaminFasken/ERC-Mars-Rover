@@ -119,7 +119,14 @@ class Leo_rover(object):
         # Signal that setup is complete by creating a marker file
         with open("/tmp/isaac_sim_setup_ready", "w") as f:
             f.write("Setup complete\n")
+            
+        print("\n")
+        print("\n")
+        print("\n")
         print("Leo_rover setup completed, marker file created: /tmp/isaac_sim_setup_ready")
+        print("\n")
+        print("\n")
+        print("\n")
 
     def run(self):
         self.my_world.set_simulation_dt(1.0 / 30.0)  # Simulate at 30 Hz
