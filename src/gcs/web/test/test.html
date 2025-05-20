@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>ROS2 SetLedPattern Service Call</title>
+<script src="https://cdn.jsdelivr.net/npm/roslib@1/build/roslib.js"></script>
+</head>
+<body>
+
+  <h1>ROS2 SetLedPattern Service Client</h1>
+
+  <p>Connection status: <span id="status">Connecting...</span></p>
+  <p>Service call feedback: <span id="feedback">Awaiting service call...</span></p>
+  <p>Service response: <span id="response"></span></p>
+
+  <button id="callServiceButton">Call SetLedPattern (manual)</button>
+
+  <script>
+    // --- ROSLIB.js Setup ---
+    var ros = new ROSLIB.Ros({
+      // Replace with the IP address and port of your rosbridge_server
+      url: 'ws://' + window.location.hostname + ':9090'
+    });
+
+    ros.on('connection', function() {
+      console.log('Connected to websocket server: ', window.location.hostname);
+      document.getElementById('status').innerText = 'Connected.';
+    });
+
+    ros.on('error', function(error) {
+      console.error('Error connecting to websocket server: ', error);
+      document.getElementById('status').innerText = 'Error connecting.';
+      document.getElementById('feedback').innerText = 'See console for connection error.';
+    });
+
+    ros.on('close', function() {
+      console.log('Connection to websocket server closed.');
+      document.getElementById('status').innerText = 'Disconnected.';
+      document.getElementById('feedback').innerText = 'Connection closed.';
+    });
+
+    // --- ROS2 Service Client Setup ---
+    var setLedPatternClient = new ROSLIB.Service({
+      ros: ros,
+      name: '/change_led_pattern', // Name of your ROS 2 service
+      // CORRECTED serviceType:
+      serviceType: 'interfaces_asdf/srv/SetLedPattern'
+    });
+
+    // --- Button Event Listener ---
+    document.getElementById('callServiceButton').onclick = function() {
+      // Ensure ROS is connected before attempting service call
+      if (!ros.isConnected) {
+          document.getElementById('feedback').innerText = 'Not connected to ROS. Cannot call service.';
+          console.warn('Attempted to call service while disconnected.');
+          return;
+      }
+
+      // 1. Create the Service Request object
+      // The structure must match the Request part of your .srv file
+      var request = new ROSLIB.ServiceRequest({
+        mode: 'manual' // You can change this based on what you want to test
+      });
+
+      console.log("Attempting to call service /change_led_pattern with mode:", request.mode);
+      document.getElementById('feedback').innerText = 'Calling service...';
+      document.getElementById('response').innerText = ''; // Clear previous response
+
+      // 2. Call the Service
+      setLedPatternClient.callService(request, function(result) {
+        // This function is called when the service responds successfully
+        console.log('Service call successful.', result);
+
+        document.getElementById('feedback').innerText = 'Service call finished.';
+        document.getElementById('response').innerHTML =
+            'Success: ' + result.success + '<br>' +
+            'Message: ' + result.message;
+
+
+        if (result.success) {
+          console.log('LED pattern set successfully.');
+        } else {
+          console.error('Failed to set LED pattern:', result.message);
+        }
+
+      }, function(error) {
+        // This function is called if there's an error during the service call
+        console.error('Service call failed:', error);
+        document.getElementById('feedback').innerText = 'Service call failed.';
+        document.getElementById('response').innerText = 'Error: ' + error;
+      });
+    };
+
+  </script>
+
+</body>
+</html>

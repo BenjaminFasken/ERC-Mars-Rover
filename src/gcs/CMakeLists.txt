@@ -24,8 +24,7 @@ ament_python_install_package(${PROJECT_NAME})
 
 # Install Python executables
 install(PROGRAMS
-  scripts/TelemetryPublisher.py
-  scripts/GCSServerListener.py
+  scripts/webview_app.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
