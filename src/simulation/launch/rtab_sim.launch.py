@@ -28,8 +28,8 @@ def generate_launch_description():
         executable='static_transform_publisher',
         #arguments=['0.065', '0.0', '0.24783', '0', '0', '0', 'base_link', 'livox_frame']
         #arguments=['0.065', '0.0', '0.29783', '0', '0', '0', 'base_link', 'livox_frame']
-        #arguments=['0.065', '0.0', '0.1', '0', '0', '0', 'base_link', 'livox_frame']
-        arguments=['0.065', '0.0', '0.13622', '0', '0', '0', 'base_link', 'livox_frame']
+        arguments=['0.065', '0.0', '0.1', '0', '0', '0', 'base_link', 'livox_frame']
+        #arguments=['0.065', '0.0', '0.13622', '0', '0', '0', 'base_link', 'livox_frame']
     )
     
 
