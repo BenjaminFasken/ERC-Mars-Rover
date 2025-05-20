@@ -1,43 +1,43 @@
 services:
-  # isaac_sim:
-  #   image: erc-mars-rover_sim_isaac:latest
-  #   container_name: isaac-sim_container
-  #   entrypoint: /bin/bash
-  #   command: -c "source /opt/ros/humble/setup.bash && source /root/install/setup.bash && ros2 launch simulation sim.launch.py \ camera_model:=zedx \ sim_mode:=true \ use_sim_time:=true 2>&1 | tee /tmp/zed_log.txt"
-  #   runtime: nvidia
-  #   privileged: true
-  #   network_mode: host
-  #   environment:
-  #     - ACCEPT_EULA=Y
-  #     - PRIVACY_CONSENT=Y
-  #     - DISPLAY=${DISPLAY}
-  #     - OMNI_KIT_ALLOW_ROOT=1
-  #     - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
-  #     - LD_LIBRARY_PATH=/opt/ros/humble/lib:/root/install/zed_components/lib:/root/install/zed_interfaces/lib:/root/install/interfaces/lib
-  #     - ROS_DISTRO=humble
-  #     - NVST_DISABLE_ETLI_LOGS=1
-  #   volumes:
-  #     - ~/docker/isaac-sim/cache/kit:/isaac-sim/kit/cache:rw
-  #     - ~/docker/isaac-sim/cache/ov:/root/.cache/ov:rw
-  #     - ~/docker/isaac-sim/cache/pip:/root/.cache/pip:rw
-  #     - ~/docker/isaac-sim/cache/glcache:/root/.cache/nvidia/GLCache:rw
-  #     - ~/docker/isaac-sim/cache/computecache:/root/.nv/ComputeCache:rw
-  #     - ~/docker/isaac-sim/logs:/root/.nvidia-omniverse/logs:rw
-  #     - ~/docker/isaac-sim/data:/root/.local/share/ov/data:rw
-  #     - ~/docker/isaac-sim/documents:/root/Documents:rw
-  #     - ${HOME}/.Xauthority:/root/.Xauthority
-  #     - /tmp/.X11-unix:/tmp/.X11-unix
-  #     - zed_models:/usr/local/zed/resources
-  #   devices:
-  #     - /dev/video0:/dev/video0
-  #   stdin_open: true
-  #   tty: true
-  #   healthcheck:
-  #     test: [ "CMD-SHELL", "grep 'Q: \\[0,0,0,1\\]' /tmp/zed_log.txt" ]
-  #     interval: 30s
-  #     timeout: 10s
-  #     retries: 300
-  #     start_period: 60s
+  isaac_sim:
+    image: erc-mars-rover_sim_isaac:latest
+    container_name: isaac-sim_container
+    entrypoint: /bin/bash
+    command: -c "source /opt/ros/humble/setup.bash && source /root/install/setup.bash && ros2 launch simulation sim.launch.py \ camera_model:=zedx \ sim_mode:=true \ use_sim_time:=true 2>&1 | tee /tmp/zed_log.txt"
+    runtime: nvidia
+    privileged: true
+    network_mode: host
+    environment:
+      - ACCEPT_EULA=Y
+      - PRIVACY_CONSENT=Y
+      - DISPLAY=${DISPLAY}
+      - OMNI_KIT_ALLOW_ROOT=1
+      - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+      - LD_LIBRARY_PATH=/opt/ros/humble/lib:/root/install/zed_components/lib:/root/install/zed_interfaces/lib:/root/install/interfaces/lib
+      - ROS_DISTRO=humble
+      - NVST_DISABLE_ETLI_LOGS=1
+    volumes:
+      - ~/docker/isaac-sim/cache/kit:/isaac-sim/kit/cache:rw
+      - ~/docker/isaac-sim/cache/ov:/root/.cache/ov:rw
+      - ~/docker/isaac-sim/cache/pip:/root/.cache/pip:rw
+      - ~/docker/isaac-sim/cache/glcache:/root/.cache/nvidia/GLCache:rw
+      - ~/docker/isaac-sim/cache/computecache:/root/.nv/ComputeCache:rw
+      - ~/docker/isaac-sim/logs:/root/.nvidia-omniverse/logs:rw
+      - ~/docker/isaac-sim/data:/root/.local/share/ov/data:rw
+      - ~/docker/isaac-sim/documents:/root/Documents:rw
+      - ${HOME}/.Xauthority:/root/.Xauthority
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - zed_models:/usr/local/zed/resources
+    devices:
+      - /dev/video0:/dev/video0
+    stdin_open: true
+    tty: true
+    healthcheck:
+      test: [ "CMD-SHELL", "grep 'Q: \\[0,0,0,1\\]' /tmp/zed_log.txt" ]
+      interval: 30s
+      timeout: 10s
+      retries: 300
+      start_period: 60s
 
   nav2_and_rtab_container:
     image: erc-mars-rover_sim_nav:latest
@@ -50,8 +50,8 @@ services:
       - /tmp/argus_socket:/tmp/argus_socket
     entrypoint: /bin/bash
     command: -c "source install/setup.bash && ros2 launch simulation rtab_sim.launch.py"
-    #depends_on:
-      #isaac_sim:
-        #condition: service_healthy
+    depends_on:
+      isaac_sim:
+        condition: service_healthy
 volumes:
   zed_models:
