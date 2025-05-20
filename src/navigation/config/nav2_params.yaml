@@ -78,7 +78,7 @@ behavior_server:
     robot_base_frame: base_link
     transform_tolerance: 0.1
     use_sim_time: false
-    simulate_ahead_time: 2.0
+    simulate_ahead_time: 1.0    #2.0   TODO
     max_rotational_vel: 1.2
     min_rotational_vel: 0.1
     rotational_acc_lim: 2.4
@@ -260,16 +260,16 @@ controller_server:
       lookahead_time: 1.5
       rotate_to_heading_angular_vel: 1.2
       transform_tolerance: 0.1
-      use_velocity_scaled_lookahead_dist: false
+      use_velocity_scaled_lookahead_dist: true     #false    TODO
       min_approach_linear_velocity: 0.05
       approach_velocity_scaling_dist: 0.8
-      use_collision_detection: true
+      use_collision_detection: false            #true  TODO
       max_allowed_time_to_collision_up_to_carrot: 1.0
-      use_regulated_linear_velocity_scaling: true
-      use_fixed_curvature_lookahead: false
-      curvature_lookahead_dist: 0.25
-      use_cost_regulated_linear_velocity_scaling: false
-      regulated_linear_scaling_min_radius: 0.01
+      use_regulated_linear_velocity_scaling: true   #Maybe change to false (chance of fixing slow turns) TODO
+      use_fixed_curvature_lookahead: false   #Consider using if use_velocity_scaled_lookahead_dist is true since it can introduce a reference cycle that can be problematic for large lookahead distances
+      curvature_lookahead_dist: 0.25       #maybe change to 0.5 TODO
+      use_cost_regulated_linear_velocity_scaling: false  #Whether to use the regulated features for proximity to obstacles (e.g. slow in close proximity to obstacles)
+      regulated_linear_scaling_min_radius: 0.01    #maybe change to 0.2 TODO
       regulated_linear_scaling_min_speed: 0.25
       use_rotate_to_heading: true
       allow_reversing: false
@@ -283,8 +283,8 @@ velocity_smoother:
     smoothing_frequency: 20.0
     scale_velocities: False                 #if "False", the smoother will not scale the velocities.
     feedback: "OPEN_LOOP"
-    max_velocity: [0.35, 0.0, 0.90]
-    min_velocity: [-0.35, 0.0, -0.90]
+    max_velocity: [0.35, 0.0, 1.20]  #0.90 TODO
+    min_velocity: [-0.35, 0.0, -1.20]   #-0.90 TODO
     max_accel: [2.5, 0.0, 3.2]
     max_decel: [-2.5, 0.0, -3.2]
     deadband_velocity: [0.0, 0.0, 0.0]
