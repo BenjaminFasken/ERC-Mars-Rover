@@ -14,7 +14,7 @@ def generate_launch_description():
 
     # ROS 2 node for GCSServerListener with delay
     gcs_listener_node = TimerAction(
-        period=3.0,  # Delay in seconds
+        period=1.0,  # Delay in seconds
         actions=[
             Node(
                 package="gcs",
