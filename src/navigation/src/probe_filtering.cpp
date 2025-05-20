@@ -100,6 +100,9 @@ private:
     if (pose_history_.size() >= 30) {
       pose_history_.pop_front();  // Remove oldest
     }
+
+    // Modify the msg 
+
     pose_history_.push_back(*msg);  // Add newest
 
     RCLCPP_DEBUG(get_logger(), "Received new localization_pose");
@@ -239,64 +242,8 @@ private:
     // Publish the marker
     marker_publisher_->publish(marker);
   } 
-    //! COOK for probe meshes
-    void publishProbeMarkersMesh() {
-      int id = 0;
-      for (const auto &p : tracked_probes_) {
-        auto [x, y, z] = p.getAveragePosition();
-        float confidence = p.getAverageConfidence();
-    
-        visualization_msgs::msg::Marker marker;
-        marker.header.frame_id = latest_pose_.header.frame_id;
-        marker.header.stamp    = this->get_clock()->now();
-        marker.ns              = "probes";
-        marker.id              = id++;  
-        marker.type            = visualization_msgs::msg::Marker::MESH_RESOURCE;
-        marker.action          = visualization_msgs::msg::Marker::ADD;
-    
-        marker.mesh_resource = "package://navigation/meshes/probeModel.dae";
-        marker.mesh_use_embedded_materials = false;
-    
-        marker.pose.position.x = x;
-        marker.pose.position.y = y;
-        marker.pose.position.z = 0; //z; //<- brug z hvis den skal plottes i 3D
-        marker.pose.orientation.w = 1.0;
-    
-        marker.scale.x = 1.0;
-        marker.scale.y = 1.0;
-        marker.scale.z = 1.0;
-    
-        // Color based on confidence thresholds
-        if (confidence < 0.7f) {
-          // Below 70%: Red
-          marker.color.r = 1.0f;
-          marker.color.g = 0.0f;
-          marker.color.b = 0.0f;
-        } else if (confidence <= 0.8f) {
-          // 70% to 80%: Yellow
-          marker.color.r = 1.0f;
-          marker.color.g = 1.0f;
-          marker.color.b = 0.0f;
-        } else if (confidence > 0.9f) {
-          // Above 90%: Green
-          marker.color.r = 0.0f;
-          marker.color.g = 1.0f;
-          marker.color.b = 0.0f;
-        } else {
-          // 80% to 90%: Greenish-yellow
-          marker.color.r = 0.5f;
-          marker.color.g = 1.0f;
-          marker.color.b = 0.0f;
-        }
-        marker.color.a = 1.0f;
-    
-        // infinite lifetime
-        marker.lifetime = rclcpp::Duration::from_seconds(0.0);
-    
-        marker_publisher_->publish(marker);
-      }
-    }
 
+  
   void probeCallback(const ProbeLocations::SharedPtr msg) {
     RCLCPP_INFO(get_logger(), "Received new probe locations");
 
@@ -310,8 +257,16 @@ private:
       float ly = msg->probes[base + 1];
       float lz = msg->probes[base + 2];
       float confidence = msg->classification_confidence[i];
+      float distance = std::sqrt(lx * lx + ly * ly + lz * lz);
+
+      if (distance > 2.5) {
+        RCLCPP_WARN(get_logger(), "Probe too far away: %f", distance);
+        continue;
+      }
 
       auto [gx, gy, gz] = transformToGlobal(lx, ly, lz, closest_pose);
+
+      gz = 0.0; // Set z to 0 for 2D visualization
 
       Probe incoming_probe(gx, gy, gz, confidence);
       bool matched_existing = false;
@@ -357,7 +312,7 @@ private:
     publishProbeMarkers();
   }
 
-  float merge_threshold_ = 0.4; // distance in meters to merge probes
+  float merge_threshold_ = 0.6; // distance in meters to merge probes
   std::vector<Probe> tracked_probes_;
   rclcpp::Subscription<ProbeLocations>::SharedPtr subscription_;
   rclcpp::Publisher<ProbeData>::SharedPtr publisher_;

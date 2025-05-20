@@ -234,7 +234,7 @@ planner_server:
 
 controller_server:
   ros__parameters:
-    use_sim_time: False
+    use_sim_time: False                               #f
     controller_frequency: 20.0                        #How often it checks the following: Query the global plan, Check your robot’s current pose/velocity, Invoke the local planner plugin (e.g. DWB) for a new velocity command.
     min_x_velocity_threshold: 0.01                   #Below this threshold, x-axis velocity commands are clamped to zero
     min_theta_velocity_threshold: 0.01              #Below this threshold, theta-axis velocity commands are clamped to zero
@@ -280,7 +280,7 @@ controller_server:
 velocity_smoother:
   ros__parameters:
     use_sim_time: False
-    smoothing_frequency: 15.0
+    smoothing_frequency: 20.0
     scale_velocities: False                 #if "False", the smoother will not scale the velocities.
     feedback: "OPEN_LOOP"
     max_velocity: [0.35, 0.0, 0.90]
