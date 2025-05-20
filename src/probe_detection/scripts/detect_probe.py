@@ -50,7 +50,7 @@ class SegmentationNode(Node):
         package_name = 'probe_detection'
         try:
             package_share_dir = get_package_share_directory(package_name)
-            self.model_path = os.path.join(package_share_dir, 'models', 'YOLO11s.pt')
+            self.model_path = os.path.join(package_share_dir, 'models', 'YOLO11m.pt')
             if not os.path.exists(self.model_path):
                 raise FileNotFoundError(f"Model file not found at: {self.model_path}")
             self.model = YOLO(self.model_path)
