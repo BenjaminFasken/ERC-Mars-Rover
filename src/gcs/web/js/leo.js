@@ -524,7 +524,9 @@ function shutdown() {
     cmdVelPub.unadvertise();
     systemRebootPub.unadvertise();
     systemShutdownPub.unadvertise();
-    batterySub.unsubscribe();
+    Sub1.unsubscribe();
+    Sub2.unsubscribe();
+    // batterySub.unsubscribe();
     ros.close();
 }
 

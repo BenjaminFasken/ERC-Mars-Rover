@@ -106,10 +106,10 @@ class Leo_rover(object):
 
         
         # Load the rover
-        asset_path = "/isaac-sim/assets/Leo_rover_ZED_XT32.usdz"
+        asset_path = "/isaac-sim/assets/LEO_rover_ZED_XT_32.usdz"
 
         print("asset_path: ", asset_path)
-        add_reference_to_stage(usd_path=asset_path, prim_path="/World/Leo_rover_ZED_XT32")  # add robot to stage
+        add_reference_to_stage(usd_path=asset_path, prim_path="/World/LEO_rover_ZED_XT_32")  # add robot to stage
 
                 # Bindings for keyboard to command
         self._input_keyboard_mapping = {

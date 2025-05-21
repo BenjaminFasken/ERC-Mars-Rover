@@ -12,9 +12,21 @@ def generate_launch_description():
         shell=True
     )
 
+    # Command to run a Python HTTP server on port 3042 with delay
+    http_server_command = TimerAction(
+        period=10.0,  # 5 second delay
+        actions=[
+            ExecuteProcess(
+                cmd=["cd", "install/gcs/lib/gcs", "&&", "python3", "-m", "http.server", "4269"],
+                output="screen",
+                shell=True
+            )
+        ]
+    )
+
     # ROS 2 node for GCSServerListener with delay
     gcs_listener_node = TimerAction(
-        period=1.0,  # Delay in seconds
+        period=3.0,  # 15 second delay
         actions=[
             Node(
                 package="gcs",
@@ -24,9 +36,10 @@ def generate_launch_description():
             )
         ]
     )
-
+        
     # Create and return the launch description
     return LaunchDescription([
+        http_server_command,
         ros_web_bridge_command,
         gcs_listener_node
     ])

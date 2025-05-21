@@ -128,7 +128,8 @@ local_costmap:
       resolution: 0.04                # grid cell size (m) — matches your global 0.04 m resolution  
 
       # — Footprint for inflation & clearing —
-      footprint: "[[-0.217, -0.2275], [0.217, -0.2275], [0.217, 0.2275], [-0.217, 0.2275]]"
+      #footprint: "[[-0.217, -0.2275], [0.217, -0.2275], [0.217, 0.2275], [-0.217, 0.2275]]"
+      footprint: "[[-0.15, -0.09], [0.15, -0.09], [0.15, 0.09], [-0.15, 0.09]]"
       plugins: ["static_layer", "inflation_layer", "voxel_layer"]
       # 1) Inflation Layer
       inflation_layer:
@@ -193,7 +194,7 @@ planner_server:
       # — Search limits —
       max_iterations: 500000       # cap total expansions to bail out if unreachable
       max_on_approach_iterations: 1000  # once within tolerance, try a bit more for exact path
-      max_planning_time: 5.0        # seconds budget per global plan
+      max_planning_time: 1.0        # seconds budget per global plan
 
       # — Motion model & discretization —
       motion_model_for_search: "REEDS_SHEPP"   # allows forward & reverse arcs (better for diff-drive)
@@ -259,7 +260,6 @@ controller_server:
       max_lookahead_dist: 0.9
       lookahead_time: 1.5
       rotate_to_heading_angular_vel: 1.2
-      transform_tolerance: 0.1
       use_velocity_scaled_lookahead_dist: false
       min_approach_linear_velocity: 0.05
       approach_velocity_scaling_dist: 0.8
@@ -270,7 +270,7 @@ controller_server:
       curvature_lookahead_dist: 0.25
       use_cost_regulated_linear_velocity_scaling: false
       regulated_linear_scaling_min_radius: 0.01
-      regulated_linear_scaling_min_speed: 0.25
+      regulated_linear_scaling_min_speed: 0.75     #0.25
       use_rotate_to_heading: true
       allow_reversing: false
       rotate_to_heading_min_angle: 0.785
