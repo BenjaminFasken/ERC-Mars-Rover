@@ -46,6 +46,7 @@ from isaacsim.core.api.robots import Robot
 from omni.isaac.core import World
 from omni.isaac.core.utils import stage as stage_utils
 from pxr import UsdPhysics, UsdGeom, Usd, Gf, UsdLux
+from omni.isaac.core.utils.prims import get_prim_at_path
 
 # import import WheeledRobot
 from omni.isaac.wheeled_robots.robots import WheeledRobot
@@ -107,13 +108,27 @@ class Leo_rover(object):
 
         print("DomeLight added with default settings!")
        
-
+        # Set the camera view
+        set_camera_view(
+            eye=[-2.0, -8.0, 3.0], target=[0.00, 0.00, 1.00], camera_prim_path="/OmniverseKit_Persp"
+        )
         
         # Load the rover
         asset_path = "/isaac-sim/assets/Leo_rover_control_lidar_camera3.usdz"#"/isaac-sim/assets/leo_rover.usd"
 
         print("asset_path: ", asset_path)
         add_reference_to_stage(usd_path=asset_path, prim_path="/World/Leo_rover_control_lidar_camera3")  # add robot to stage
+
+        # Get the prim
+        prim = get_prim_at_path("/World/Leo_rover_control_lidar_camera3")
+
+        # Apply the transform
+        xform = UsdGeom.Xformable(prim)
+
+        # Rotate 90 degrees around the Z-axis
+        rotation = Gf.Vec3f(0, 0, 90)  # Euler angles in degrees
+        xform.AddRotateXYZOp().Set(rotation)
+
 
                 # Bindings for keyboard to command
         self._input_keyboard_mapping = {

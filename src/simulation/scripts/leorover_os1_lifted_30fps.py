@@ -46,6 +46,7 @@ from isaacsim.core.api.robots import Robot
 from omni.isaac.core import World
 from omni.isaac.core.utils import stage as stage_utils
 from pxr import UsdPhysics, UsdGeom, Usd, Gf, UsdLux
+from omni.isaac.core.utils.prims import get_prim_at_path
 
 # import import WheeledRobot
 from omni.isaac.wheeled_robots.robots import WheeledRobot
@@ -83,12 +84,22 @@ class Leo_rover(object):
 
         # Set the camera view
         set_camera_view(
-            eye=[-6.0, 0.0, 3.0], target=[0.00, 0.00, 0.00], camera_prim_path="/OmniverseKit_Persp"
-        )  # set camera view
+            eye=[-2.0, -8.0, 3.0], target=[0.00, 0.00, 1.00], camera_prim_path="/OmniverseKit_Persp"
+        )
         
         asset_path = "/isaac-sim/assets/LEO_rover_ZED_XT_32.usdz"
         print("asset_path: ", asset_path)
         add_reference_to_stage(usd_path=asset_path, prim_path="/World/LEO_rover_ZED_XT_32")
+
+        # Get the prim
+        prim = get_prim_at_path("/World/LEO_rover_ZED_XT_32")
+
+        # Apply the transform
+        xform = UsdGeom.Xformable(prim)
+
+        # Rotate 90 degrees around the Z-axis
+        rotation = Gf.Vec3f(0, 0, 90)  # Euler angles in degrees
+        xform.AddRotateXYZOp().Set(rotation)
         
         self._input_keyboard_mapping = {
             "Q": [0.0, 0.0, True], "q": [0.0, 0.0, True], "ESCAPE": [0.0, 0.0, True],
