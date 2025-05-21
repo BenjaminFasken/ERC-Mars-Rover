@@ -80,6 +80,11 @@ class Leo_rover(object):
         default_light.GetEnableColorTemperatureAttr().Set(True)
         default_light.GetColorTemperatureAttr().Set(6500)
         print("DomeLight added with default settings!")
+
+        # Set the camera view
+        set_camera_view(
+            eye=[-6.0, 0.0, 3.0], target=[0.00, 0.00, 0.00], camera_prim_path="/OmniverseKit_Persp"
+        )  # set camera view
         
         asset_path = "/isaac-sim/assets/LEO_rover_ZED_XT_32.usdz"
         print("asset_path: ", asset_path)
