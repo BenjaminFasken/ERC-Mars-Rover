@@ -47,23 +47,23 @@ for host in nm.all_hosts():
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 html_path = os.path.join(script_dir, 'index.html')
+js_init_path = os.path.join(script_dir,"js/leo_init.js")
 
+with open(js_init_path, 'r', encoding='utf-8') as file:
+    js_content = file.read()
 
-with open(html_path, 'r', encoding='utf-8') as file:
-    html_content = file.read()
-
-print(f"HTML content loaded from {html_path}")
-html_content = html_content.replace('ws://localhost:9090', f'ws://{local_ip}:9090')
-html_content = html_content.replace('192.168.1.18', f'{discovered_hosts[0]}')  # Replace with the first discovered host
+print(f"JS content loaded from {js_init_path}")
+js_content = js_content.replace('ws://localhost:9090', f'ws://{local_ip}:9090')
+js_content = js_content.replace('192.168.1.18', f'{discovered_hosts[0]}')  # Replace with the first discovered host
 # Save the modified HTML content to index2.html
-index2_path = os.path.join(script_dir, 'leo.html')
-with open(index2_path, 'w', encoding='utf-8') as file:
-    file.write(html_content)
-print(f"Modified HTML content saved to {index2_path}")
+js_path = os.path.join(script_dir, 'js/leo.js')
+with open(js_path, 'w', encoding='utf-8') as file:
+    file.write(js_content)
+print(f"Modified JS content saved to {js_path}")
 
 if __name__ == '__main__':
 
     url = 'file://' + html_path
-    webview.create_window('LeoRover UI', url=index2_path, width=1200, height=800)
+    webview.create_window('LeoRover UI', url=html_path, width=1200, height=800)
 
-    webview.start(http_port=3042)
+    webview.start()
