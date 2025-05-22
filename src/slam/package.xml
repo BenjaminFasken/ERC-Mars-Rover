@@ -3,9 +3,10 @@
 <package format="3">
   <name>slam</name>
   <version>1.0.0</version>
-  <description>A ROS 2 package for SLAM (Simultaneous Localization and Mapping)</description>
-  <maintainer email="your.email@example.com">Your Name</maintainer>
-  <license>Apache-2.0</license> 
+  <description>A ROS 2 configuration package for RTAB-MAP</description>
+  <maintainer email="bfaske18@student.aau.dk">Benjamin Fasken</maintainer>
+  <maintainer email="mnejma22@student.aau.dk">Mikkel Nejmann</maintainer>
+  <license>Apache-2.0</license>
   
   <buildtool_depend>ament_cmake</buildtool_depend>
   

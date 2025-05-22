@@ -3,10 +3,10 @@
 <package format="3">
   <name>gcs</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
-  <maintainer email="mdaro22@student.aau.dk">drone</maintainer>
-  <license>TODO: License declaration</license>
-
+  <description>Ground control station package for the leorover system</description>
+  <maintainer email="bfasken18@student.aau.dk">Benjamin Fasken</maintainer>
+  <license>Apache-2.0</license>
+  
   <buildtool_depend>ament_cmake</buildtool_depend>
   <buildtool_depend>ament_cmake_python</buildtool_depend>
   

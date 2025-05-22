@@ -4,7 +4,7 @@
   <name>interfaces</name>
   <version>0.0.0</version>
   <description>Custom interfaces for ERC Mars Rover</description> 
-  <maintainer email="leo@todo.todo">leo</maintainer>
+  <maintainer email="mdaro22@student.aau.dk">Magnus Darø</maintainer>
   <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
