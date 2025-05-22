@@ -4,8 +4,9 @@
   <name>probe_detection</name>
   <version>0.0.0</version>
   <description>TODO: Package description</description>
-  <maintainer email="mdaro22@student.aau.dk">drone</maintainer>
-  <license>TODO: License declaration</license>
+   <maintainer email="ejens22@student.aau.dk">Emil Jensen</maintainer>
+  <maintainer email="mdaro22@student.aau.dk">Magnus Darø</maintainer>
+  <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
   <buildtool_depend>ament_cmake_python</buildtool_depend>

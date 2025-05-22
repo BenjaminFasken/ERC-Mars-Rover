@@ -4,7 +4,7 @@
   <name>simulation</name>
   <version>1.0.0</version>
   <description>A ROS 2 package for Issac sim</description>
-  <maintainer email="your.email@example.com">Your Name</maintainer>
+  <maintainer email="ebenne22@student.aau.dk">Emil Hausberger</maintainer>
   <license>Apache-2.0</license> 
   
   <buildtool_depend>ament_cmake</buildtool_depend>

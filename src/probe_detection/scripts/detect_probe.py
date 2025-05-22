@@ -89,6 +89,8 @@ class SegmentationNode(Node):
                 # Compute locations with confidences
                 probe_locations = self.compute_probe_locations(probe_masks, point_cloud, rgb_image, probe_confidences)
 
+                probe_locations = self.compute_probe_locations(probe_masks, point_cloud, rgb_image, probe_confidences)
+            
                 if probe_locations:
                     sorted_locations = sorted(probe_locations, key=lambda x: x["confidence"], reverse=True)
 
