@@ -18,8 +18,11 @@ This README provides instructions for setting up, building, and running the syst
 
 If your system is already configured, you can skip the setup steps and follow these instructions to start the rover.
 1. **Turn on router**:
-   - Make sure the SpaceRobticsMobile router is powered on and within reach.
+   - Make sure the SpaceRobtics_Mobile router is powered on and within reach.
    - Connect your pc to it. Password is: spacerobotics
+
+
+> **Note:** The router is running on Subnet ID 10, and if any configurations is needed, log on 192.168.10.1, with **Username:** admin, and **password:** Admin
 
 2. **Power On the System**:
    - Insert one or two fully charged batteries.
