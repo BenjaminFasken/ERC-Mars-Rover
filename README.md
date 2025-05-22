@@ -88,7 +88,12 @@ cd ~
 git clone git@github.com:BenjaminFasken/ERC-Mars-Rover.git
 ```
 ### Step 3: Setup LiDAR
--....
+1. Modify the `MID360_config.json` file:
+    - Set `cmd_data_ip`, `push_msg_ip`, `point_data_ip`, and `imu_data_ip` to `192.168.1.50`
+    - Set `lidar_config_ip` to `192.168.1.1xx` (follow the guide for your lidar)
+2. Configure LiDAR to be on a static ip address:
+   - Mikkel
+
 
 ### Step 4: Building Docker Images
 
