@@ -226,7 +226,7 @@ def create_annotation_json(ann_data, gt_data):
 
     return annotation, f"{image_id}_annotation.json"
 # Generate and save annotation files
-output_dir = Path("src/probe_detection/test/annotations")
+output_dir = Path("src/probe_detection/verify_system/annotations")
 output_dir.mkdir(exist_ok=True)
 
 for ann_data in yolo_annotations:

@@ -31,7 +31,7 @@ class FillAnnotationNode(Node):
             self.probe_callback, 10)
 
         # Directories
-        self.base_dir = Path("~/ERC-Mars-Rover/src/probe_detection/test").expanduser()
+        self.base_dir = Path("~/ERC-Mars-Rover/src/probe_detection/verify_system").expanduser()
         self.data_dir = self.base_dir / "data"
         self.annotation_dir = self.base_dir / "annotations"
         self.output_dir = self.base_dir / "Annotated_filledOut"

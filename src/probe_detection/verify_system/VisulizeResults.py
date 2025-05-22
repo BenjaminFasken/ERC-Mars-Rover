@@ -9,7 +9,7 @@ sns.set(style="whitegrid")
 
 try:
     # Load the CSV data
-    data = pd.read_csv('src/probe_detection/test/Annotated_filledOut/results.csv')
+    data = pd.read_csv('src/probe_detection/verify_system/Annotated_filledOut/results.csv')
 
     # Select vital columns and create a copy to avoid SettingWithCopyWarning
     vital_columns = ['image_id', 'probe_id', 'error',
@@ -149,18 +149,18 @@ try:
     ax.set_xlim(x_min - x_pad, x_max + x_pad)
     ax.set_ylim(y_min - y_pad, y_max + y_pad)
     ax.set_aspect('equal')
-    ax.set_title('Mean XYZ position estimate error vs XY coordinates', fontweight='bold', fontsize=16)
+    ax.set_title('Mean 3D Euclidean Position Error vs XY coordinates', fontweight='bold', fontsize=16)
     ax.set_xlabel('Y Ground Truth [m]')
     ax.set_ylabel('X Ground Truth [m]')
     sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
-    cbar = plt.colorbar(sm, ax=ax, label='Mean XYZ position estimate error [m]', shrink=0.65)
+    cbar = plt.colorbar(sm, ax=ax, label='Mean 3D Euclidean Position Error [m]', shrink=0.65)
     cbar.ax.yaxis.set_label_coords(5.4, 0.5)  # Move the label to the right
     ax.legend()
 
 
     # Save and show plot
     
-    plt.savefig('cone_radial_average_error.png', savefig='png', dpi=5, bbox_inches='tight')
+    plt.savefig('cone_radial_average_error.png', savefig='png', dpi=800, bbox_inches='tight')
     plt.show()
     
     

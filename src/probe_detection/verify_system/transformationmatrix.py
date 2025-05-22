@@ -22,7 +22,7 @@ def create_transformation_matrix():
     
 
     # Define output path
-    output_dir = Path("~/ERC-Mars-Rover/src/probe_detection/test/data").expanduser()
+    output_dir = Path("~/ERC-Mars-Rover/src/probe_detection/verify_system/data").expanduser()
     output_dir.mkdir(parents=True, exist_ok=True)
     output_path = output_dir / "transformation_matrix.npy"
 
