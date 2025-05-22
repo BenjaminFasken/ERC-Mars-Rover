@@ -88,11 +88,32 @@ cd ~
 git clone git@github.com:BenjaminFasken/ERC-Mars-Rover.git
 ```
 ### Step 3: Setup LiDAR
+
+When setting up the LiDAR, two different scenarios are possible.<br>
+1. Directly connecting the LiDAR to the Ethernet port of the PC (This is the case of Leorover_2).
+2. Connecting the LiDAR through a switch (This is the case on Leorover_1).
+
+**Note:** Every time you configure the static IP of the Ethernet port on the PC, remember to reboot the network driver, easily done by disabling the Ethernet port and enabling it again.
+
+**Scenario 1**<br>
+1.  Configure the IP of the connected Ethernet port on the PC to the following static IP: `192.168.1.50`, with the submask: `255.255.255.0`
+   > **Note:** Ensure that the wifi does not use the same subnet ID as the static IP (`192.168."1".50`), if it does, configure either the router, or the static IP to an unique subnet.
+2. Modify the `MID360_config.json` file:
+    - Set `cmd_data_ip`, `push_msg_ip`, `point_data_ip`, and `imu_data_ip` to the static ip configured above: `192.168.1.50`
+    - Set `lidar_config_ip` to: `192.168.1.1xx` where the last two digits are the last two digits of the LiDAR' serial number.
+   
+**Scenario 2**<br>
 1. Modify the `MID360_config.json` file:
-    - Set `cmd_data_ip`, `push_msg_ip`, `point_data_ip`, and `imu_data_ip` to `192.168.1.50`
-    - Set `lidar_config_ip` to `192.168.1.1xx` (follow the guide for your lidar)
-2. Configure LiDAR to be on a static ip address:
-   - Mikkel
+    - Set `cmd_data_ip`, `push_msg_ip`, `point_data_ip`, and `imu_data_ip` to the IP of the host. In Leorover_1's case when connected to Spacerobotics_Mobile: `192.168.10.22`.
+    - Set `lidar_config_ip` to: `192.168.10.1xx` where the last two digits are the last two digits of the LiDAR' serial number.
+   > **Note:** Make sure that the Ethernet port on the PC is not configured to an static IP.
+
+**If the IP's does not work**
+- Check the LiDAR's IP's by connecting it to Livox Viewer found here [Livox Viewer](https://www.livoxtech.com/mid-360/downloads), and check the settings to see if the IP's are correct, if not correct them and reboot the LiDAR
+
+
+
+For more help, look at the Livox ROS2 Driver documentation: [livox_ros_driver2 documentation](https://github.com/Livox-SDK/livox_ros_driver2)
 
 
 ### Step 4: Building Docker Images
