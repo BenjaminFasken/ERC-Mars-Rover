@@ -48,7 +48,7 @@ def generate_launch_description():
         namespace='tf2',
         name='camera_to_base_link_transform',
         executable='static_transform_publisher',
-        arguments=['-0.146422', '-0.0598990', '-0.238857', '0', '-0.34906585', '0', 'zed_camera_link', 'base_link'],
+        arguments=['-0.147499', '-0.0598990', '-0.238857', '0', '-0.34906585', '0', 'zed_camera_link', 'base_link'],#x value differs from the report, but was experimentet to match better with this value.
         output='screen'  # Ensure logs are visible
     )
     
