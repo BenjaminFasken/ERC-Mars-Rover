@@ -90,38 +90,6 @@ endif()
 message(STATUS "Using TensorRT include: ${TENSORRT_INCLUDE_DIR}")
 message(STATUS "Using TensorRT libs: ${TENSORRT_LIBRARY}, ${TENSORRT_PLUGIN_LIBRARY}")
 
-# Add the probe_localizer executable
-# add_executable(probe_localizer src/probe_localizer.cpp)
-# ament_target_dependencies(probe_localizer rclcpp sensor_msgs cv_bridge geometry_msgs)
-# target_include_directories(probe_localizer PUBLIC ${OpenCV_INCLUDE_DIRS})
-# target_link_libraries(probe_localizer ${OpenCV_LIBRARIES})
-
-# Add the yolo executable with TensorRT and CUDA linking
-# add_executable(yolo src/yolo.cpp)
-# ament_target_dependencies(yolo rclcpp sensor_msgs cv_bridge geometry_msgs)
-# target_include_directories(yolo PUBLIC
-#   ${TENSORRT_INCLUDE_DIR}
-#   ${CUDA_INCLUDE_DIRS}
-#   ${OpenCV_INCLUDE_DIRS}
-# )
-# target_link_libraries(yolo
-#   ${TENSORRT_LIBRARY}
-#   ${TENSORRT_PLUGIN_LIBRARY}
-#   ${CUDA_LIBRARIES}
-#   ${OpenCV_LIBRARIES}
-# )
-
-# Install the executables
-# install(TARGETS probe_localizer
-#   DESTINATION lib/${PROJECT_NAME}
-# )
-# install(TARGETS yolo
-#   DESTINATION lib/${PROJECT_NAME}
-# )
-
-# Include directories
-include_directories(include)
-
 # Install Python modules
 ament_python_install_package(${PROJECT_NAME})
 
@@ -138,8 +106,5 @@ install(DIRECTORY models/
   DESTINATION share/${PROJECT_NAME}/models
 )
 
-# Install launch files (uncomment if needed)
-#install(DIRECTORY launch DESTINATION share/${PROJECT_NAME}/)
-
-# Mark the package as complete
+# Package is complete
 ament_package()

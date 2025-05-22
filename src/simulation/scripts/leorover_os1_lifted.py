@@ -46,6 +46,7 @@ from isaacsim.core.api.robots import Robot
 from omni.isaac.core import World
 from omni.isaac.core.utils import stage as stage_utils
 from pxr import UsdPhysics, UsdGeom, Usd, Gf, UsdLux
+from omni.isaac.core.utils.prims import get_prim_at_path
 
 # import import WheeledRobot
 from omni.isaac.wheeled_robots.robots import WheeledRobot
@@ -81,11 +82,26 @@ class Leo_rover(object):
         default_light.GetEnableColorTemperatureAttr().Set(True)
         default_light.GetColorTemperatureAttr().Set(6500)
         print("DomeLight added with default settings!")
-        
+
+        # Set the camera view
+        set_camera_view(
+            eye=[-2.0, -8.0, 3.0], target=[0.00, 0.00, 1.00], camera_prim_path="/OmniverseKit_Persp"
+        )
+
         asset_path = "/isaac-sim/assets/LEO_rover_ZED_OS1_32.usdz"
         print("asset_path: ", asset_path)
         add_reference_to_stage(usd_path=asset_path, prim_path="/World/LEO_rover_ZED_OS1_32")
-        
+
+        # Get the prim
+        prim = get_prim_at_path("/World/LEO_rover_ZED_OS1_32")
+
+        # Apply the transform
+        xform = UsdGeom.Xformable(prim)
+
+        # Rotate 90 degrees around the Z-axis
+        rotation = Gf.Vec3f(0, 0, 90)  # Euler angles in degrees
+        xform.AddRotateXYZOp().Set(rotation)
+
         self._input_keyboard_mapping = {
             "Q": [0.0, 0.0, True], "q": [0.0, 0.0, True], "ESCAPE": [0.0, 0.0, True],
             "NUMPAD_8": [1.0, 0.0, False], "UP": [1.0, 0.0, False], "W": [1.0, 0.0, False], "w": [1.0, 0.0, False],
@@ -117,11 +133,6 @@ class Leo_rover(object):
         self._keyboard = self._appwindow.get_keyboard()
         self._sub_keyboard = self._input.subscribe_to_keyboard_events(self._keyboard, self._sub_keyboard_event)
         
-        # Signal that setup is complete by creating a marker file
-        with open("/tmp/isaac_sim_setup_ready", "w") as f:
-            f.write("Setup complete\n")
-        print("Leo_rover setup completed, marker file created: /tmp/isaac_sim_setup_ready")
-
     def run(self):
         while self.running:
             kit.update()

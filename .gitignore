@@ -17,6 +17,6 @@ src/probe_detection/Training/ucloud_training/marsYardData/*
 src/simulation/usd/mars_yard
 src/simulation/usd/Mars_Yard.usd
 src/slam/config/MID360_config.json
-src/probe_detection/test/Annotated_filledOut
-src/probe_detection/test/annotations
-
+src/probe_detection/verify_system/Annotated_filledOut
+src/probe_detection/verify_system/annotations
+.vscode

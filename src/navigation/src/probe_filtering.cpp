@@ -264,16 +264,9 @@ private:
         continue;
       }
 
-      auto start_time = std::chrono::high_resolution_clock::now();
       auto [gx, gy, gz] = transformToGlobal(lx, ly, lz, closest_pose);
-      auto end_time = std::chrono::high_resolution_clock::now();
-      auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
-      RCLCPP_INFO(get_logger(), "Transform to global took %ld ms", duration.count());
 
       gz = 0.0; // Set z to 0 for 2D visualization
-
-
-      start_time = std::chrono::high_resolution_clock::now();
 
       Probe incoming_probe(gx, gy, gz, confidence);
       bool matched_existing = false;
@@ -293,10 +286,6 @@ private:
         tracked_probes_.push_back(incoming_probe);
         new_probe_found = true;
       }
-
-      end_time = std::chrono::high_resolution_clock::now();
-      duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
-      RCLCPP_INFO(get_logger(), "Probe matching took %ld ms", duration.count());
     }
 
     // ProbeData publishing
