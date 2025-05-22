@@ -133,11 +133,6 @@ class Leo_rover(object):
         self._keyboard = self._appwindow.get_keyboard()
         self._sub_keyboard = self._input.subscribe_to_keyboard_events(self._keyboard, self._sub_keyboard_event)
         
-        # Signal that setup is complete by creating a marker file
-        with open("/tmp/isaac_sim_setup_ready", "w") as f:
-            f.write("Setup complete\n")
-        print("Leo_rover setup completed, marker file created: /tmp/isaac_sim_setup_ready")
-
     def run(self):
         while self.running:
             kit.update()

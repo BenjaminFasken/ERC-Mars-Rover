@@ -12,7 +12,6 @@ import numpy as np
 import os
 from ament_index_python.packages import get_package_share_directory
 import struct
-import time
 
 
 class SegmentationNode(Node):
@@ -83,16 +82,15 @@ class SegmentationNode(Node):
             point_cloud = self.pointcloud2_to_array(depth_msg)
             
             # Run YOLO inference
-            start_time = time.time()
             probe_boxes, probe_masks, probe_confidences = self.infer_yolo(rgb_image)
-            elapsed_time = (time.time() - start_time) * 1000  # Convert to milliseconds
-            self.get_logger().info(f"Time taken for YOLO inference: {elapsed_time:.2f} ms")
             
             # If probes are detected, process them
             if probe_masks:
                 # Compute locations with confidences
                 probe_locations = self.compute_probe_locations(probe_masks, point_cloud, rgb_image, probe_confidences)
-                
+
+                probe_locations = self.compute_probe_locations(probe_masks, point_cloud, rgb_image, probe_confidences)
+            
                 if probe_locations:
                     sorted_locations = sorted(probe_locations, key=lambda x: x["confidence"], reverse=True)
 
@@ -138,7 +136,6 @@ class SegmentationNode(Node):
         
         for i, mask in enumerate(probe_masks):
             try:
-                start_time = time.time()
                 position = []    
                 # resize mask to match the depth image size
                 mask = cv2.resize(mask, (x_image.shape[1], x_image.shape[0]), interpolation=cv2.INTER_LINEAR)
@@ -152,10 +149,6 @@ class SegmentationNode(Node):
                     centroid_x = int(np.mean(x))
                     centroid_y = int(np.mean(y))
                     
-                    elapsed_time = (time.time() - start_time) * 1000  # Convert to milliseconds
-                    self.get_logger().info(f"Time taken to compute probe centers: {elapsed_time:.2f} ms")
-                    
-                    start_time = time.time()
                     # Extract a 3x3 kernel around the centroid
                     kernel_size = 3
                     half_kernel = kernel_size // 2
@@ -184,7 +177,6 @@ class SegmentationNode(Node):
                     #Position is the median of the kernel
                     position = np.array([median_x, median_y, median_z])
 
-
                     # Check if the position is valid (not NaN or Inf)
                     if np.isnan(position).any() or np.isinf(position).any():
                         continue
@@ -201,9 +193,6 @@ class SegmentationNode(Node):
                     "z": position[2]
                 }
                 probe_locations.append(probe_location)
-                
-                elapsed_time = (time.time() - start_time) * 1000  # Convert to milliseconds
-                self.get_logger().info(f"Time taken to compute probe locations: {elapsed_time:.2f} ms")
                   
             except Exception as e:
                 self.get_logger().error(f"Error processing mask {i}: {e}")
