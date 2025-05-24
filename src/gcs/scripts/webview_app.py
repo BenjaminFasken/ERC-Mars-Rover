@@ -4,7 +4,6 @@
 # python3 -m http.server 3001
 import webview
 import socket
-import netifaces
 import nmap
 import requests # Add this import
 import os
