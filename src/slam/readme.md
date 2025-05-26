@@ -33,30 +33,3 @@ Four configuration files are used in the package:
 3. `MID360_config.json`: A JSON file containing configuration parameters for the Livox MID-360 LiDAR and the IP of the LiDAR and host PC.
 
 4. `zed2i.yaml`: A YAML configuration file for the ZED2i stereo camera. It includes parameters like resolution, frame rate, depth distance.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
