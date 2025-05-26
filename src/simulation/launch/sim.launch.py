@@ -31,7 +31,7 @@ def generate_launch_description():
 
     # Execute Isaac Sim Python script without logging
     isaac_sim_command = ExecuteProcess(
-        cmd=['bash', '-c', 'pwd && ./python.sh assets/leorover_os1_lifted_30fps.py'],
+        cmd=['bash', '-c', 'pwd && ./python.sh assets/leorover_xt32_lifted_30fps.py'],
         cwd=isaac_sim_path,
         output='screen',
         shell=True
@@ -68,7 +68,7 @@ def generate_launch_description():
         
         # Delayed ZED launch after fixed time
         TimerAction(
-            period=360.0,  # Wait 6 minutes before launching ZED
+            period=50.0,  # Wait 50 sec before launching ZED
             actions=[
                 LogInfo(msg='Starting ZED wrapper after delay...'),
                 zed_launch
