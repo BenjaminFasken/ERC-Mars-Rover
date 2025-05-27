@@ -39,6 +39,7 @@ class FrontierExplorationNode(Node):
         self.goal_reached = False  # Initialize to True to allow first goal
         self.robot_x = 0.0
         self.robot_y = 0.0
+        self.orientation = Quaternion()
         self.map_info = None
         self.timer = self.create_timer(5, self.timer_callback)
 
@@ -65,12 +66,14 @@ class FrontierExplorationNode(Node):
             self.goal_reached = True
             self.get_logger().info("Exploration manually triggered")
         if not msg.data:
-            self.going_home()
+            self.goal_reached = False
+            self.get_logger().info("Exploration stopped manually")
+            self.publish_goal([self.robot_x, self.robot_y], self.orientation)
     
     def going_home(self):
         self.goal_reached = False
         self.homing = True
-        self.get_logger().info("Exploration stopped, going HOME")
+        self.get_logger().info("Going HOME")
         zero_orientation_q = Quaternion()
         zero_orientation_q.x = 0.0
         zero_orientation_q.y = 0.0
@@ -109,6 +112,11 @@ class FrontierExplorationNode(Node):
     def odom_callback(self, msg):
         self.robot_x = msg.pose.pose.position.x
         self.robot_y = msg.pose.pose.position.y
+        self.orientation.x = msg.pose.pose.orientation.x
+        self.orientation.y = msg.pose.pose.orientation.y
+        self.orientation.z = msg.pose.pose.orientation.z
+        self.orientation.w = msg.pose.pose.orientation.w
+
 
     def is_near_wall(self, x, y, map_data, threshold):
         for i in range(-threshold, threshold + 1):
