@@ -82,6 +82,11 @@ Once connected, you should now see the terminal prompt of the Strato VM.
 ### 1.2 Setup GitHub on your VM
 If you have not allrady then now is the time to set up GitHub on your VM.
 
+Clone the repository to your home directory:
+```bash
+cd ~
+git clone git@github.com:BenjaminFasken/ERC-Mars-Rover.git
+```
 
 Check if your are in the `develoment` branch on the VM, by one of the two following comands:
 ```bash
@@ -96,3 +101,59 @@ git rev-parse --abbrev-ref HEAD
 ```
 
 If not, then swich to the `develoment` branch.
+
+## 1. Building Docker Images
+
+### 1.0 Install Docker
+
+1. Install Docker using the official convenience script:
+   ```bash
+   curl -fsSL https://get.docker.com -o get-docker.sh
+   sudo sh get-docker.sh
+   ```
+
+2. **Post-Installation**:
+   To run Docker without `sudo`, add your user to the `docker` group:
+   ```bash
+   sudo groupadd docker
+   sudo usermod -aG docker $USER
+   newgrp docker
+   ```
+3. Install Docker Compose to manage multi-container setups:
+  ```bash
+  sudo apt-get update
+  sudo apt-get install -y docker-compose-plugin
+  ```
+
+### 1.1 Building Docker Images
+
+#### Option 1: Let the convenience script build the images for you
+Navigate to the repository directory:
+```bash
+cd ~/ERC-Mars-Rover
+```
+
+Run the script:
+```bash
+./run_sim.sh
+```
+
+#### Option 2: Build the Images (optional)
+
+Navigate to the repository directory:
+```bash
+cd ~/ERC-Mars-Rover
+```
+
+Build the images in the following order:
+
+1. **Isaac & Perception Simulation Image (Optional)**:
+   ```bash
+   docker build -t erc-mars-rover_sim_isaac:latest -f docker/Dockerfile_sim_isaac .
+      ```
+2. **Navigation & Mapping Image (Optional)**:
+   ```bash
+   docker build -t erc-mars-rover_sim_nav:latest -f docker/Dockerfile_sim_nav .
+   ```
+
+   > **Note**: Building images requires significant disk space (~50 GB) and time. Ensure sufficient resources are available.
