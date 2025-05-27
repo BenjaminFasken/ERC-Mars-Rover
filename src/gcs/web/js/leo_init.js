@@ -273,19 +273,8 @@ function setGPIO() {
 
 
 function triggerEStop() {
-   frontierPub.publish(new ROSLIB.Message({data: false}));
-
-   var req = new ROSLIB.ServiceRequest({ mode: "off" });
-   ledPatternClient.callService(req, function (resp) {
-      if (resp.success) {
-        alert('Robot stopped. Refresh the page to reconnect.');
-        document.getElementById('mode').innerHTML = "off";
-      } else {
-         alert('ERROR: ' + resp.message);
-      }
-   });
-   robotState = "e-stop";
-   confirm("E-stop triggered. Please refresh the page to reconnect.");
+   turnOff();
+   confirm("E-stop triggered. Restart the rover to reconnect.");
 }
 
 
