@@ -1,37 +1,37 @@
-# probe detection Package
+# Navigation Package
 
 ## Overview
 
-The `probe detection` package is designed to find the probes in its FOV, and determine their local position.
+The `Navigation` package is developed to enable frontier exploration while avoiding obstacles, and recover if needed.
 
-The package includes one main node and two other support nodes, which are used to campture datasets.
+The package includes a node for generating frontiers, a configuration file for Nav2, an XML file defining the behavior tree of the navigation system, and a node for localizing probes globally.
 
 ### Key Components
 
-1. **`detect_probe.py`**: The main program, which is run to detect probes
-2. **`Capture_test_set.py`**: A node that captures a test set of images and corresponding pointcloud for the probe detection algorithm.
-3. **`ImageCaptureNode.py`**: Used to capure only images from the camera. This node is used to capture images for the training set of the probe detection algorithm.
+1. **`algolism.py`**: The script used to generate new frontiers.
+2. **`nav2_params.yaml`**: A configuration file for the entire Nav2 stack.
+3. **`navigate_to_pose_w_replanning_and_recovery.xml`**: A configuration file for defining the behavior tree of the navigation system.
+4. **`probe_filtering.cpp`**: A node responsible for localizing the detected probes globally.
 ---
 
 ## Package Structure
 
-### 1. **`models` Folder**
-Contains the trained models for the probe detection algorithm. Six models are included, in a varity of different sizes.
-The YOLO11m.pt model is the one being used in the current implementation. The other models are included for future use, and to allow for testing of different models.
+### 1. **`assets` Folder**
+Contains a model of a probe that is used for visualization in RViz.
 
-### 2. **`scripts` Folder**
-Contains the scripts mentioned in key Components.
+### 2. **`config` Folder**
+Contains the three first scripts mentioned in key Components and a config file for what parts of the Nav2 stack is launched.
 
-### 3. **`training` Folder**
-The training folder host scripts that lets one train models.
+### 3. **`launch` Folder**
+Contains two launch scipts. One for launching the navigation system and the other for launching the cmd_repeater and gpio_node handling the status LED.
 
-### 4. **`verify_system` Folder**
-Hold some scripts that can be used to verify that the system can correctly detect probes in its local frame. 
+### 4. **`scripts` Folder**
+Contains the cmd_repeater responsible for republishing the velocity commands from the navigation system to the Leo Rover.
 
-## Dependencies
+### 5. **`src` Folder**
+Contains the probe_filtering script
 
-The `probe_detection` package has the following dependencies:
-1. **Core Dependencies**:
-   - `interfaces` package
-   Other dependencies are installed in the docker file.
+### 6. **`urdf` Folder**
+This folder contains xacro file of the modelled Leo Rover
+
 
