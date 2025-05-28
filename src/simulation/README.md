@@ -39,8 +39,8 @@ To ensure a smooth and reproducible experience, the entire environment is contai
 
 ---
 
-> 🛠️ For setup instructions, jump to the [Setup Guide](#)  
-> 🚀 To launch the simulation, see the [Usage Instructions](#)
+> 🛠️ For setup instructions, jump to the [Setup Guide](#1.-using-strato)  
+> 🚀 To launch the simulation, see the [Usage Instructions](#3.-launching-the-full-simulation)
 
 
 ## 1. Using Strato
@@ -103,7 +103,7 @@ If not, then swich to the `develoment` branch.
 ### 1.3 Recomended to set up ROS 2 on VM
 It is recommended to set up **ROS 2 Humble** as well.
 ```bash
-`https://docs.ros.org/en/humble/Installation.htm
+https://docs.ros.org/en/humble/Installation.htm
 ```
 
 ## 2. Building Docker Images
@@ -125,10 +125,10 @@ Docker must be installed on your VM. If Docker is already installed, you can pro
    newgrp docker
    ```
 3. Install Docker Compose to manage multi-container setups:
-  ```bash
-  sudo apt-get update
-  sudo apt-get install -y docker-compose-plugin
-  ```
+   ```bash
+   sudo apt-get update
+   sudo apt-get install -y docker-compose-plugin
+   ```
 
 ### 2.2 Building Docker Images
 
@@ -193,13 +193,14 @@ Run the script (VM):
 ```
 
 To see the simulation on your local PC you need the **Isaac Sim WebRTC Streaming Client**.
+
 a. **If not downloaded** go to `https://docs.isaacsim.omniverse.nvidia.com/latest/installation/download.html#isaac-sim-latest-release` and Download the Isaac Sim WebRTC Streaming Client for linux, and put it in a folder called `/isaacsim` on your local machine home directory.
 
 b. **If downloaded**, then in your local machine home directory run:
    ```bash
    ./isaacsim/isaacsim-webrtc-streaming-client-1.0.6-linux-x64.AppImage
    ```
-   - Enter your VM's IP adress in **Server: **`10.92.1.zzz`
+   - Enter your VM's IP adress in **Server:** `10.92.1.zzz`
    - Chose your **Resolution:** `1920 x 1080 (FHD)`
    - Then **Cpnnect** or hit `enter`
 
