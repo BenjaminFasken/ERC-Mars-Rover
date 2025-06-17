@@ -203,7 +203,7 @@ private:
 
     // Add each probe as a point with color based on confidence, only if seen more than once
     for (const auto &p : tracked_probes_) {
-        if (p.getCount() < 1) continue; // Only visualize probes seen more than once
+        if (p.getCount() < 2) continue; // Only visualize probes seen more than once
 
         auto [x, y, z] = p.getAveragePosition();
         float confidence = p.getAverageConfidence();
