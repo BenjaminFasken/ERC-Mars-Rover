@@ -36,7 +36,8 @@ class FrontierExplorationNode(Node):
         self.map_data = None
         self.map_array = None
         self.map_metadata = None
-        self.goal_reached = False  # Initialize to True to allow first goal
+        self.goal_reached = False  # Initialize to False
+        self.exploration_enabled = False  # Add exploration control flag
         self.robot_x = 0.0
         self.robot_y = 0.0
         self.orientation = Quaternion()
@@ -62,10 +63,12 @@ class FrontierExplorationNode(Node):
 
     def trigger_callback(self, msg):
         if msg.data:
+            self.exploration_enabled = True
             self.homing = False
             self.goal_reached = True
             self.get_logger().info("Exploration manually triggered")
-        if not msg.data:
+        else:
+            self.exploration_enabled = False
             self.goal_reached = False
             self.get_logger().info("Exploration stopped manually")
             self.publish_goal([self.robot_x, self.robot_y], self.orientation)
@@ -91,7 +94,9 @@ class FrontierExplorationNode(Node):
         if self.map_array is None:
             self.get_logger().warn("Map not yet received, skipping")
             return
-        if self.goal_reached:
+        
+        # Only proceed if exploration is enabled and goal is reached
+        if self.exploration_enabled and self.goal_reached:
             self.get_logger().info("Detecting new frontier")
             frontiers = self.detect_frontiers(self.map_info)
             if frontiers:
@@ -106,7 +111,7 @@ class FrontierExplorationNode(Node):
             else:
                 self.get_logger().warn("No frontiers detected")
                 self.going_home()
-        else:
+        elif self.exploration_enabled:
             self.get_logger().info("Waiting for current goal to complete")
 
     def odom_callback(self, msg):
@@ -116,7 +121,6 @@ class FrontierExplorationNode(Node):
         self.orientation.y = msg.pose.pose.orientation.y
         self.orientation.z = msg.pose.pose.orientation.z
         self.orientation.w = msg.pose.pose.orientation.w
-
 
     def is_near_wall(self, x, y, map_data, threshold):
         for i in range(-threshold, threshold + 1):
