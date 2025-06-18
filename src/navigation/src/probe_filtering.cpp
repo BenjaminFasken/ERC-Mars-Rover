@@ -265,18 +265,18 @@ private:
 
         // Set the mesh resource
         marker.mesh_resource = mesh_resource_path;
-        marker.mesh_use_embedded_materials = true; // Use materials defined in the mesh (if any)
+        marker.mesh_use_embedded_materials = false; // Use materials defined in the mesh (if any)
 
         // Set marker scale (adjust based on your mesh's size)
-        marker.scale.x = 1.0; // Scale factor for the mesh
-        marker.scale.y = 1.0;
-        marker.scale.z = 1.0;
+        marker.scale.x = 2.5; // Scale factor for the mesh
+        marker.scale.y = 2.5;
+        marker.scale.z = 2.5;
 
         // Set pose based on probe's average position
         auto [x, y, z] = p.getAveragePosition();
         marker.pose.position.x = x;
         marker.pose.position.y = y;
-        marker.pose.position.z = z+10.0; // Use z for 3D positioning
+        marker.pose.position.z = 0.0; // Use z for 3D positioning
         marker.pose.orientation.w = 1.0; // No rotation (adjust if needed)
         marker.pose.orientation.x = 0.0;
         marker.pose.orientation.y = 0.0;
@@ -285,27 +285,22 @@ private:
         // Set color based on confidence
         float confidence = p.getAverageConfidence();
         std_msgs::msg::ColorRGBA color;
-        if (confidence < 0.7) {
-            // Below 70%: Red
+        if (confidence < 0.77) {
             color.r = 1.0;
             color.g = 0.0;
             color.b = 0.0;
-        } else if (confidence <= 0.8) {
+        } else if (confidence < 0.83) {
             // 70% to 80%: Yellow
             color.r = 1.0;
             color.g = 1.0;
             color.b = 0.0;
-        } else if (confidence > 0.9) {
+        } else {
             // Above 90%: Green
             color.r = 0.0;
             color.g = 1.0;
             color.b = 0.0;
-        } else {
-            // 80% to 90%: Greenish-yellow
-            color.r = 0.5;
-            color.g = 1.0;
-            color.b = 0.0;
-        }
+        } 
+
         color.a = 1.0;
         marker.color = color;
 
@@ -379,7 +374,7 @@ private:
     publisher_->publish(msg_out);
 
     // Add marker publishing for RViz
-    publishProbeMarkers();
+    //publishProbeMarkers();
     publishProbeModels();
   }
 
