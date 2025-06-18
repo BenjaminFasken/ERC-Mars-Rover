@@ -23,5 +23,7 @@
   
   <export>
     <build_type>ament_cmake</build_type>
+    <resource>navigation</resource>
+    <architecture_independent>true</architecture_independent>
   </export>
 </package>
