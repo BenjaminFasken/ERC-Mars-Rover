@@ -253,7 +253,7 @@ private:
 
     // Iterate over tracked probes
     for (const auto &p : tracked_probes_) {
-        if (p.getCount() < 1) continue; // Only visualize probes seen more than once
+        if (p.getCount() < 2) continue; // Only visualize probes seen more than once
 
         visualization_msgs::msg::Marker marker;
         marker.header.frame_id = latest_pose_.header.frame_id;
