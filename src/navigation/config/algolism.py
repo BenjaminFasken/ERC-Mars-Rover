@@ -71,7 +71,7 @@ class FrontierExplorationNode(Node):
             self.exploration_enabled = False
             self.goal_reached = False
             self.get_logger().info("Exploration stopped manually")
-            self.publish_goal([self.robot_x, self.robot_y], self.orientation)
+            #self.publish_goal([self.robot_x, self.robot_y], self.orientation)
     
     def going_home(self):
         self.goal_reached = False
