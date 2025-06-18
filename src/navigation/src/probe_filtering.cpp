@@ -312,6 +312,15 @@ private:
   void probeCallback(const ProbeLocations::SharedPtr msg) {
     RCLCPP_INFO(get_logger(), "Received new probe locations");
 
+    // If no poses in history, ignore this callback
+    {
+      std::lock_guard<std::mutex> lock(pose_mutex_);
+      if (pose_history_.empty()) {
+        RCLCPP_WARN(get_logger(), "No poses in history, ignoring probe callback.");
+        return;
+      }
+    }
+
     // find the closest pose to the probe message timestamp
     auto closest_pose = getClosestPose(msg->header.stamp);
 
