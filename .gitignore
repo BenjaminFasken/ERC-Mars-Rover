@@ -5,3 +5,4 @@ runs
 yolo12s.pt
 datasets/raw_images
 src/zed-ros2-wrapper
+src/probe_detection/training
