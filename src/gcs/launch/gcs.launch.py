@@ -36,10 +36,16 @@ def generate_launch_description():
             )
         ]
     )
-        
+    # Command to run RViz2 with specified configuration
+    rviz_command = ExecuteProcess(
+        cmd=["ros2", "run", "rviz2", "rviz2", "-d", "src/gcs/rviz2/rviz-config.rviz"],
+        output="screen",
+        shell=True
+    )
     # Create and return the launch description
     return LaunchDescription([
         http_server_command,
         ros_web_bridge_command,
-        gcs_listener_node
+        gcs_listener_node,
+        rviz_command
     ])
