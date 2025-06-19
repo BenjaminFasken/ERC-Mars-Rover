@@ -608,7 +608,7 @@ function retrieveVideoSrc() {
 
 window.onload = function () {
 
-    robotHostname = "192.168.1.18";
+    robotHostname = "192.168.1.13";
 
     video = document.getElementById('video');
     select = document.getElementById('camera-select');

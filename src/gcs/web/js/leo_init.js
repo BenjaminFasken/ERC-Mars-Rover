@@ -340,6 +340,7 @@ function goTarget() {
       alert("Robot is in e-stop mode. Please refresh the page to reconnect.");
       return;
    }
+    frontierPub.publish(new ROSLIB.Message({data: false}));
    var res = prompt('Enter target coordinates (x,y):', '0,0');
    var x, y;
    try{
@@ -597,7 +598,7 @@ function retrieveVideoSrc() {
 
 window.onload = function () {
 
-    robotHostname = "192.168.1.18";
+    robotHostname = "192.168.1.13";
 
     video = document.getElementById('video');
     select = document.getElementById('camera-select');
