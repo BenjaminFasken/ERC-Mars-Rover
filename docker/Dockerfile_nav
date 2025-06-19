@@ -1,0 +1,78 @@
+# Use the updated base image
+FROM erc-mars-rover_base:latest
+
+ARG ROS_DISTRO=humble
+ARG BASE_FOLDER=/root/orin
+ARG ROS_WORKSPACE_NAME=ERC-Mars-Rover
+
+WORKDIR ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}
+
+# - - - - Install system wide packages - - - - 
+# Install Nav2
+RUN apt-get update && \
+    /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash && \
+    apt-get install -y \
+    ros-${ROS_DISTRO}-navigation2 \
+    ros-${ROS_DISTRO}-nav2-bringup \
+    ros-${ROS_DISTRO}-vector-pursuit-controller" && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install RTAB MAP
+RUN apt-get update && \ 
+    apt install ros-$ROS_DISTRO-rtabmap-ros -y && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install build tools and dependencies for Livox
+RUN apt-get update && \
+    apt-get install -y git cmake g++ libboost-all-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+# Livox SDK
+RUN cd ~ && \
+    git clone https://github.com/Livox-SDK/Livox-SDK2.git && \
+    cd Livox-SDK2/ && mkdir build && cd build && \
+    cmake .. && make && make install
+
+# - - - - Instal Workspace specific packages - - - -
+COPY ../src/ src/
+
+RUN cp ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}/src/navigation/config/nav2_params.yaml /opt/ros/humble/share/nav2_bringup/params/nav2_params.yaml && \
+    cp ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}/src/navigation/config/navigation_launch.py /opt/ros/humble/share/nav2_bringup/launch/navigation_launch.py && \
+    cp ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}/src/navigation/config/navigate_to_pose_w_replanning_and_recovery.xml /opt/ros/humble/share/nav2_bt_navigator/behavior_trees/navigate_to_pose_w_replanning_and_recovery.xml && \
+    cp ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}/src/navigation/config/navigate_through_poses_w_replanning_and_recovery.xml /opt/ros/humble/share/nav2_bt_navigator/behavior_trees/navigate_through_poses_w_replanning_and_recovery.xml
+RUN find src/ -path "*/scripts/*" -type f -exec chmod +x {} \;
+
+RUN apt-get update && \
+    apt-get install -y git cmake g++ libboost-all-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+# Livox ros2 package, and replace config file and the build file
+RUN git clone https://github.com/Livox-SDK/Livox_ros_driver2.git src/livox_ros_driver2 && \
+cd src/livox_ros_driver2 && \
+cp ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}/src/slam/config/MID360_config.json config/MID360_config.json && \
+cp ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}/src/slam/config/build.sh build.sh
+
+# Build Livox ROS Driver
+RUN cd src/livox_ros_driver2 && \
+    /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash && ./build.sh ${ROS_DISTRO}" && \
+    cd ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}
+
+# Set LD_LIBRARY_PATH for runtime
+ENV LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/lib
+
+# Clone Frontier exploration
+RUN git clone https://github.com/Nyanziba/AutoFrontierSearch_ros2-humble.git src/AutoFrontierSearch_ros2-humble && \
+    cd src/AutoFrontierSearch_ros2-humble && \
+    cp ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}/src/navigation/config/algolism.py src/frontier_exploration/frontier_exploration/algolism.py
+
+
+RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash && \
+    colcon build --parallel-workers $(nproc) --symlink-install \
+        --event-handlers console_direct+ --base-paths src \
+        --packages-skip livox_ros_driver2 probe_detection gcs simulation \
+        --cmake-args \
+            ' -DCMAKE_BUILD_TYPE=Release' \
+            ' -DCMAKE_CXX_FLAGS=\"-Wl,--allow-shlib-undefined\"' \
+            ' --no-warn-unused-cli'"
+
+ENTRYPOINT ["/bin/bash", "-c", "source ${BASE_FOLDER}/${ROS_WORKSPACE_NAME}/install/setup.bash && exec \"$@\"", "bash"]

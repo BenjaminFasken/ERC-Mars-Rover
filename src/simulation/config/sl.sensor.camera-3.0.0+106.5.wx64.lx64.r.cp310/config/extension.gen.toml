@@ -1,0 +1,26 @@
+
+[package]
+    trusted = 0
+    archiveSubdir = "zed-isaac-sim-3.0.0/exts/sl.sensor.camera"
+    archivePath = "https://github.com/stereolabs/zed-isaac-sim/archive/refs/tags/v3.0.0.zip"
+    repository = "https://github.com/stereolabs/zed-isaac-sim/tree/v3.0.0"
+    githubRelease = "https://github.com/stereolabs/zed-isaac-sim/releases/tag/v3.0.0"
+
+    [package.authors]
+        0 = "https://github.com/stereolabs"
+
+    [package.publish]
+        date = 1742465909
+        buildNumber = "v3.0.0"
+
+    [package.target]
+
+        [package.target.platform]
+            0 = "windows-x86_64"
+            1 = "linux-x86_64"
+
+        [package.target.config]
+            0 = "release"
+
+        [package.target.python]
+            0 = "cp310"

@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1, user-scalable=no, shrink-to-fit=no">
+    <meta name="application-name" content="LeoRover UI">
+    <meta name="apple-mobile-web-app-title" content="LeoRover UI">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
+    <title>LeoRover</title>
+
+    <!-- icons -->
+    <link rel="shortcut icon" href="img/LogoLeo_mini.png">
+    <link rel="apple-touch-icon-precomposed" href="img/LogoLeo_mini.png">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/font.css" />
+
+    <script src="js/jquery.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/roslib.min.js"></script>
+    <script src="js/nipplejs.js"></script>
+    <script src="js/leo.js"></script>
+    <script src="js/fullscreen.js"></script>
+
+    <style>
+        body {
+            background: #181818;
+            background-image: radial-gradient(#333333 5%, transparent 0);
+            background-size: 30px 30px;
+            font-family: 'roboto_mediumregular';
+            font-size: 1em;
+            overflow: hidden;
+        }
+
+        .navbar-flex-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            width: 100%;
+            gap: 0.5em; /* Add gap between elements */
+        }
+
+        .main-container, .button-container {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between; /* Changed from space-evenly to space-between */
+            align-items: center;
+            flex-wrap: nowrap; /* Prevent buttons from wrapping to a new line */
+            overflow-x: auto; /* Add horizontal scrolling if needed */
+        }
+    
+        /* Main container takes more space when room is available */
+        .main-container {
+            flex: auto;
+            min-width: 50vw;
+        }
+        
+        /* Button container takes less space */
+        .button-container {
+            flex: auto;
+            min-width: 40vw;
+        }
+
+        /* Add media query for smaller screens */
+        @media (max-width: 1000px) {
+            .navbar-flex-wrapper {
+                flex-direction: column;
+            }
+            
+            .main-container, .button-container {
+                width: 100%;
+            }
+        }
+
+        .status-indicators {
+            color: white;
+            display: flex;
+            flex-direction: row; /* Changed from column to row */
+            border-right: 1px solid #646464;
+        }
+        .position-container{
+            border-right: 1px solid #646464; 
+        }
+        .position-container, .battery-pin-container {
+            display: flex;
+            flex-direction: row;
+            padding-left: 1em;
+        }
+        .name-container {
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+            padding-right: 1em;
+            font-size: 1em;
+        }
+        .value-container {
+            display: flex;
+            flex-direction: column;
+            text-align: right;
+            padding-right: 1em;
+            font-size: 1em;
+        }
+        .img-fluid {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #181818;
+            width: 2.5em;
+        }
+
+        .btn-dark {
+            margin: 0px 1em;
+        }
+
+        .video-container {
+            width: 100%;
+            height: 100%;
+        }
+        #joystick {
+            z-index: 1001;
+            position: fixed;
+            bottom: 10vh;
+            right: 10vh;
+        }
+
+
+        @media (max-aspect-ratio: 6/5) {
+            #joystick {
+                position: fixed;
+                bottom: 30vh;
+                right: 50vw;
+            }
+        }
+
+        .button-container .btn {
+            margin: 0 0.25em; /* Add consistent spacing */
+            white-space: nowrap; /* Prevent text wrapping inside buttons */
+            flex: 1;
+            min-width: 0;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .button-container .btn {
+            /* Base styling with better mobile responsiveness */
+            padding: clamp(0.2rem, 0.8vw, 0.8rem) clamp(0.3rem, 1.5vw, 1.2rem);
+            /* padding: 1px; */
+            font-size: clamp(0.6rem, 1.2vw, 0.9rem);
+            /* margin: 0 clamp(0.05em, 0.3vw, 0.2em); */
+            
+            /* Ensure text remains readable at all sizes */
+            min-width: min-content;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+            
+            /* Smooth transitions between sizes */
+            transition: all 0.3s ease;
+        }
+
+        #countdown-overlay {
+            position: fixed;
+            bottom: 50vh;
+            right: 50vw;
+            transform: translate(50%, 50%);
+            font-size: 60px;
+            font-weight: bold;
+            color: white;
+            background-color: rgba(0, 0, 0, 0.7);
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1002;
+        }
+
+        @media (max-aspect-ratio: 6/5) {
+            #countdown-overlay {
+                position: fixed;
+                bottom: 30vh;
+                right: 50vw;
+            }
+        }
+        
+        .countdown-hidden {
+            display: none !important;
+        }
+    </style>
+    
+
+</head>
+
+<body class="bg-custom">
+
+    <nav class="navbar">
+        <div class="navbar-flex-wrapper">
+            <div class="main-container">
+                <!-- Logo -->
+                <div class="navbar-brand">
+                    <img  src="img/LogoLeo.png" alt="Logo" style="max-width: 130px;">
+                </div>
+                
+                <!-- Status indicators with flex layout -->
+                <div class="status-indicators">
+                    <div class="position-container">
+                        <div class="name-container">
+                            <div class="text">X:</div>
+                            <div class="text">Y:</div>
+                            <div class="text">Z:</div>
+                        </div>
+                        <div class="value-container">
+                            <div id="position-x">N/A</div>
+                            <div id="position-y">N/A</div>
+                            <div id="position-z">N/A</div>
+                        </div>
+                    </div>
+                    <div class="battery-pin-container">
+                        <div class="name-container">
+                            <div class="text" onclick="setGPIO()">Mode:</div>
+                            <div class="text">Voltage:</div>
+                            <div class="text" onclick="setProbeThresh()">Probes found:</div>
+                            
+                        </div>
+                        <div class="value-container">
+                            <div id="mode" class="text" onclick="setGPIO()">manual</div>
+                            <div id="batteryID" class="text">N/A</div>
+                            <div id="pinsID" class="text" onclick="setProbeThresh()">N/A</div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn-dark" type="button" onclick="fullScreen()">
+                    <img class="img-fluid" src="img/nav-bar-fullscreen.svg" alt="FullScreen">
+                </button>
+
+                <div class="camera-div">
+                    <p class="text-light mb-0">Camera stream:</p>
+                    <select name="camera" id="camera-select" class="form-control form-control-sm" onchange="changeVideoSrc();"></select>
+                </div>
+            </div>
+            <div class="button-container">
+                <button type="button" class="btn btn-danger" onclick="triggerEStop()">E-STOP</button>
+                <button type="button" class="btn" onclick="setFrontier()">Frontier</button>
+                <button type="button" class="btn" onclick="goHome()">Home</button>
+                <button type="button" class="btn" onclick="goTarget()">Target</button>
+                <button type="button" class="btn btn-warning" onclick="systemReboot()">Reboot</button>
+                <button type="button" class="btn btn-danger" onclick="turnOff()">Turn off</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main content area with video feed -->
+    <div class="justify-content-center ">
+        <img src="index.html" class="center-fit" alt="" id="video">
+    </div>
+
+    <!-- Joystick controller -->
+    <div class="joystick-container">
+        <div id="joystick"></div>
+        <div id="countdown-overlay" class="countdown-hidden">5</div>
+    </div>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
