@@ -178,7 +178,7 @@ private:
 
     marker.header.frame_id = latest_pose_.header.frame_id;
     marker.header.stamp = this->get_clock()->now();
-    marker.ns = "probes";
+    marker.ns = "probes_sphere_list"; // Namespace for the marker
     marker.id = 0;
     marker.type = visualization_msgs::msg::Marker::SPHERE_LIST; // Changed to SPHERE_LIST for multiple points
     marker.action = visualization_msgs::msg::Marker::ADD;
@@ -201,8 +201,10 @@ private:
     marker.pose.orientation.y = 0.0;
     marker.pose.orientation.z = 0.0;
 
-    // Add each probe as a point with color based on confidence
+    // Add each probe as a point with color based on confidence, only if seen more than once
     for (const auto &p : tracked_probes_) {
+        if (p.getCount() < 2) continue; // Only visualize probes seen more than once
+
         auto [x, y, z] = p.getAveragePosition();
         float confidence = p.getAverageConfidence();
 
@@ -243,9 +245,81 @@ private:
     marker_publisher_->publish(marker);
   } 
 
+  void publishProbeModels() {
+    // Directory where the mesh file is stored (e.g., a .stl or .dae file referenced by the URDF)
+    const std::string mesh_resource_path = "package://navigation/assets/probeModel.dae";
+
+    int marker_id = 0; // Unique ID for each marker
+
+    // Iterate over tracked probes
+    for (const auto &p : tracked_probes_) {
+        if (p.getCount() < 2) continue; // Only visualize probes seen more than once
+
+        visualization_msgs::msg::Marker marker;
+        marker.header.frame_id = latest_pose_.header.frame_id;
+        marker.header.stamp = this->get_clock()->now();
+        marker.ns = "probes_models";
+        marker.id = marker_id++; // Assign unique ID for each probe
+        marker.type = visualization_msgs::msg::Marker::MESH_RESOURCE; // Use MESH_RESOURCE for URDF/mesh
+        marker.action = visualization_msgs::msg::Marker::ADD;
+
+        // Set the mesh resource
+        marker.mesh_resource = mesh_resource_path;
+        marker.mesh_use_embedded_materials = false; // Use materials defined in the mesh (if any)
+
+        // Set marker scale (adjust based on your mesh's size)
+        marker.scale.x = 2.5; // Scale factor for the mesh
+        marker.scale.y = 2.5;
+        marker.scale.z = 2.5;
+
+        // Set pose based on probe's average position
+        auto [x, y, z] = p.getAveragePosition();
+        marker.pose.position.x = x;
+        marker.pose.position.y = y;
+        marker.pose.position.z = 0.0; // Use z for 3D positioning
+        marker.pose.orientation.w = 1.0; // No rotation (adjust if needed)
+        marker.pose.orientation.x = 0.0;
+        marker.pose.orientation.y = 0.0;
+        marker.pose.orientation.z = 0.0;
+
+        // Set color based on confidence
+        float confidence = p.getAverageConfidence();
+        std_msgs::msg::ColorRGBA color;
+        if (confidence < 0.77) {
+            color.r = 1.0;
+            color.g = 0.0;
+            color.b = 0.0;
+        } else if (confidence < 0.83) {
+            // 70% to 80%: Yellow
+            color.r = 1.0;
+            color.g = 1.0;
+            color.b = 0.0;
+        } else {
+            // Above 90%: Green
+            color.r = 0.0;
+            color.g = 1.0;
+            color.b = 0.0;
+        } 
+
+        color.a = 1.0;
+        marker.color = color;
+
+        // Publish the marker
+        marker_publisher_->publish(marker);
+    }
+}
   
   void probeCallback(const ProbeLocations::SharedPtr msg) {
     RCLCPP_INFO(get_logger(), "Received new probe locations");
+
+    // If no poses in history, ignore this callback
+    {
+      std::lock_guard<std::mutex> lock(pose_mutex_);
+      if (pose_history_.empty()) {
+        RCLCPP_WARN(get_logger(), "No poses in history, ignoring probe callback.");
+        return;
+      }
+    }
 
     // find the closest pose to the probe message timestamp
     auto closest_pose = getClosestPose(msg->header.stamp);
@@ -309,7 +383,8 @@ private:
     publisher_->publish(msg_out);
 
     // Add marker publishing for RViz
-    publishProbeMarkers();
+    //publishProbeMarkers();
+    publishProbeModels();
   }
 
   float merge_threshold_ = 0.6; // distance in meters to merge probes
