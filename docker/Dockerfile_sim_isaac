@@ -164,7 +164,7 @@ RUN apt-get update && \
 # Set environment variables for ZED SDK
 ENV LD_LIBRARY_PATH=/usr/local/zed/lib
 
-# Install cuda
+# Install CUDA
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gnupg curl ca-certificates && \
     curl -fsSL https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/3bf863cc.pub | gpg --dearmor -o /usr/share/keyrings/cuda-archive-keyring.gpg && \
